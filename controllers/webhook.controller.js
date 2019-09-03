@@ -1,3 +1,5 @@
+const request = require('request')
+
 exports.sendHookResponse = (req, res) => {
   let body = req.body
   // Checks this is an event from a page subscription
