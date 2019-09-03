@@ -36,3 +36,10 @@ describe('F1 Messenger tests', function() {
     })
   })
 })
+it('handleMessage', function() {
+  //   webhookController.handleMessage('2399043010191818', {
+  //     message: {
+  //       text: 'blah blah'
+  //     }
+  //   })
+})
