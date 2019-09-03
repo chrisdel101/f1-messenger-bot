@@ -84,21 +84,27 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     if (webhook_event.message.text) {
       // check if text is a driver name
       module.exports.isDriverName(webhook_event.message.text).then(bool => {
-        // Create the payload for a basic text message
-        const driverSlug = module.exports.slugifyDriver(
-          webhook_event.message.text
-        )
-        response = {
-          attachment: {
-            type: 'image',
-            payload: {
-              // template_type: 'generic',
-              url: endpoints.web(driverSlug),
-              is_reusable: true
+        if (bool) {
+          // Create the payload for a basic text message
+          const driverSlug = module.exports.slugifyDriver(
+            webhook_event.message.text
+          )
+          response = {
+            attachment: {
+              type: 'image',
+              payload: {
+                // template_type: 'generic',
+                url: endpoints.web(driverSlug),
+                is_reusable: true
+              }
             }
           }
+          callSendAPI(sender_psid, response)
+        } else {
+          response = {
+            text: 'There is no driver by that name. Maybe check your spelling.'
+          }
         }
-        callSendAPI(sender_psid, response)
       })
     }
     //  else if (webhook_event.message.attachments) {
