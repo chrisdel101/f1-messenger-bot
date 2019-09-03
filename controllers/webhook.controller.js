@@ -97,8 +97,8 @@ exports.handleMessage = (sender_psid, webhook_event) => {
               is_reusable: true
             }
           }
-          callSendAPI(sender_psid, response)
         }
+        callSendAPI(sender_psid, response)
       })
     }
     //  else if (webhook_event.message.attachments) {
