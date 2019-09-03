@@ -1,4 +1,7 @@
 const request = require('request')
+const slugify = require('slugify')
+const endpoints = require('../endpoints')
+const { httpsFetch } = require('../utils')
 
 exports.sendHookResponse = (req, res) => {
   let body = req.body
@@ -16,7 +19,7 @@ exports.sendHookResponse = (req, res) => {
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
       if (webhook_event.message) {
-        handleMessage(sender_psid, webhook_event.message)
+        handleMessage(sender_psid, webhook_event)
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback)
       }
@@ -52,27 +55,51 @@ exports.verifyHook = (req, res) => {
     }
   }
 }
-
+exports.slugifyDriver = driverName => {
+  const newName = slugify(driverName, {
+    lower: true
+  })
+  return newName
+}
+exports.getAllDriverSlugs = () => {
+  return httpsFetch(endpoints.scraper('drivers')).then(drivers => drivers)
+}
+exports.isDriverName = nameToCheck => {
+  try {
+    return module.exports.getAllDriverSlugs().then(drivers => {
+      if (drivers.includes(nameToCheck)) {
+        return true
+      }
+      return false
+    })
+  } catch (e) {
+    console.error('An error in isDriverName', e)
+  }
+}
 // Handles messages events
-function handleMessage(sender_psid, received_message) {
+function handleMessage(sender_psid, webhook_event) {
   let response
 
   // Check if the message contains text
-  if (received_message.text) {
-    // Create the payload for a basic text message
-    response = {
-      attachment: {
-        type: 'image',
-        payload: {
-          // template_type: 'generic',
-          url: 'https://f1-cards.herokuapp.com/sergio-perez',
-          is_reusable: true
+  if (webhook_event.message.text) {
+    // check if text is a driver name
+    isDriverName(webhook_event.message.text).then(bool => {
+      // Create the payload for a basic text message
+      const driverSlug = slugifyDriver(webhook_event)
+      response = {
+        attachment: {
+          type: 'image',
+          payload: {
+            // template_type: 'generic',
+            url: endpoints.web(driverSlug),
+            is_reusable: true
+          }
         }
       }
-    }
-  } else if (received_message.attachments) {
+    })
+  } else if (webhook_event.message.attachments) {
     // Gets the URL of the message attachment
-    let attachment_url = received_message.attachments[0].payload.url
+    let attachment_url = webhook_event.message.attachments[0].payload.url
     response = {
       attachment: {
         type: 'template',
