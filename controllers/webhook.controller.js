@@ -133,7 +133,7 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     // }
 
     // // Sends the response message
-    // callSendAPI(sender_psid, response)
+    callSendAPI(sender_psid, response)
   } catch (e) {
     console.error('Error in handleMessage', e)
   }
