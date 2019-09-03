@@ -83,7 +83,7 @@ function handleMessage(sender_psid, webhook_event) {
   // Check if the message contains text
   if (webhook_event.message.text) {
     // check if text is a driver name
-    isDriverName(webhook_event.message.text).then(bool => {
+    module.exports.isDriverName(webhook_event.message.text).then(bool => {
       // Create the payload for a basic text message
       const driverSlug = slugifyDriver(webhook_event)
       response = {
