@@ -79,58 +79,61 @@ exports.isDriverName = nameToCheck => {
 // Handles messages events
 function handleMessage(sender_psid, webhook_event) {
   let response
-
-  // Check if the message contains text
-  if (webhook_event.message.text) {
-    // check if text is a driver name
-    module.exports.isDriverName(webhook_event.message.text).then(bool => {
-      // Create the payload for a basic text message
-      const driverSlug = slugifyDriver(webhook_event)
+  try {
+    // Check if the message contains text
+    if (webhook_event.message.text) {
+      // check if text is a driver name
+      module.exports.isDriverName(webhook_event.message.text).then(bool => {
+        // Create the payload for a basic text message
+        const driverSlug = module.exports.slugifyDriver(webhook_event)
+        response = {
+          attachment: {
+            type: 'image',
+            payload: {
+              // template_type: 'generic',
+              url: endpoints.web(driverSlug),
+              is_reusable: true
+            }
+          }
+        }
+      })
+    } else if (webhook_event.message.attachments) {
+      // Gets the URL of the message attachment
+      let attachment_url = webhook_event.message.attachments[0].payload.url
       response = {
         attachment: {
-          type: 'image',
+          type: 'template',
           payload: {
-            // template_type: 'generic',
-            url: endpoints.web(driverSlug),
-            is_reusable: true
+            template_type: 'generic',
+            elements: [
+              {
+                title: 'Is this the right picture?',
+                subtitle: 'Tap a button to answer.',
+                image_url: attachment_url,
+                buttons: [
+                  {
+                    type: 'postback',
+                    title: 'Yes!',
+                    payload: 'yes'
+                  },
+                  {
+                    type: 'postback',
+                    title: 'No!',
+                    payload: 'no'
+                  }
+                ]
+              }
+            ]
           }
         }
       }
-    })
-  } else if (webhook_event.message.attachments) {
-    // Gets the URL of the message attachment
-    let attachment_url = webhook_event.message.attachments[0].payload.url
-    response = {
-      attachment: {
-        type: 'template',
-        payload: {
-          template_type: 'generic',
-          elements: [
-            {
-              title: 'Is this the right picture?',
-              subtitle: 'Tap a button to answer.',
-              image_url: attachment_url,
-              buttons: [
-                {
-                  type: 'postback',
-                  title: 'Yes!',
-                  payload: 'yes'
-                },
-                {
-                  type: 'postback',
-                  title: 'No!',
-                  payload: 'no'
-                }
-              ]
-            }
-          ]
-        }
-      }
     }
-  }
 
-  // Sends the response message
-  callSendAPI(sender_psid, response)
+    // Sends the response message
+    callSendAPI(sender_psid, response)
+  } catch (e) {
+    console.error('Error in handleMessage', e)
+  }
 }
 
 // Handles messaging_postbacks events
