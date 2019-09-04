@@ -24,13 +24,13 @@ describe('F1 Messenger tests', function() {
         assert(result.includes('alexander-albon'))
       })
     })
-    it('isDriverName returns true when matches', function() {
-      return webhookController.isDriverName('Pierre Gasly').then(bool => {
+    it('checkDriverApi returns true when matches', function() {
+      return webhookController.checkDriverApi('Pierre Gasly').then(bool => {
         assert(bool === true)
       })
     })
-    it('isDriverName returns false when not matches', function() {
-      return webhookController.isDriverName('Pierre Gaslly').then(bool => {
+    it('checkDriverApi returns false when not matches', function() {
+      return webhookController.checkDriverApi('Pierre Gaslly').then(bool => {
         assert(bool === false)
       })
     })
@@ -45,6 +45,29 @@ describe('F1 Messenger tests', function() {
           console.log(res.statusCode)
           assert(res.statusCode, '400')
         })
+    })
+    it('checkText returns greeting prompt', function() {
+      return webhookController.checkText('hello').then(res => {
+        assert.strictEqual(
+          res,
+          'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
+        )
+      })
+    })
+    it('checkText returns help prompt ', function() {
+      return webhookController.checkText('help').then(res => {
+        assert.strictEqual(res, 'What can we do to help you today?')
+      })
+    })
+    it.only('handleDriversCache adds to cache', function() {
+      const fakeCache = {
+        'test-driver': 'An image here'
+      }
+      const res = webhookController.handleDriversCache(
+        'test-driver1',
+        fakeCache
+      )
+      console.log('res', res)
     })
   })
 })

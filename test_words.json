@@ -1,0 +1,14 @@
+{
+  "prompt_greeting": ["hello", "hi"],
+  "prompt_help": [
+    "help",
+    "send",
+    "what",
+    "do",
+    "stuff",
+    "where",
+    "how",
+    "who",
+    "why"
+  ]
+}

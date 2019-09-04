@@ -1,11 +1,17 @@
 module.exports = {
-  production: params => {
+  localAPI: params => {
+    return `http://localhost:5000/${params}`
+  },
+  localWeb: params => {
+    return `http://localhost:3000/${params}`
+  },
+  productionWeb: params => {
     return `https://f1-cards.herokuapp.com/${params}`
   },
-  scraper: params => {
+  productionAPI: params => {
     return `https://f1-api.herokuapp.com/${params}`
   },
-  web: params => {
+  productionCards: params => {
     return `https://f1-cards.herokuapp.com//api/driver/${params}`
   }
 }

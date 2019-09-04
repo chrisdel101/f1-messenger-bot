@@ -2,6 +2,9 @@ const request = require('request')
 const slugify = require('slugify')
 const endpoints = require('../endpoints')
 const { httpsFetch } = require('../utils')
+const testWords = require('../test_words.json')
+const responses = require('../responses.json')
+const driversCache = require('../driversCache')
 
 exports.sendHookResponse = (req, res) => {
   let body = req.body
@@ -62,9 +65,10 @@ exports.slugifyDriver = driverName => {
   return newName
 }
 exports.getAllDriverSlugs = () => {
-  return httpsFetch(endpoints.scraper('drivers')).then(drivers => drivers)
+  return httpsFetch(endpoints.productionAPI('drivers')).then(drivers => drivers)
 }
-exports.isDriverName = nameToCheck => {
+// check if string is driver name from api
+exports.checkDriverApi = nameToCheck => {
   try {
     return module.exports.getAllDriverSlugs().then(drivers => {
       if (drivers.includes(nameToCheck)) {
@@ -73,10 +77,48 @@ exports.isDriverName = nameToCheck => {
       return false
     })
   } catch (e) {
-    console.error('An error in isDriverName', e)
+    console.error('An error in checkDriverApi', e)
   }
 }
-exports.checkText = text => {}
+exports.handleDriversCache = (driverSlug, driversCache) => {
+  // check cache
+  // console.log(!driversCache.hasOwnProperty(driverSlug))
+  // console.log(driverSlug in driversCache)
+  if (!driversCache.hasOwnProperty(driverSlug)) {
+    // console.log(driversCache)
+    driversCache[driverSlug] = driverSlug
+    return driversCache
+  }
+  // call all drivers and store in cache
+  //stamp with time and date
+  // if in cache, check if time is valid
+  // if valid get from cache
+  // if invalid or not there, call api
+}
+exports.checkText = text => {
+  // check if a driver name
+  try {
+    return module.exports.checkDriverApi(text).then(bool => {
+      // true if a driver name
+      if (bool) {
+        // send driver card
+        // if not driver
+      } else {
+        // if in array return greeting
+        if (testWords.prompt_greeting.includes(text)) {
+          return responses.profile.greeting
+        } else if (testWords.prompt_help.includes(text)) {
+          return responses.help.ask
+        }
+        // if text is hello, or other start word, welcome/
+        // if help listing a few options
+        // if card, driver, team, prompt with which driver?
+      }
+    })
+  } catch (e) {
+    console.log('An error in checkText', e)
+  }
+}
 // Handles messages events
 exports.handleMessage = (sender_psid, webhook_event) => {
   let response
@@ -85,7 +127,7 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     if (webhook_event.message.text) {
       // check if text is a driver name
       return module.exports
-        .isDriverName(webhook_event.message.text)
+        .checkDriverApi(webhook_event.message.text)
         .then(bool => {
           if (bool) {
             // Create the payload for a basic text message
@@ -97,7 +139,7 @@ exports.handleMessage = (sender_psid, webhook_event) => {
                 type: 'image',
                 payload: {
                   // template_type: 'generic',
-                  url: endpoints.web(driverSlug),
+                  url: endpoints.productionCards(driverSlug),
                   is_reusable: true
                 }
               }
