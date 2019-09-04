@@ -76,6 +76,7 @@ exports.isDriverName = nameToCheck => {
     console.error('An error in isDriverName', e)
   }
 }
+exports.checkText = text => {}
 // Handles messages events
 exports.handleMessage = (sender_psid, webhook_event) => {
   let response
@@ -83,29 +84,33 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     // Check if the message contains text
     if (webhook_event.message.text) {
       // check if text is a driver name
-      module.exports.isDriverName(webhook_event.message.text).then(bool => {
-        if (bool) {
-          // Create the payload for a basic text message
-          const driverSlug = module.exports.slugifyDriver(
-            webhook_event.message.text
-          )
-          response = {
-            attachment: {
-              type: 'image',
-              payload: {
-                // template_type: 'generic',
-                url: endpoints.web(driverSlug),
-                is_reusable: true
+      return module.exports
+        .isDriverName(webhook_event.message.text)
+        .then(bool => {
+          if (bool) {
+            // Create the payload for a basic text message
+            const driverSlug = module.exports.slugifyDriver(
+              webhook_event.message.text
+            )
+            response = {
+              attachment: {
+                type: 'image',
+                payload: {
+                  // template_type: 'generic',
+                  url: endpoints.web(driverSlug),
+                  is_reusable: true
+                }
               }
             }
+            return callSendAPI(sender_psid, response)
+          } else {
+            response = {
+              text:
+                'There is no driver by that name. Maybe check your spelling.'
+            }
+            return callSendAPI(sender_psid, response)
           }
-          callSendAPI(sender_psid, response)
-        } else {
-          response = {
-            text: 'There is no driver by that name. Maybe check your spelling.'
-          }
-        }
-      })
+        })
     }
     //  else if (webhook_event.message.attachments) {
     //   // Gets the URL of the message attachment
@@ -164,7 +169,7 @@ function handlePostback(sender_psid, received_postback) {
 }
 
 function callSendAPI(sender_psid, response) {
-  console.log('res', response)
+  // console.log('res', response)
   // Construct the message body
   let request_body = {
     recipient: {
@@ -174,7 +179,7 @@ function callSendAPI(sender_psid, response) {
   }
 
   // Send the HTTP request to the Messenger Platform
-  request(
+  return request(
     {
       uri: 'https://graph.facebook.com/v2.6/me/messages',
       qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
