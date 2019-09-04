@@ -83,11 +83,23 @@ exports.checkDriverApi = nameToCheck => {
 exports.handleDriversCache = (driverSlug, driversCache) => {
   // check cache
   // console.log(!driversCache.hasOwnProperty(driverSlug))
-  // console.log(driverSlug in driversCache)
+
+  // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
-    // console.log(driversCache)
-    driversCache[driverSlug] = driverSlug
-    return driversCache
+    // call all drivers api and check if it's there
+    console.log(driversCache.hasOwnProperty(driverSlug))
+    return module.exports.checkDriverApi(driverSlug).then(bool => {
+      // console.log('bool', bool)
+      // if driver name is valid
+      if (bool) {
+        //  add to cache
+        driversCache[driverSlug] = {
+          image: endpoints.productionCards(driverSlug),
+          timeStamp: new Date()
+        }
+        return driversCache
+      }
+    })
   }
   // call all drivers and store in cache
   //stamp with time and date

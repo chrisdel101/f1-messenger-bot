@@ -59,15 +59,25 @@ describe('F1 Messenger tests', function() {
         assert.strictEqual(res, 'What can we do to help you today?')
       })
     })
-    it.only('handleDriversCache adds to cache', function() {
+    it('handleDriversCache adds to cache', function() {
       const fakeCache = {
         'test-driver': 'An image here'
       }
-      const res = webhookController.handleDriversCache(
-        'test-driver1',
-        fakeCache
-      )
+      const res = webhookController.handleDriversCache('test-driver', fakeCache)
       console.log('res', res)
+    })
+    it.only('handleDriversCache adds to cache', function() {
+      const fakeCache = {
+        'lewis11-hamilton': {
+          image: 'An image',
+          timeStamp: new Date()
+        }
+      }
+      const res = webhookController
+        .handleDriversCache('lewis-hamilton', fakeCache)
+        .then(res => {
+          console.log('res', res)
+        })
     })
   })
 })
