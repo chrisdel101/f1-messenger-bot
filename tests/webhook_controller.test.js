@@ -1,6 +1,8 @@
 var assert = require('assert')
 const webhookController = require('../controllers/webhook.controller')
 const { httpsFetch } = require('../utils')
+const rewire = require('rewire')
+const rewired_WebHookController = rewire('../controllers/webhook.controller')
 
 describe('F1 Messenger tests', function() {
   describe('webhook controller', function() {
@@ -66,17 +68,30 @@ describe('F1 Messenger tests', function() {
       const res = webhookController.handleDriversCache('test-driver', fakeCache)
       console.log('res', res)
     })
-    it.only('handleDriversCache adds to cache', function() {
+    it('handleDriversCache adds to cache', function() {
       const fakeCache = {
-        'lewis11-hamilton': {
-          image: 'An image',
+        'lewis-hamilton': {
+          imageUrl: 'An image Url',
           timeStamp: new Date()
         }
       }
-      const res = webhookController
-        .handleDriversCache('lewis-hamilton', fakeCache)
+      rewired_WebHookController.__set__('driversCache', fakeCache)
+      const res = rewired_WebHookController
+        // check if cache has that key
+        .handleDriversCache('alexander-albon', fakeCache)
         .then(res => {
-          console.log('res', res)
+          // console.log('RES', res)
+          // console.log('REQ', rewired_WebHookController.__get__('driversCache'))
+          // check that new key was added
+          assert(res.hasOwnProperty('alexander-albon'))
+          // check url is formed correctly
+          assert(
+            res['alexander-albon'].imageUrl ===
+              'https://f1-cards.herokuapp.com//api/driver/alexander-albon'
+          )
+        })
+        .catch(e => {
+          console.error(e)
         })
     })
   })
