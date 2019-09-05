@@ -5,6 +5,7 @@ const { httpsFetch } = require('../utils')
 const testWords = require('../test_words.json')
 const responses = require('../responses.json')
 const driversCache = require('../driversCache')
+const moment = require('moment')
 
 exports.sendHookResponse = (req, res) => {
   let body = req.body
@@ -80,9 +81,16 @@ exports.checkDriverApi = nameToCheck => {
     console.error('An error in checkDriverApi', e)
   }
 }
-export.verifyTimeStamp = (timeStamp) => {
-  
+// check if timestamp is older than 30 mins
+exports.verifyTimeStamp = timeStamp => {
+  const d1 = new moment(timeStamp)
+  const d2 = new moment()
+  // subract time1 from time 2
+  const diff = moment.duration(d2.diff(d1)).asMinutes()
+  // less than 30 mins true, else false
+  return diff < 30 ? true : false
 }
+// handle caching and return driver obj
 exports.handleDriversCache = (driverSlug, driversCache) => {
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
@@ -95,32 +103,52 @@ exports.handleDriversCache = (driverSlug, driversCache) => {
           imageUrl: endpoints.productionCards(driverSlug),
           timeStamp: new Date()
         }
-        return driversCache
+        // return new driver obj
+        return {
+          imageUrl: endpoints.productionCards(driverSlug),
+          timeStamp: new Date()
+        }
       } else {
         console.log('Not a valid driver name')
         return false
       }
     })
-  } else if(driversCache.hasOwnProperty(driverSlug) )
-  // call all drivers and store in cache
-  //stamp with time and date
-  // if in cache, check if time is valid
-  // if valid get from cache
-  // if invalid or not there, call api
+    // if driver is in cache already
+  } else if (driversCache.hasOwnProperty(driverSlug)) {
+    // check if time is valid
+    if (module.export.verifyTimeStamp(driversCache[driverSlug].timeStamp)) {
+      // if valid get from cache
+      return driversCache[driverSlug]
+      // if not valid then re-add
+    } else {
+      driversCache[driverSlug] = {
+        imageUrl: endpoints.productionCards(driverSlug),
+        timeStamp: new Date()
+      }
+      return {
+        imageUrl: endpoints.productionCards(driverSlug),
+        timeStamp: new Date()
+      }
+    }
+  } else {
+    console.log('Not a valid driver name to cache')
+    return false
+  }
 }
-exports.checkText = text => {
-  // check if a driver name
+// take user input and check to send back response
+exports.checkInputText = inputText => {
+  // check if input was a driver name
   try {
-    return module.exports.checkDriverApi(text).then(bool => {
+    return module.exports.checkDriverApi(inputText).then(bool => {
       // true if a driver name
       if (bool) {
         // send driver card
         // if not driver
       } else {
         // if in array return greeting
-        if (testWords.prompt_greeting.includes(text)) {
+        if (testWords.prompt_greeting.includes(inputText)) {
           return responses.profile.greeting
-        } else if (testWords.prompt_help.includes(text)) {
+        } else if (testWords.prompt_help.includes(inputText)) {
           return responses.help.ask
         }
         // if text is hello, or other start word, welcome/
@@ -129,7 +157,7 @@ exports.checkText = text => {
       }
     })
   } catch (e) {
-    console.log('An error in checkText', e)
+    console.log('An error in checkInputText', e)
   }
 }
 // Handles messages events

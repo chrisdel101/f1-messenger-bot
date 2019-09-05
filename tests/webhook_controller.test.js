@@ -48,16 +48,16 @@ describe('F1 Messenger tests', function() {
           assert(res.statusCode, '400')
         })
     })
-    it('checkText returns greeting prompt', function() {
-      return webhookController.checkText('hello').then(res => {
+    it('checkInputText returns greeting prompt', function() {
+      return webhookController.checkInputText('hello').then(res => {
         assert.strictEqual(
           res,
           'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
         )
       })
     })
-    it('checkText returns help prompt ', function() {
-      return webhookController.checkText('help').then(res => {
+    it('checkInputText returns help prompt ', function() {
+      return webhookController.checkInputText('help').then(res => {
         assert.strictEqual(res, 'What can we do to help you today?')
       })
     })
@@ -84,7 +84,7 @@ describe('F1 Messenger tests', function() {
           // console.log('REQ', rewired_WebHookController.__get__('driversCache'))
           // check that new key was added
           assert(res.hasOwnProperty('alexander-albon'))
-          // check url is formed correctly
+          // check url is formed correct
           assert(
             res['alexander-albon'].imageUrl ===
               'https://f1-cards.herokuapp.com//api/driver/alexander-albon'
@@ -93,6 +93,32 @@ describe('F1 Messenger tests', function() {
         .catch(e => {
           console.error(e)
         })
+    })
+    it('verifyTimeStamp returns true', function() {
+      // older than 30 mins
+      const fakeCache = {
+        'lewis-hamilton': {
+          imageUrl: 'An image Url',
+          timeStamp: '2019-09-04 19:30:26'
+        }
+      }
+      const res = webhookController.verifyTimeStamp(
+        fakeCache['lewis-hamilton'].timeStamp
+      )
+      assert(!res)
+    })
+    it('verifyTimeStamp returns false', function() {
+      // return exact same time as func
+      const fakeCache = {
+        'lewis-hamilton': {
+          imageUrl: 'An image Url',
+          timeStamp: new Date()
+        }
+      }
+      const res = webhookController.verifyTimeStamp(
+        fakeCache['lewis-hamilton'].timeStamp
+      )
+      assert(res)
     })
   })
 })
