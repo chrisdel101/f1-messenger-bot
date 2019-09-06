@@ -165,6 +165,7 @@ exports.checkInputText = inputText => {
       // true if a driver name
 
       if (bool) {
+        console.log('HERE')
         // send driver card
         // console.log('cache', driversCache)
         const driverSlug = module.exports.slugifyDriver(inputText)
@@ -217,10 +218,10 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       return module.exports
         .checkInputText(webhook_event.message.text)
         .then(res => {
-          console.log('res', res)
           if (res.type === 'image') {
             return res.payload
               .then(payload => {
+                console.log('res1', payload)
                 response = {
                   attachment: {
                     type: 'image',
@@ -325,7 +326,7 @@ function handlePostback(sender_psid, received_postback) {
 }
 
 exports.callSendAPI = (sender_psid, response) => {
-  // console.log('CALL API')
+  console.log('CALL API')
   // Construct the message body
   let request_body = {
     recipient: {

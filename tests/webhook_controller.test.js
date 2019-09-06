@@ -4,21 +4,26 @@ const { httpsFetch } = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 
+let webHookController
+let stub
+beforeEach(function() {
+  console.log('RUN')
+  // set to use rewire
+  webHookController = rewire('../controllers/webhook.controller')
+  stub = sinon.stub()
+  // set what func should return
+  stub.returns({
+    type: 'text',
+    payload: 'payload from a stub'
+  })
+  // patch the function to get handleMessageType to take correct path
+  webHookController.__set__('driversCache', stub)
+})
+afterEach(function() {
+  stub.reset()
+})
 describe('F1 Messenger tests', function() {
   // stub cache
-  let webHookController
-  before(function() {
-    // set to use rewire
-    webHookController = rewire('../controllers/webhook.controller')
-    let stub = sinon.stub()
-    // set what func should return
-    stub.returns({
-      type: 'text',
-      payload: 'payload from a stub'
-    })
-    // patch the function to get handleMessageType to take correct path
-    webHookController.__set__('driversCache', stub)
-  })
   describe('webhook controller', function() {
     it('slugifies the driver name', function() {
       const res = webhookController.slugifyDriver('Lewis Hamilton')
@@ -63,6 +68,7 @@ describe('F1 Messenger tests', function() {
           // check func gets called/
           .then(res => {
             // check callSendAPI called
+            console.log('count', webhookController.callSendAPI.callCount)
             assert(webhookController.callSendAPI.calledOnce)
             // check return value
             assert.deepEqual(res.attachment, {
@@ -77,17 +83,22 @@ describe('F1 Messenger tests', function() {
           })
       )
     })
-    it.only('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
+    // stub of checkInputText not working
+    it.skip('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
       // replace function with a spy
-      sinon.spy(webHookController, 'callSendAPI')
-      // stub checkInputText
-      let checkInputTextStub = sinon.stub()
-      checkInputTextStub.returns({
+      sinon.spy(webhookController, 'callSendAPI')
+      // console.log('res', webHookController.callSendAPI)
+
+      // stub checkInputText - forced to return an image type
+      let stub = sinon.stub()
+      stub.returns({
         type: 'image',
         url: 'some image Url',
         is_reusable: true
       })
-      webHookController.__set__('checkInputText', checkInputTextStub)
+      // console.log('stub', stub())
+      webHookController.__set__('checkInputText', stub)
+      console.log('test', webhookController)
       return (
         webhookController
           .handleMessageType('2399043010191818', {
@@ -97,6 +108,38 @@ describe('F1 Messenger tests', function() {
           })
           // check func gets called/
           .then(res => {
+            // check callSendAPI called
+            console.log('count', webhookController.callSendAPI.callCount)
+            assert(webhookController.callSendAPI.calledOnce)
+            // check return value
+            assert.deepEqual(res.attachment, {
+              type: 'image',
+              payload: {
+                url:
+                  'https://f1-cards.herokuapp.com//api/driver/lewis-hamilton',
+                is_reusable: true
+              }
+            })
+            webhookController.callSendAPI.restore()
+            stub.reset()
+          })
+      )
+    })
+    it('handleMessageType handles image: returns response and calls callSendAPI', function() {
+      // replace function with a spy
+      sinon.spy(webhookController, 'callSendAPI')
+      console.log('res', webHookController.callSendAPI)
+
+      return (
+        webhookController
+          .handleMessageType('2399043010191818', {
+            message: {
+              text: 'Lewis Hamilton'
+            }
+          })
+          // check func gets called/
+          .then(res => {
+            console.log('RES', res)
             // check callSendAPI called
             assert(webhookController.callSendAPI.calledOnce)
             // check return value
