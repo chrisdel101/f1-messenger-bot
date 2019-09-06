@@ -50,7 +50,7 @@ exports.sendHookResponse = (req, res) => {
 }
 
 exports.verifyHook = (req, res) => {
-  log('verify hook')
+  console.log('verify hook')
   // Your verify token. Should be a random string.
   let VERIFY_TOKEN = process.env.VERIFY_TOKEN
 
@@ -84,7 +84,7 @@ exports.getAllDriverSlugs = () => {
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
   try {
-    log('checkDriverApi')
+    console.log('checkDriverApi')
     return module.exports.getAllDriverSlugs().then(drivers => {
       if (drivers.includes(nameToCheck)) {
         return true
@@ -105,8 +105,8 @@ exports.verifyTimeStamp = timeStamp => {
   return diff < 30 ? true : false
 }
 // handle caching and return driver obj
-exports.cacheAndGetDriver = (driverSlug, driversCache) => {
-  log('cacheAndGetDriver')
+exczports.cacheAndGetDriver = (driverSlug, driversCache) => {
+  console.log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
@@ -160,7 +160,7 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
 exports.checkInputText = inputText => {
   // check if input was a driver name
   try {
-    log('checkInputText')
+    console.log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(bool => {
       // true if a driver name
       if (bool) {
