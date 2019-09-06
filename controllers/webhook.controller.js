@@ -192,6 +192,8 @@ exports.checkInputText = inputText => {
 //
 exports.handleMessageType = (sender_psid, webhook_event) => {
   let response
+  console.log('handleMessageType')
+  log('handleMessageType')
   try {
     // Check if the message contains text
     if (webhook_event.message.text) {
