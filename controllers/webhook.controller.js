@@ -6,7 +6,10 @@ const testWords = require('../test_words.json')
 const responses = require('../responses.json')
 const driversCache = require('../driversCache')
 const moment = require('moment')
-
+// https://stackoverflow.com/q/26885685/5972531
+const debug = require('debug')
+const log = debug('f1:log')
+const error = debug('f1:error')
 exports.facebookObj = request_body => {
   return {
     uri: 'https://graph.facebook.com/v2.6/me/messages',
@@ -47,6 +50,7 @@ exports.sendHookResponse = (req, res) => {
 }
 
 exports.verifyHook = (req, res) => {
+  log('verify hook')
   // Your verify token. Should be a random string.
   let VERIFY_TOKEN = process.env.VERIFY_TOKEN
 
@@ -80,6 +84,7 @@ exports.getAllDriverSlugs = () => {
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
   try {
+    log('checkDriverApi')
     return module.exports.getAllDriverSlugs().then(drivers => {
       if (drivers.includes(nameToCheck)) {
         return true
@@ -101,6 +106,7 @@ exports.verifyTimeStamp = timeStamp => {
 }
 // handle caching and return driver obj
 exports.cacheAndGetDriver = (driverSlug, driversCache) => {
+  log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
@@ -154,6 +160,7 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
 exports.checkInputText = inputText => {
   // check if input was a driver name
   try {
+    log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(bool => {
       // true if a driver name
       if (bool) {
