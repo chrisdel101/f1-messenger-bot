@@ -5,6 +5,20 @@ const rewire = require('rewire')
 const sinon = require('sinon')
 
 describe('F1 Messenger tests', function() {
+  // stub cache
+  let webHookController
+  before(function() {
+    // set to use rewire
+    webHookController = rewire('../controllers/webhook.controller')
+    let stub = sinon.stub()
+    // set what func should return
+    stub.returns({
+      type: 'text',
+      payload: 'payload from a stub'
+    })
+    // patch the function to get handleMessageType to take correct path
+    webHookController.__set__('driversCache', stub)
+  })
   describe('webhook controller', function() {
     it('slugifies the driver name', function() {
       const res = webhookController.slugifyDriver('Lewis Hamilton')
@@ -36,7 +50,7 @@ describe('F1 Messenger tests', function() {
         assert(bool === false)
       })
     })
-    it('handleMessageType handles image: returns response and calls callSendAPI', function() {
+    it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
       return (
@@ -63,7 +77,42 @@ describe('F1 Messenger tests', function() {
           })
       )
     })
-    it('handleMessageType calls checkInput text when passed text', function() {
+    it.only('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
+      // replace function with a spy
+      sinon.spy(webHookController, 'callSendAPI')
+      // stub checkInputText
+      let checkInputTextStub = sinon.stub()
+      checkInputTextStub.returns({
+        type: 'image',
+        url: 'some image Url',
+        is_reusable: true
+      })
+      webHookController.__set__('checkInputText', checkInputTextStub)
+      return (
+        webhookController
+          .handleMessageType('2399043010191818', {
+            message: {
+              text: 'Lewis Hamilton'
+            }
+          })
+          // check func gets called/
+          .then(res => {
+            // check callSendAPI called
+            assert(webhookController.callSendAPI.calledOnce)
+            // check return value
+            assert.deepEqual(res.attachment, {
+              type: 'image',
+              payload: {
+                url:
+                  'https://f1-cards.herokuapp.com//api/driver/lewis-hamilton',
+                is_reusable: true
+              }
+            })
+            webhookController.callSendAPI.restore()
+          })
+      )
+    })
+    it('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'checkInputText')
       return (
@@ -85,40 +134,7 @@ describe('F1 Messenger tests', function() {
           })
       )
     })
-    it('handleMessageType returns correct payload when passed text', function() {
-      // set to use rewire
-      let webHookController = rewire('../controllers/webhook.controller')
-      let stub = sinon.stub()
-      // set what func should return
-      stub.returns({
-        type: 'text',
-        payload: 'payload from a stub'
-      })
-      // patch the function to get handleMessageType to take correct path
-      webHookController.__set__('driversCache', stub)
-      return webhookController
-        .handleMessageType('2399043010191818', {
-          message: {
-            text: 'Not a driver'
-          }
-        })
-        .then(res => {
-          // console.log('RES', res)
-          assert(res.text === 'Filler text for now')
-          // assert(webhookController.checkInputText.calledOnce)
-        })
-    })
     it('checkInputText returns filler text', function() {
-      // set to use rewire
-      let webHookController = rewire('../controllers/webhook.controller')
-      let stub = sinon.stub()
-      // set what func should return
-      stub.returns({
-        type: 'text',
-        payload: 'payload from a stub'
-      })
-      // patch the function
-      webHookController.__set__('driversCache', stub)
       return (
         webhookController
           .checkInputText('Just some text')

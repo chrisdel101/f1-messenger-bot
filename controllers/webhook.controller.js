@@ -217,21 +217,29 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       return module.exports
         .checkInputText(webhook_event.message.text)
         .then(res => {
+          console.log('res', res)
           if (res.type === 'image') {
-            return res.payload.then(payload => {
-              response = {
-                attachment: {
-                  type: 'image',
-                  payload: {
-                    url: payload ? payload['imageUrl'] : undefined,
-                    is_reusable: true
+            return res.payload
+              .then(payload => {
+                response = {
+                  attachment: {
+                    type: 'image',
+                    payload: {
+                      url: payload ? payload['imageUrl'] : undefined,
+                      is_reusable: true
+                    }
                   }
                 }
-              }
-              // calls api then returns response
-              module.exports.callSendAPI(sender_psid, response)
-              return response
-            })
+                // calls api then returns response
+                module.exports.callSendAPI(sender_psid, response)
+                return response
+              })
+              .catch(e => {
+                console.error(
+                  'An error in handleMessageType res.payload.then',
+                  e
+                )
+              })
           } else if (res.type === 'text') {
             // console.log('res', res)
             response = {
@@ -250,6 +258,9 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
           //       const driverSlug = module.exports.slugifyDriver(
           //         webhook_event.message.text
           //       )
+        })
+        .catch(e => {
+          console.error('An error in handleMessageType checkInputType.then', e)
         })
     } else {
       response = {
