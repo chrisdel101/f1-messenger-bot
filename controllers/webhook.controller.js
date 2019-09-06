@@ -2,7 +2,7 @@ const request = require('request')
 const slugify = require('slugify')
 const endpoints = require('../endpoints')
 const { httpsFetch } = require('../utils')
-const testWords = require('../test_words.json')
+const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
 const driversCache = require('../driversCache')
 const moment = require('moment')
@@ -163,6 +163,7 @@ exports.checkInputText = inputText => {
     console.log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(bool => {
       // true if a driver name
+
       if (bool) {
         // send driver card
         // console.log('cache', driversCache)
@@ -178,12 +179,12 @@ exports.checkInputText = inputText => {
         // if not driver
       } else {
         // if in array return greeting
-        if (testWords.prompt_greeting.includes(inputText)) {
+        if (testWordsJson.prompt_greeting.includes(inputText)) {
           return {
             type: 'text',
             payload: responses.profile.greeting
           }
-        } else if (testWords.prompt_help.includes(inputText)) {
+        } else if (testWordsJson.prompt_help.includes(inputText)) {
           return {
             type: 'text',
             payload: responses.help.ask
@@ -213,26 +214,35 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
     // Check if the message contains text
     if (webhook_event.message.text) {
       // check if text is a driver name
+      // console.log(webhook_event.message)
       return module.exports
         .checkInputText(webhook_event.message.text)
         .then(res => {
-          console.log('res', res)
           if (res.type === 'image') {
-            response = {
-              attachment: {
-                type: 'image',
-                payload: {
-                  url: res.payload ? res.pa['imageUrl'] : undefined,
-                  is_reusable: true
+            return res.payload.then(payload => {
+              response = {
+                attachment: {
+                  type: 'image',
+                  payload: {
+                    url: payload ? payload['imageUrl'] : undefined,
+                    is_reusable: true
+                  }
                 }
               }
-            }
+              // calls api then returns response
+              module.exports.callSendAPI(sender_psid, response)
+              return response
+            })
           } else if (res.type === 'text') {
+            // console.log('res', res)
             response = {
               text: res.payload
             }
+            // calls api then returns response
+            module.exports.callSendAPI(sender_psid, response)
+            return response
           }
-          return module.exports.callSendAPI(sender_psid, response)
+          // return module.exports.callSendAPI(sender_psid, response)
           // return module.exports
           //   .checkDriverApi(webhook_event.message.text)
           //   .then(bool => {
@@ -305,6 +315,7 @@ function handlePostback(sender_psid, received_postback) {
 }
 
 exports.callSendAPI = (sender_psid, response) => {
+  // console.log('CALL API')
   // Construct the message body
   let request_body = {
     recipient: {
