@@ -7,6 +7,15 @@ const responses = require('../responses.json')
 const driversCache = require('../driversCache')
 const moment = require('moment')
 
+exports.facebookObj = request_body => {
+  return {
+    uri: 'https://graph.facebook.com/v2.6/me/messages',
+    qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+    method: 'POST',
+    json: request_body
+  }
+}
+
 exports.sendHookResponse = (req, res) => {
   let body = req.body
   // Checks this is an event from a page subscription
@@ -91,7 +100,7 @@ exports.verifyTimeStamp = timeStamp => {
   return diff < 30 ? true : false
 }
 // handle caching and return driver obj
-exports.handleDriversCache = (driverSlug, driversCache) => {
+exports.cacheAndGetDriver = (driverSlug, driversCache) => {
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
@@ -99,12 +108,16 @@ exports.handleDriversCache = (driverSlug, driversCache) => {
       // if driver name is valid
       if (bool) {
         //  add to cache
+        // console.log('here', driversCache)
         driversCache[driverSlug] = {
+          slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),
           timeStamp: new Date()
         }
+        // console.log('here', driversCache)
         // return new driver obj
         return {
+          slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),
           timeStamp: new Date()
         }
@@ -116,16 +129,18 @@ exports.handleDriversCache = (driverSlug, driversCache) => {
     // if driver is in cache already
   } else if (driversCache.hasOwnProperty(driverSlug)) {
     // check if time is valid
-    if (module.export.verifyTimeStamp(driversCache[driverSlug].timeStamp)) {
+    if (module.exports.verifyTimeStamp(driversCache[driverSlug].timeStamp)) {
       // if valid get from cache
       return driversCache[driverSlug]
       // if not valid then re-add
     } else {
       driversCache[driverSlug] = {
+        slug: driverSlug,
         imageUrl: endpoints.productionCards(driverSlug),
         timeStamp: new Date()
       }
       return {
+        slug: driverSlug,
         imageUrl: endpoints.productionCards(driverSlug),
         timeStamp: new Date()
       }
@@ -143,6 +158,13 @@ exports.checkInputText = inputText => {
       // true if a driver name
       if (bool) {
         // send driver card
+        // console.log('cache', driversCache)
+        const driverSlug = module.exports.slugifyDriver(inputText)
+        const driver = module.exports.cacheAndGetDriver(
+          driverSlug,
+          driversCache
+        )
+        return driver
         // if not driver
       } else {
         // if in array return greeting
@@ -168,32 +190,34 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     if (webhook_event.message.text) {
       // check if text is a driver name
       return module.exports
-        .checkDriverApi(webhook_event.message.text)
-        .then(bool => {
-          if (bool) {
-            // Create the payload for a basic text message
-            const driverSlug = module.exports.slugifyDriver(
-              webhook_event.message.text
-            )
-            response = {
-              attachment: {
-                type: 'image',
-                payload: {
-                  // template_type: 'generic',
-                  url: endpoints.productionCards(driverSlug),
-                  is_reusable: true
-                }
+        .checkInputText(webhook_event.message.text)
+        .then(res => {
+          // console.log('res', res)
+          // return module.exports
+          //   .checkDriverApi(webhook_event.message.text)
+          //   .then(bool => {
+          //     if (bool) {
+          //       // Create the payload for a basic text message
+          //       const driverSlug = module.exports.slugifyDriver(
+          //         webhook_event.message.text
+          //       )
+          response = {
+            attachment: {
+              type: 'image',
+              payload: {
+                // template_type: 'generic',
+                url: res.imageUrl,
+                is_reusable: true
               }
             }
-            return callSendAPI(sender_psid, response)
-          } else {
-            response = {
-              text:
-                'There is no driver by that name. Maybe check your spelling.'
-            }
-            return callSendAPI(sender_psid, response)
           }
+          return module.exports.callSendAPI(sender_psid, response)
         })
+    } else {
+      response = {
+        text: 'There is no driver by that name. Maybe check your spelling.'
+      }
+      return module.exports.callSendAPI(sender_psid, response)
     }
     //  else if (webhook_event.message.attachments) {
     //   // Gets the URL of the message attachment
@@ -228,7 +252,7 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     // }
 
     // // Sends the response message
-    // callSendAPI(sender_psid, response)
+    // module.exports.callSendAPI(sender_psid, response)
   } catch (e) {
     console.error('Error in handleMessage', e)
   }
@@ -248,11 +272,10 @@ function handlePostback(sender_psid, received_postback) {
     response = { text: 'Oops, try sending another image.' }
   }
   // Send the message to acknowledge the postback
-  callSendAPI(sender_psid, response)
+  module.exports.callSendAPI(sender_psid, response)
 }
 
-function callSendAPI(sender_psid, response) {
-  // console.log('res', response)
+exports.callSendAPI = (sender_psid, response) => {
   // Construct the message body
   let request_body = {
     recipient: {
@@ -262,19 +285,11 @@ function callSendAPI(sender_psid, response) {
   }
 
   // Send the HTTP request to the Messenger Platform
-  return request(
-    {
-      uri: 'https://graph.facebook.com/v2.6/me/messages',
-      qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
-      method: 'POST',
-      json: request_body
-    },
-    (err, res, body) => {
-      if (!err) {
-        console.log('message sent!')
-      } else {
-        console.error('Unable to send message:' + err)
-      }
+  return request(module.exports.facebookObj(request_body), (err, res, body) => {
+    if (!err) {
+      console.log('message sent!')
+    } else {
+      console.error('Unable to send message:' + err)
     }
-  )
+  })
 }

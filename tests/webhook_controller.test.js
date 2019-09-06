@@ -2,7 +2,7 @@ var assert = require('assert')
 const webhookController = require('../controllers/webhook.controller')
 const { httpsFetch } = require('../utils')
 const rewire = require('rewire')
-const rewired_WebHookController = rewire('../controllers/webhook.controller')
+const sinon = require('sinon')
 
 describe('F1 Messenger tests', function() {
   describe('webhook controller', function() {
@@ -36,7 +36,7 @@ describe('F1 Messenger tests', function() {
         assert(bool === false)
       })
     })
-    it.skip('handleMessage', function() {
+    it('handleMessage', function() {
       return webhookController
         .handleMessage('2399043010191818', {
           message: {
@@ -46,6 +46,21 @@ describe('F1 Messenger tests', function() {
         .then(res => {
           console.log(res.statusCode)
           assert(res.statusCode, '400')
+        })
+    })
+    it('handleMessage calls calls callSendAPI on success', function() {
+      // replace function with a spy
+      sinon.spy(webhookController, 'callSendAPI')
+      // console.log(webhookController.callSendAPI)
+      return webhookController
+        .handleMessage('2399043010191818', {
+          message: {
+            text: 'Lewis Hamilton'
+          }
+        })
+        .then(res => {
+          assert(webhookController.callSendAPI.calledOnce)
+          // console.log('res', res)
         })
     })
     it('checkInputText returns greeting prompt', function() {
@@ -61,32 +76,57 @@ describe('F1 Messenger tests', function() {
         assert.strictEqual(res, 'What can we do to help you today?')
       })
     })
-    it('handleDriversCache adds to cache', function() {
+    it('checkInputText returns driver', function() {
+      // set to use rewire
+      let webHookController = rewire('../controllers/webhook.controller')
+      this.fakeCache = {
+        'fake-test-driver': {
+          imageUrl: 'fake url',
+          timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+        }
+      }
+      webHookController.__set__('driversCache', this.fakeCache)
+      return webHookController
+        .checkInputText('Lewis Hamilton', this.fakeCache)
+        .then(res => {
+          // console.log(res)
+          assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
+          assert(res.slug === 'lewis-hamilton')
+          // check that new driver added to cache
+          assert(
+            Object.keys(webHookController.__get__('driversCache')).includes(
+              'lewis-hamilton'
+            )
+          )
+        })
+    })
+    it('cacheAndGetDriver adds to cache', function() {
       const fakeCache = {
         'test-driver': 'An image here'
       }
-      const res = webhookController.handleDriversCache('test-driver', fakeCache)
+      const res = webhookController.cacheAndGetDriver('test-driver', fakeCache)
       console.log('res', res)
     })
-    it('handleDriversCache adds to cache', function() {
+    it('cacheAndGetDriver adds to cache', function() {
+      let webHookController = rewire('../controllers/webhook.controller')
       const fakeCache = {
         'lewis-hamilton': {
           imageUrl: 'An image Url',
           timeStamp: new Date()
         }
       }
-      rewired_WebHookController.__set__('driversCache', fakeCache)
-      const res = rewired_WebHookController
-        // check if cache has that key
-        .handleDriversCache('alexander-albon', fakeCache)
+      webHookController.__set__('driversCache', fakeCache)
+      // check if cache has that key
+      webhookController
+        .cacheAndGetDriver('alexander-albon', fakeCache)
         .then(res => {
           // console.log('RES', res)
           // console.log('REQ', rewired_WebHookController.__get__('driversCache'))
           // check that new key was added
-          assert(res.hasOwnProperty('alexander-albon'))
+          assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
           // check url is formed correct
           assert(
-            res['alexander-albon'].imageUrl ===
+            res.imageUrl ===
               'https://f1-cards.herokuapp.com//api/driver/alexander-albon'
           )
         })
@@ -99,7 +139,7 @@ describe('F1 Messenger tests', function() {
       const fakeCache = {
         'lewis-hamilton': {
           imageUrl: 'An image Url',
-          timeStamp: '2019-09-04 19:30:26'
+          timeStamp: new Date('2019-09-04 19:30:26')
         }
       }
       const res = webhookController.verifyTimeStamp(
@@ -107,7 +147,7 @@ describe('F1 Messenger tests', function() {
       )
       assert(!res)
     })
-    it('verifyTimeStamp returns false', function() {
+    it('verifyTimeStamp returns true when less than 30 mins', function() {
       // return exact same time as func
       const fakeCache = {
         'lewis-hamilton': {
@@ -119,6 +159,19 @@ describe('F1 Messenger tests', function() {
         fakeCache['lewis-hamilton'].timeStamp
       )
       assert(res)
+    })
+    it('verifyTimeStamp returns false', function() {
+      // return exact same time as func
+      const fakeCache = {
+        'lewis-hamilton': {
+          imageUrl: 'An image Url',
+          timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+        }
+      }
+      const res = webhookController.verifyTimeStamp(
+        fakeCache['lewis-hamilton'].timeStamp
+      )
+      assert(res === false)
     })
   })
 })

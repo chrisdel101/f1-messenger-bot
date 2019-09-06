@@ -1,5 +1,3 @@
 let driversCache = {}
 
-module.exports = {
-  driversCache
-}
+module.exports = driversCache
