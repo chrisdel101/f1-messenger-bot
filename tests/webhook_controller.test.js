@@ -36,32 +36,39 @@ describe('F1 Messenger tests', function() {
         assert(bool === false)
       })
     })
-    it('handleMessage', function() {
-      return webhookController
-        .handleMessage('2399043010191818', {
-          message: {
-            text: 'blah blah'
-          }
-        })
-        .then(res => {
-          console.log(res.statusCode)
-          assert(res.statusCode, '400')
-        })
-    })
-    it('handleMessage calls calls callSendAPI on success', function() {
+    it('handleMessageType calls callSendAPI on success', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
       // console.log(webhookController.callSendAPI)
-      return webhookController
-        .handleMessage('2399043010191818', {
-          message: {
-            text: 'Lewis Hamilton'
-          }
-        })
-        .then(res => {
-          assert(webhookController.callSendAPI.calledOnce)
-          // console.log('res', res)
-        })
+      return (
+        webhookController
+          .handleMessageType('2399043010191818', {
+            message: {
+              text: 'Lewis Hamilton'
+            }
+          })
+          // check func gets called/
+          .then(res => {
+            assert(webhookController.callSendAPI.calledOnce)
+          })
+      )
+    })
+    it('handleMessageType calls checkInput text when passed text', function() {
+      // replace function with a spy
+      sinon.spy(webhookController, 'checkInputText')
+      return (
+        webhookController
+          .handleMessageType('2399043010191818', {
+            message: {
+              text: 'Some text passed in'
+            }
+          })
+          // check func gets called/
+
+          .then(res => {
+            assert(webhookController.checkInputText.calledOnce)
+          })
+      )
     })
     it('checkInputText returns greeting prompt', function() {
       return webhookController.checkInputText('hello').then(res => {

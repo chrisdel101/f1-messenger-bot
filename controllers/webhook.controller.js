@@ -32,7 +32,7 @@ exports.sendHookResponse = (req, res) => {
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
       if (webhook_event.message) {
-        module.exports.handleMessage(sender_psid, webhook_event)
+        module.exports.handleMessageType(sender_psid, webhook_event)
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback)
       }
@@ -182,8 +182,8 @@ exports.checkInputText = inputText => {
     console.log('An error in checkInputText', e)
   }
 }
-// Handles messages events
-exports.handleMessage = (sender_psid, webhook_event) => {
+//
+exports.handleMessageType = (sender_psid, webhook_event) => {
   let response
   try {
     // Check if the message contains text
@@ -206,7 +206,7 @@ exports.handleMessage = (sender_psid, webhook_event) => {
               type: 'image',
               payload: {
                 // template_type: 'generic',
-                url: res.imageUrl,
+                url: res ? res['imageUrl'] : undefined,
                 is_reusable: true
               }
             }
@@ -254,7 +254,7 @@ exports.handleMessage = (sender_psid, webhook_event) => {
     // // Sends the response message
     // module.exports.callSendAPI(sender_psid, response)
   } catch (e) {
-    console.error('Error in handleMessage', e)
+    console.error('Error in handleMessageType', e)
   }
 }
 
