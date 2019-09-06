@@ -105,7 +105,7 @@ exports.verifyTimeStamp = timeStamp => {
   return diff < 30 ? true : false
 }
 // handle caching and return driver obj
-exczports.cacheAndGetDriver = (driverSlug, driversCache) => {
+exports.cacheAndGetDriver = (driverSlug, driversCache) => {
   console.log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
