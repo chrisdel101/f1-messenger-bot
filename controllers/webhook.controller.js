@@ -171,18 +171,33 @@ exports.checkInputText = inputText => {
           driverSlug,
           driversCache
         )
-        return driver
+        return {
+          type: 'image',
+          payload: driver
+        }
         // if not driver
       } else {
         // if in array return greeting
         if (testWords.prompt_greeting.includes(inputText)) {
-          return responses.profile.greeting
+          return {
+            type: 'text',
+            payload: responses.profile.greeting
+          }
         } else if (testWords.prompt_help.includes(inputText)) {
-          return responses.help.ask
+          return {
+            type: 'text',
+            payload: responses.help.ask
+          }
+          // if text is hello, or other start word, welcome/
+          // if help listing a few options
+          // if card, driver, team, prompt with which driver?
+        } else {
+          console.log('here')
+          return {
+            type: 'text',
+            payload: 'Filler text for now'
+          }
         }
-        // if text is hello, or other start word, welcome/
-        // if help listing a few options
-        // if card, driver, team, prompt with which driver?
       }
     })
   } catch (e) {
@@ -201,7 +216,23 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       return module.exports
         .checkInputText(webhook_event.message.text)
         .then(res => {
-          // console.log('res', res)
+          console.log('res', res)
+          if (res.type === 'image') {
+            response = {
+              attachment: {
+                type: 'image',
+                payload: {
+                  url: res.payload ? res.pa['imageUrl'] : undefined,
+                  is_reusable: true
+                }
+              }
+            }
+          } else if (res.type === 'text') {
+            response = {
+              text: res.payload
+            }
+          }
+          return module.exports.callSendAPI(sender_psid, response)
           // return module.exports
           //   .checkDriverApi(webhook_event.message.text)
           //   .then(bool => {
@@ -210,17 +241,6 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
           //       const driverSlug = module.exports.slugifyDriver(
           //         webhook_event.message.text
           //       )
-          response = {
-            attachment: {
-              type: 'image',
-              payload: {
-                // template_type: 'generic',
-                url: res ? res['imageUrl'] : undefined,
-                is_reusable: true
-              }
-            }
-          }
-          return module.exports.callSendAPI(sender_psid, response)
         })
     } else {
       response = {

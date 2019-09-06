@@ -70,6 +70,28 @@ describe('F1 Messenger tests', function() {
           })
       )
     })
+    it('checkInputText returns filler text', function() {
+      // set to use rewire
+      let webHookController = rewire('../controllers/webhook.controller')
+      let stub = sinon.stub()
+      // set what func should return
+      stub.returns({
+        type: 'text',
+        payload: 'payload from a stub'
+      })
+      // patch the function
+      webHookController.__set__('driversCache', stub)
+      return (
+        webhookController
+          .checkInputText('Just some text')
+          // check func gets called/
+
+          .then(res => {
+            assert(res.payload === 'Filler text for now')
+            // assert(webhookController.checkInputText.calledOnce)
+          })
+      )
+    })
     it('checkInputText returns greeting prompt', function() {
       return webhookController.checkInputText('hello').then(res => {
         assert.strictEqual(
@@ -86,15 +108,15 @@ describe('F1 Messenger tests', function() {
     it('checkInputText returns driver', function() {
       // set to use rewire
       let webHookController = rewire('../controllers/webhook.controller')
-      this.fakeCache = {
+      fakeCache = {
         'fake-test-driver': {
           imageUrl: 'fake url',
           timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
         }
       }
-      webHookController.__set__('driversCache', this.fakeCache)
+      webHookController.__set__('driversCache', fakeCache)
       return webHookController
-        .checkInputText('Lewis Hamilton', this.fakeCache)
+        .checkInputText('Lewis Hamilton', fakeCache)
         .then(res => {
           // console.log(res)
           assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
