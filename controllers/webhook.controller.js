@@ -193,7 +193,6 @@ exports.checkInputText = inputText => {
           // if help listing a few options
           // if card, driver, team, prompt with which driver?
         } else {
-          console.log('here')
           return {
             type: 'text',
             payload: 'Filler text for now'

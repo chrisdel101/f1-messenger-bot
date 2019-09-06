@@ -36,10 +36,9 @@ describe('F1 Messenger tests', function() {
         assert(bool === false)
       })
     })
-    it.only('handleMessageType calls callSendAPI on success', function() {
+    it('handleMessageType handles image: returns response and calls callSendAPI', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
-      console.log(webhookController.callSendAPI)
       return (
         webhookController
           .handleMessageType('2399043010191818', {
@@ -49,8 +48,18 @@ describe('F1 Messenger tests', function() {
           })
           // check func gets called/
           .then(res => {
-            console.log('restest', res)
-            // assert(webhookController.callSendAPI.calledOnce)
+            // check callSendAPI called
+            assert(webhookController.callSendAPI.calledOnce)
+            // check return value
+            assert.deepEqual(res.attachment, {
+              type: 'image',
+              payload: {
+                url:
+                  'https://f1-cards.herokuapp.com//api/driver/lewis-hamilton',
+                is_reusable: true
+              }
+            })
+            webhookController.callSendAPI.restore()
           })
       )
     })
@@ -67,7 +76,12 @@ describe('F1 Messenger tests', function() {
           // check func gets called/
 
           .then(res => {
+            // console.log(res)
+            // check that callSendAPI is called
             assert(webhookController.checkInputText.calledOnce)
+            // check return value
+            assert.deepEqual(res, { text: 'Filler text for now' })
+            webhookController.checkInputText.restore()
           })
       )
     })
@@ -126,7 +140,7 @@ describe('F1 Messenger tests', function() {
     })
     it('checkInputText returns help prompt ', function() {
       return webhookController.checkInputText('help').then(res => {
-        assert.strictEqual(res, 'What can we do to help you today?')
+        assert.strictEqual(res.payload, 'What can we do to help you today?')
       })
     })
     it('checkInputText returns driver', function() {
@@ -143,7 +157,6 @@ describe('F1 Messenger tests', function() {
         .checkInputText('Lewis Hamilton', fakeCache)
         .then(res1 => {
           res1.payload.then(payload => {
-            console.log('payload', payload)
             assert(
               payload.hasOwnProperty('slug') &&
                 payload.hasOwnProperty('imageUrl')
@@ -163,7 +176,7 @@ describe('F1 Messenger tests', function() {
         'test-driver': 'An image here'
       }
       const res = webhookController.cacheAndGetDriver('test-driver', fakeCache)
-      console.log('res', res)
+      // console.log('res', res)
     })
     it('cacheAndGetDriver adds to cache', function() {
       let webHookController = rewire('../controllers/webhook.controller')
