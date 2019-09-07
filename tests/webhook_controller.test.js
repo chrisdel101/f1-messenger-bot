@@ -37,6 +37,7 @@ describe('F1 Messenger tests', function() {
     //   check json string before parsing
     it('getAllDriverSlugs returns all drivers', function() {
       return webhookController.getAllDriverSlugs().then(result => {
+        // console.log(result)
         assert(result.includes('lewis-hamilton'))
         assert(result.includes('alexander-albon'))
       })
@@ -51,17 +52,33 @@ describe('F1 Messenger tests', function() {
         assert(bool === false)
       })
     })
-    it.only('makeEntriesLower', function() {
-      const res = webhookController.makeEntriesLower([
+    it('makeEntriesLower makes entries lower', function() {
+      // func takes stringified obj
+      const stringified = JSON.stringify([
         {
           name: 'Test Name Here',
           name_slug: 'test-name-here'
         }
       ])
-      assert.deepEqual(res[0], {
+      // need to parse here to check values
+      const res = JSON.parse(webhookController.makeEntriesLower(stringified))
+      const ex = {
         name: 'test name here',
         name_slug: 'test-name-here'
-      })
+      }
+      assert.deepEqual(res[0], ex)
+    })
+    it('makeEntriesLower returns stringified obj', function() {
+      // func takes stringified obj
+      const stringified = JSON.stringify([
+        {
+          name: 'Test Name Here',
+          name_slug: 'test-name-here'
+        }
+      ])
+      // need to parse here to check values
+      const res = webhookController.makeEntriesLower(stringified)
+      assert(typeof res === 'string')
     })
     it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI', function() {
       // replace function with a spy

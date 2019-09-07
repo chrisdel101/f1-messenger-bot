@@ -83,11 +83,14 @@ exports.getAllDriverSlugs = () => {
 }
 // make all names lowercase
 exports.makeEntriesLower = arr => {
-  return arr.map(obj => {
+  arr = JSON.parse(arr)
+  let newArr = arr.map(obj => {
     obj['name'] = obj['name'].toLowerCase()
     obj['name_slug'] = obj['name_slug'].toLowerCase()
     return obj
   })
+  // re-stringify for searching later on
+  return JSON.stringify(newArr)
 }
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
