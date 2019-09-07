@@ -81,11 +81,20 @@ exports.slugifyDriver = driverName => {
 exports.getAllDriverSlugs = () => {
   return httpsFetch(endpoints.productionAPI('drivers')).then(drivers => drivers)
 }
+// make all names lowercase
+exports.makeEntriesLower = arr => {
+  return arr.map(obj => {
+    obj['name'] = obj['name'].toLowerCase()
+    obj['name_slug'] = obj['name_slug'].toLowerCase()
+    return obj
+  })
+}
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
   try {
     console.log('checkDriverApi')
     return module.exports.getAllDriverSlugs().then(drivers => {
+      drivers = module.exports.makeEntriesLower(drivers)
       if (drivers.includes(nameToCheck)) {
         return true
       }
@@ -165,7 +174,6 @@ exports.checkInputText = inputText => {
       // true if a driver name
 
       if (bool) {
-        console.log('HERE')
         // send driver card
         // console.log('cache', driversCache)
         const driverSlug = module.exports.slugifyDriver(inputText)

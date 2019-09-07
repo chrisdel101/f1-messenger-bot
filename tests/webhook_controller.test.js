@@ -6,8 +6,7 @@ const sinon = require('sinon')
 
 let webHookController
 let stub
-beforeEach(function() {
-  console.log('RUN')
+before(function() {
   // set to use rewire
   webHookController = rewire('../controllers/webhook.controller')
   stub = sinon.stub()
@@ -18,9 +17,6 @@ beforeEach(function() {
   })
   // patch the function to get handleMessageType to take correct path
   webHookController.__set__('driversCache', stub)
-})
-afterEach(function() {
-  stub.reset()
 })
 describe('F1 Messenger tests', function() {
   // stub cache
@@ -55,6 +51,18 @@ describe('F1 Messenger tests', function() {
         assert(bool === false)
       })
     })
+    it.only('makeEntriesLower', function() {
+      const res = webhookController.makeEntriesLower([
+        {
+          name: 'Test Name Here',
+          name_slug: 'test-name-here'
+        }
+      ])
+      assert.deepEqual(res[0], {
+        name: 'test name here',
+        name_slug: 'test-name-here'
+      })
+    })
     it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
@@ -68,7 +76,7 @@ describe('F1 Messenger tests', function() {
           // check func gets called/
           .then(res => {
             // check callSendAPI called
-            console.log('count', webhookController.callSendAPI.callCount)
+            // console.log('count', webhookController.callSendAPI.callCount)
             assert(webhookController.callSendAPI.calledOnce)
             // check return value
             assert.deepEqual(res.attachment, {
@@ -98,7 +106,6 @@ describe('F1 Messenger tests', function() {
       })
       // console.log('stub', stub())
       webHookController.__set__('checkInputText', stub)
-      console.log('test', webhookController)
       return (
         webhookController
           .handleMessageType('2399043010191818', {
@@ -109,7 +116,7 @@ describe('F1 Messenger tests', function() {
           // check func gets called/
           .then(res => {
             // check callSendAPI called
-            console.log('count', webhookController.callSendAPI.callCount)
+            // console.log('count', webhookController.callSendAPI.callCount)
             assert(webhookController.callSendAPI.calledOnce)
             // check return value
             assert.deepEqual(res.attachment, {
@@ -128,7 +135,6 @@ describe('F1 Messenger tests', function() {
     it('handleMessageType handles image: returns response and calls callSendAPI', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
-      console.log('res', webHookController.callSendAPI)
 
       return (
         webhookController
@@ -139,7 +145,7 @@ describe('F1 Messenger tests', function() {
           })
           // check func gets called/
           .then(res => {
-            console.log('RES', res)
+            // console.log('RES', res)
             // check callSendAPI called
             assert(webhookController.callSendAPI.calledOnce)
             // check return value
@@ -251,7 +257,6 @@ describe('F1 Messenger tests', function() {
         .cacheAndGetDriver('alexander-albon', fakeCache)
         .then(res => {
           // console.log('RES', res)
-          // console.log('REQ', rewired_WebHookController.__get__('driversCache'))
           // check that new key was added
           assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
           // check url is formed correct
