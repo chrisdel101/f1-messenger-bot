@@ -119,8 +119,7 @@ describe('F1 Messenger tests', function() {
               assert.deepEqual(res.attachment, {
                 type: 'image',
                 payload: {
-                  url:
-                    'https://f1-cards.herokuapp.com//api/driver/pierre-gasly',
+                  url: 'https://f1-cards.herokuapp.com/api/driver/pierre-gasly',
                   is_reusable: true
                 }
               })
@@ -148,7 +147,7 @@ describe('F1 Messenger tests', function() {
                 type: 'image',
                 payload: {
                   url:
-                    'https://f1-cards.herokuapp.com//api/driver/lewis-hamilton',
+                    'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
                   is_reusable: true
                 }
               })
@@ -188,7 +187,7 @@ describe('F1 Messenger tests', function() {
                 type: 'image',
                 payload: {
                   url:
-                    'https://f1-cards.herokuapp.com//api/driver/lewis-hamilton',
+                    'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
                   is_reusable: true
                 }
               })
@@ -219,7 +218,7 @@ describe('F1 Messenger tests', function() {
                 type: 'image',
                 payload: {
                   url:
-                    'https://f1-cards.herokuapp.com//api/driver/lewis-hamilton',
+                    'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
                   is_reusable: true
                 }
               })
@@ -261,7 +260,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it('checkInputText returns greeting prompt', function() {
+      it('checkInputText returns greeting prompt - lowercase', function() {
         return webhookController.checkInputText('hello').then(res => {
           assert.strictEqual(
             res.payload,
@@ -269,8 +268,13 @@ describe('F1 Messenger tests', function() {
           )
         })
       })
-      it('checkInputText returns help prompt ', function() {
+      it('checkInputText returns help prompt - lowercase ', function() {
         return webhookController.checkInputText('help').then(res => {
+          assert.strictEqual(res.payload, 'What can we do to help you today?')
+        })
+      })
+      it('checkInputText returns help prompt - uppercase ', function() {
+        return webhookController.checkInputText('HELP').then(res => {
           assert.strictEqual(res.payload, 'What can we do to help you today?')
         })
       })
@@ -302,7 +306,7 @@ describe('F1 Messenger tests', function() {
             })
           })
       })
-      it('checks for partial names', function() {
+      it('checks for partial names - returns correct driver slug and URL', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
@@ -311,6 +315,73 @@ describe('F1 Messenger tests', function() {
         }
         return webHookController
           .checkInputText('lewis', fakeCache)
+          .then(res => {
+            res.payload
+              .then(payload => {
+                assert.strictEqual(payload.slug, 'lewis-hamilton')
+                assert.strictEqual(
+                  payload.imageUrl,
+                  'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton'
+                )
+              })
+              .catch(e => {
+                assert.fail()
+                console.error(
+                  'error in checkInputText(): checks for partial names - returns correct driver slug and URL',
+                  e
+                )
+              })
+          })
+          .catch(e => {
+            assert.fail()
+            console.error(
+              'error in checkInputText() - checks for partial names - returns correct driver slug and URL',
+              e
+            )
+          })
+      })
+      it('checks for partial names - returns correct obj', function() {
+        const fakeCache = {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
+        }
+        return webHookController
+          .checkInputText('lewis', fakeCache)
+          .then(res => {
+            res.payload
+              .then(payload => {
+                assert.deepEqual(payload, {
+                  slug: 'lewis-hamilton',
+                  imageUrl:
+                    'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
+                  timeStamp: new Date()
+                })
+              })
+              .catch(e => {
+                console.error(
+                  'error in checks for partial names - returns returns correct obj bottom',
+                  e
+                )
+              })
+          })
+          .catch(e => {
+            console.error(
+              'error in checks for partial names - returns returns correct obj top',
+              e
+            )
+          })
+      })
+      it('checks for partial names - uppercase', function() {
+        const fakeCache = {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
+        }
+        return webHookController
+          .checkInputText('VALTERI', fakeCache)
           .then(res => console.log('res', res))
       })
     })
@@ -327,7 +398,6 @@ describe('F1 Messenger tests', function() {
         assert(res[0]['firstName'] === 'test')
         assert(res[2].hasOwnProperty('lastName'))
         assert(res[2]['firstName'] === 'some')
-        // assert(false, res)
       })
     })
     describe('cacheAndGetDriver()', () => {
@@ -339,7 +409,6 @@ describe('F1 Messenger tests', function() {
           'test-driver',
           fakeCache
         )
-        // console.log('res', res)
       })
       it('cacheAndGetDriver adds to cache', function() {
         // let webHookController = rewire('../controllers/webhook.controller')
@@ -358,13 +427,13 @@ describe('F1 Messenger tests', function() {
             // check that new key was added
             assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
             // check url is formed correct
-            assert(
-              res.imageUrl ===
-                'https://f1-cards.herokuapp.com//api/driver/alexander-albon'
+            assert.strictEqual(
+              res.imageUrl,
+              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
             )
           })
           .catch(e => {
-            console.error(e)
+            console.error('error in cacheAndGetDriver() - adds to cache', e)
           })
       })
     })

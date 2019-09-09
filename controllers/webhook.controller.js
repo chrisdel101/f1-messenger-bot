@@ -103,10 +103,6 @@ exports.extractDriverNames = driversArr => {
     return driverObj
   })
 }
-exports.exactStringMatcher = (lookUp, lookIn) => {
-  var match = lookIn.match(loopUp)
-  return match && lookIn === match[0]
-}
 // check if string is driver name from api- return name_slug or false
 exports.checkDriverApi = nameToCheck => {
   try {
@@ -191,7 +187,7 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
   }
 }
 // take user input and check to send back response
-exports.checkInputText = inputText => {
+exports.checkInputText = (inputText, cache) => {
   // check if input was a driver name
   try {
     log('checkInputText')
@@ -201,7 +197,7 @@ exports.checkInputText = inputText => {
       if (slug) {
         // - returns a promise if calling from API
         // - returns an object if in the cache
-        const driver = module.exports.cacheAndGetDriver(slug, driversCache)
+        const driver = module.exports.cacheAndGetDriver(slug, cache)
         // console.log('DD', driver)
         // send driver card info
         return {
@@ -211,12 +207,14 @@ exports.checkInputText = inputText => {
         // if not driver
       } else {
         // if in array return greeting
-        if (testWordsJson.prompt_greeting.includes(inputText)) {
+        if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
           return {
             type: 'text',
             payload: responses.profile.greeting
           }
-        } else if (testWordsJson.prompt_help.includes(inputText)) {
+        } else if (
+          testWordsJson.prompt_help.includes(inputText.toLowerCase())
+        ) {
           return {
             type: 'text',
             payload: responses.help.ask
@@ -246,64 +244,71 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
     if (webhook_event.message.text) {
       // check if text is a driver name
       // console.log(webhook_event.message)
-      return module.exports
-        .checkInputText(webhook_event.message.text)
-        .then(res => {
-          res = Promise.resolve(res)
-          // resolve first promise
-          return Promise.resolve(res)
-            .then(dataObj => {
-              console.log('dataObj', dataObj)
-              // resolve second promise if it exists
-              return Promise.resolve(dataObj.payload)
-                .then(payload => {
-                  // console.log('payload', payload)
-                  // console.log('HERE', res)
-                  if (dataObj.type === 'image') {
-                    // .then(payload => {
-                    console.log('Payload', payload)
-                    response = {
-                      attachment: {
-                        type: 'image',
-                        payload: {
-                          url: payload ? payload['imageUrl'] : undefined,
-                          is_reusable: true
+      return (
+        module.exports
+          // use driver cache - This might be problem later
+          .checkInputText(webhook_event.message.text, driversCache)
+          .then(res => {
+            res = Promise.resolve(res)
+            // resolve first promise
+            return Promise.resolve(res)
+              .then(dataObj => {
+                console.log('dataObj', dataObj)
+                // resolve second promise if it exists
+                return Promise.resolve(dataObj.payload)
+                  .then(payload => {
+                    // console.log('payload', payload)
+                    // console.log('HERE', res)
+                    if (dataObj.type === 'image') {
+                      // .then(payload => {
+                      console.log('Payload', payload)
+                      response = {
+                        attachment: {
+                          type: 'image',
+                          payload: {
+                            url: payload ? payload['imageUrl'] : undefined,
+                            is_reusable: true
+                          }
                         }
                       }
+                      // calls api then returns response
+                      module.exports.callSendAPI(sender_psid, response)
+                      return response
+                    } else if (dataObj.type === 'text') {
+                      console.log('res text', res)
+                      response = {
+                        text: payload
+                      }
+                      // calls api then returns response
+                      module.exports.callSendAPI(sender_psid, response)
+                      return response
                     }
-                    // calls api then returns response
-                    module.exports.callSendAPI(sender_psid, response)
-                    return response
-                  } else if (dataObj.type === 'text') {
-                    console.log('res text', res)
-                    response = {
-                      text: payload
-                    }
-                    // calls api then returns response
-                    module.exports.callSendAPI(sender_psid, response)
-                    return response
-                  }
-                  // return module.exports.callSendAPI(sender_psid, response)
-                  // return module.exports
-                  //   .checkDriverApi(webhook_event.message.text)
-                  //   .then(bool => {
-                  //     if (bool) {
-                  //       // Create the payload for a basic text message
-                  //       const driverSlug = module.exports.slugifyDriver(
-                  //         webhook_event.message.text
-                  //       )
-                })
-                .catch(e => {
-                  console.error('An error in handleMessageType promise2', e, e)
-                })
-            })
-            .catch(e => {
-              console.error('An error in handleMessageType promise 3', e)
-            })
-        })
-        .catch(e => {
-          console.error('An error in handleMessageType promise 1', e)
-        })
+                    // return module.exports.callSendAPI(sender_psid, response)
+                    // return module.exports
+                    //   .checkDriverApi(webhook_event.message.text)
+                    //   .then(bool => {
+                    //     if (bool) {
+                    //       // Create the payload for a basic text message
+                    //       const driverSlug = module.exports.slugifyDriver(
+                    //         webhook_event.message.text
+                    //       )
+                  })
+                  .catch(e => {
+                    console.error(
+                      'An error in handleMessageType promise2',
+                      e,
+                      e
+                    )
+                  })
+              })
+              .catch(e => {
+                console.error('An error in handleMessageType promise 3', e)
+              })
+          })
+          .catch(e => {
+            console.error('An error in handleMessageType promise 1', e)
+          })
+      )
     } else {
       response = {
         text: 'There is no driver by that name. Maybe check your spelling.'
