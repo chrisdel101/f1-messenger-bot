@@ -92,6 +92,7 @@ exports.makeEntriesLower = arr => {
   // re-stringify for searching later on
   return JSON.stringify(newArr)
 }
+exports.extractDriverNames = driversArr => {}
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
   try {
@@ -128,7 +129,7 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
       // if driver name is valid
       if (bool) {
         //  add to cache
-        // console.log('here', driversCache)
+        console.log('here', driverSlug)
         driversCache[driverSlug] = {
           slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),
@@ -177,6 +178,7 @@ exports.checkInputText = inputText => {
   try {
     log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(bool => {
+      console.log('bool', bool)
       // true if a driver name
       if (bool) {
         // returns a promise if calling from API

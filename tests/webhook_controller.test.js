@@ -47,16 +47,19 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('checkDriverApi()', () => {
-      it('checkDriverApi returns true when matches', function() {
+      it('returns true when matches', function() {
         return webhookController.checkDriverApi('Pierre Gasly').then(bool => {
           assert(bool === true)
         })
       })
-      it('checkDriverApi returns false when not matches', function() {
+      it('returns false when not matches', function() {
         return webhookController.checkDriverApi('Pierre Gaslly').then(bool => {
           assert(bool === false)
         })
       })
+      // it.only('gets partial names of drivers', function(){
+      //   return
+      // })
     })
     describe('makeEntriesLower()', () => {
       it('makeEntriesLower makes entries lower', function() {
@@ -238,7 +241,7 @@ describe('F1 Messenger tests', function() {
       it('checkInputText returns driver', function() {
         // set to use rewire
         // let webHookController = rewire('../controllers/webhook.controller')
-        fakeCache = {
+        const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
@@ -262,6 +265,22 @@ describe('F1 Messenger tests', function() {
               )
             })
           })
+      })
+      it('checks for partial names', function() {
+        const fakeCache = {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
+        }
+        return webHookController
+          .checkInputText('lewis', fakeCache)
+          .then(res => console.log('res', res))
+      })
+    })
+    describe('extractDriverNames', () => {
+      it('test', function() {
+        assert(false)
       })
     })
     describe('cacheAndGetDriver()', () => {
