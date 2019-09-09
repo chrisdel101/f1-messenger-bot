@@ -93,7 +93,7 @@ describe('F1 Messenger tests', function() {
           // check func gets called/
           .then(res => {
             // check callSendAPI called
-            // console.log('count', webhookController.callSendAPI.callCount)
+            // console.log('count', res)
             assert(webhookController.callSendAPI.calledOnce)
             // check return value
             assert.deepEqual(res.attachment, {
@@ -109,7 +109,7 @@ describe('F1 Messenger tests', function() {
       )
     })
     // stub of checkInputText not working
-    it.skip('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
+    it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
       // console.log('res', webHookController.callSendAPI)
@@ -150,9 +150,10 @@ describe('F1 Messenger tests', function() {
       )
     })
     it('handleMessageType handles image: returns response and calls callSendAPI', function() {
+      // webhookController.callSendAPI.restore()
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
-
+      // console.log(typeof webHookController.callSendAPI)
       return (
         webhookController
           .handleMessageType('2399043010191818', {
@@ -178,7 +179,7 @@ describe('F1 Messenger tests', function() {
           })
       )
     })
-    it('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
+    it.only('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'checkInputText')
       return (
@@ -191,7 +192,7 @@ describe('F1 Messenger tests', function() {
           // check func gets called/
 
           .then(res => {
-            // console.log(res)
+            console.log(res)
             // check that callSendAPI is called
             assert(webhookController.checkInputText.calledOnce)
             // check return value

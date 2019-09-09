@@ -96,6 +96,7 @@ exports.makeEntriesLower = arr => {
 exports.checkDriverApi = nameToCheck => {
   try {
     console.log('checkDriverApi')
+    nameToCheck = nameToCheck.toLowerCase()
     return module.exports.getAllDriverSlugs().then(drivers => {
       drivers = module.exports.makeEntriesLower(drivers)
       if (drivers.includes(nameToCheck)) {
@@ -116,12 +117,13 @@ exports.verifyTimeStamp = timeStamp => {
   // less than 30 mins true, else false
   return diff < 30 ? true : false
 }
-// handle caching and return driver obj
+// handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driversCache) => {
   console.log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
+
     return module.exports.checkDriverApi(driverSlug).then(bool => {
       // if driver name is valid
       if (bool) {
@@ -149,6 +151,7 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
     // check if time is valid
     if (module.exports.verifyTimeStamp(driversCache[driverSlug].timeStamp)) {
       // if valid get from cache
+      console.log('valid time stamp')
       return driversCache[driverSlug]
       // if not valid then re-add
     } else {
@@ -175,15 +178,16 @@ exports.checkInputText = inputText => {
     console.log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(bool => {
       // true if a driver name
-
       if (bool) {
-        // send driver card
-        // console.log('cache', driversCache)
+        // returns a promise if calling from API
+        // returns an object if in the cache
         const driverSlug = module.exports.slugifyDriver(inputText)
         const driver = module.exports.cacheAndGetDriver(
           driverSlug,
           driversCache
         )
+        // console.log('DD', driver)
+        // send driver card info
         return {
           type: 'image',
           payload: driver
@@ -220,7 +224,7 @@ exports.checkInputText = inputText => {
 exports.handleMessageType = (sender_psid, webhook_event) => {
   let response
   console.log('handleMessageType')
-  log('handleMessageType')
+  console.log(webhook_event)
   try {
     // Check if the message contains text
     if (webhook_event.message.text) {
@@ -229,50 +233,60 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       return module.exports
         .checkInputText(webhook_event.message.text)
         .then(res => {
-          if (res.type === 'image') {
-            return res.payload
-              .then(payload => {
-                console.log('res1', payload)
-                response = {
-                  attachment: {
-                    type: 'image',
-                    payload: {
-                      url: payload ? payload['imageUrl'] : undefined,
-                      is_reusable: true
+          res = Promise.resolve(res)
+          // resolve first promise
+          return Promise.resolve(res)
+            .then(dataObj => {
+              console.log('dataObj', dataObj)
+              // resolve second promise if it exists
+              return Promise.resolve(dataObj.payload)
+                .then(payload => {
+                  console.log('payload', payload)
+                  console.log('HERE', res)
+                  if (dataObj.type === 'image') {
+                    // .then(payload => {
+                    console.log('res1', payload)
+                    response = {
+                      attachment: {
+                        type: 'image',
+                        payload: {
+                          url: payload ? payload['imageUrl'] : undefined,
+                          is_reusable: true
+                        }
+                      }
                     }
+                    // calls api then returns response
+                    module.exports.callSendAPI(sender_psid, response)
+                    return response
+                  } else if (res.type === 'text') {
+                    // console.log('res', res)
+                    response = {
+                      text: res.payload
+                    }
+                    // calls api then returns response
+                    module.exports.callSendAPI(sender_psid, response)
+                    return response
                   }
-                }
-                // calls api then returns response
-                module.exports.callSendAPI(sender_psid, response)
-                return response
-              })
-              .catch(e => {
-                console.error(
-                  'An error in handleMessageType res.payload.then',
-                  e
-                )
-              })
-          } else if (res.type === 'text') {
-            // console.log('res', res)
-            response = {
-              text: res.payload
-            }
-            // calls api then returns response
-            module.exports.callSendAPI(sender_psid, response)
-            return response
-          }
-          // return module.exports.callSendAPI(sender_psid, response)
-          // return module.exports
-          //   .checkDriverApi(webhook_event.message.text)
-          //   .then(bool => {
-          //     if (bool) {
-          //       // Create the payload for a basic text message
-          //       const driverSlug = module.exports.slugifyDriver(
-          //         webhook_event.message.text
-          //       )
+                  // return module.exports.callSendAPI(sender_psid, response)
+                  // return module.exports
+                  //   .checkDriverApi(webhook_event.message.text)
+                  //   .then(bool => {
+                  //     if (bool) {
+                  //       // Create the payload for a basic text message
+                  //       const driverSlug = module.exports.slugifyDriver(
+                  //         webhook_event.message.text
+                  //       )
+                })
+                .catch(e => {
+                  console.error('An error in handleMessageType promise2', e, e)
+                })
+            })
+            .catch(e => {
+              console.error('An error in handleMessageType promise 3', e)
+            })
         })
         .catch(e => {
-          console.error('An error in handleMessageType checkInputType.then', e)
+          console.error('An error in handleMessageType promise 1', e)
         })
     } else {
       response = {
