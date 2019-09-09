@@ -50,7 +50,7 @@ exports.sendHookResponse = (req, res) => {
 }
 
 exports.verifyHook = (req, res) => {
-  console.log('verify hook')
+  log('verify hook')
   // Your verify token. Should be a random string.
   let VERIFY_TOKEN = process.env.VERIFY_TOKEN
 
@@ -95,7 +95,7 @@ exports.makeEntriesLower = arr => {
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
   try {
-    console.log('checkDriverApi')
+    log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
     return module.exports.getAllDriverSlugs().then(drivers => {
       drivers = module.exports.makeEntriesLower(drivers)
@@ -119,7 +119,7 @@ exports.verifyTimeStamp = timeStamp => {
 }
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driversCache) => {
-  console.log('cacheAndGetDriver')
+  log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
@@ -175,7 +175,7 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
 exports.checkInputText = inputText => {
   // check if input was a driver name
   try {
-    console.log('checkInputText')
+    log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(bool => {
       // true if a driver name
       if (bool) {
@@ -223,8 +223,8 @@ exports.checkInputText = inputText => {
 //
 exports.handleMessageType = (sender_psid, webhook_event) => {
   let response
-  console.log('handleMessageType')
-  console.log(webhook_event)
+  log('handleMessageType')
+  // console.log(webhook_event)
   try {
     // Check if the message contains text
     if (webhook_event.message.text) {
@@ -245,7 +245,7 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
                   // console.log('HERE', res)
                   if (dataObj.type === 'image') {
                     // .then(payload => {
-                    console.log('res1', payload)
+                    console.log('Payload', payload)
                     response = {
                       attachment: {
                         type: 'image',
