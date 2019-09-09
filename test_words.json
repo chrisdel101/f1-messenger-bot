@@ -10,5 +10,6 @@
     "how",
     "who",
     "why"
-  ]
+  ],
+  "prompt_card": ["driver", "team", "car", "racer"]
 }

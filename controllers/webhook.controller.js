@@ -222,10 +222,27 @@ exports.checkInputText = (inputText, cache) => {
           // if text is hello, or other start word, welcome/
           // if help listing a few options
           // if card, driver, team, prompt with which driver?
+        } else if (
+          testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
+        ) {
+          console.log(
+            testWordsJson.prompt_card.indexOf(inputText.toLowerCase())
+          )
+          console.log('BLAH', inputText, cache)
+          switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
+            case 0:
+              return responses.card.driver
+            case 1:
+              return responses.card.team
+            case 2:
+              return responses.card.team
+            case 3:
+              return responses.card.driver
+          }
         } else {
           return {
             type: 'text',
-            payload: 'Filler text for now'
+            payload: responses.filler
           }
         }
       }

@@ -5,6 +5,11 @@
   "help": {
     "ask": "What can we do to help you today?"
   },
+  "card": {
+    "driver": "Enter the first or last name of the driver you want to see.",
+    "team": "Enter the name of the team you want to see."
+  },
+  "filler": "Some Filler Text",
   "menu": {
     "support": "Customer Support",
     "order": "Order updates",

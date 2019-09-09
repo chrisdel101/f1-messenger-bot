@@ -3,6 +3,7 @@ const webhookController = require('../controllers/webhook.controller')
 const { httpsFetch } = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
+const responses = require('../responses.json')
 
 let webHookController
 let stub
@@ -243,20 +244,31 @@ describe('F1 Messenger tests', function() {
               // check that callSendAPI is called
               assert(webhookController.checkInputText.calledOnce)
               // check return value
-              assert.deepEqual(res, { text: 'Filler text for now' })
+              assert.deepEqual(res, { text: responses.filler })
               webhookController.checkInputText.restore()
             })
         )
       })
     })
     describe('checkInputText()', () => {
+      it('checkInputText returns card.driver response', function() {
+        return (
+          webhookController
+            .checkInputText('racer')
+            // check func gets called/
+            .then(res => {
+              console.log('res', res)
+              assert.strictEqual(res, responses.card.driver)
+            })
+        )
+      })
       it('checkInputText returns filler text', function() {
         return (
           webhookController
             .checkInputText('Just some text')
             // check func gets called/
             .then(res => {
-              assert(res.payload === 'Filler text for now')
+              assert(res.payload, responses.filler)
             })
         )
       })
