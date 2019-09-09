@@ -92,7 +92,18 @@ exports.makeEntriesLower = arr => {
   // re-stringify for searching later on
   return JSON.stringify(newArr)
 }
-exports.extractDriverNames = driversArr => {}
+// take in drivers json and add first and last name keys
+// return new arr
+exports.extractDriverNames = driversArr => {
+  return driversArr.map(driverObj => {
+    let firstName = driverObj.name_slug.split('-')[0]
+    let lastName = driverObj.name_slug.split('-')[1]
+    driverObj['firstName'] = firstName
+    driverObj['lastName'] = lastName
+    return driverObj
+  })
+}
+exports.exactStringMatcher = (child, parent) => {}
 // check if string is driver name from api
 exports.checkDriverApi = nameToCheck => {
   try {
@@ -100,6 +111,9 @@ exports.checkDriverApi = nameToCheck => {
     nameToCheck = nameToCheck.toLowerCase()
     return module.exports.getAllDriverSlugs().then(drivers => {
       drivers = module.exports.makeEntriesLower(drivers)
+      drivers = JSON.stringify(
+        module.exports.extractDriverNames(JSON.parse(drivers))
+      )
       if (drivers.includes(nameToCheck)) {
         return true
       }

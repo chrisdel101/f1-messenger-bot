@@ -46,7 +46,7 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe('checkDriverApi()', () => {
+    describe.only('checkDriverApi()', () => {
       it('returns true when matches', function() {
         return webhookController.checkDriverApi('Pierre Gasly').then(bool => {
           assert(bool === true)
@@ -57,9 +57,11 @@ describe('F1 Messenger tests', function() {
           assert(bool === false)
         })
       })
-      // it.only('gets partial names of drivers', function(){
-      //   return
-      // })
+      it.only('gets partial names of drivers', function() {
+        return webhookController.checkDriverApi('Pierre Gaslly').then(bool => {
+          assert(bool === false)
+        })
+      })
     })
     describe('makeEntriesLower()', () => {
       it('makeEntriesLower makes entries lower', function() {
@@ -280,7 +282,18 @@ describe('F1 Messenger tests', function() {
     })
     describe('extractDriverNames', () => {
       it('test', function() {
-        assert(false)
+        const arr = [
+          { name: 'Test Driver 1', name_slug: 'test-driver1' },
+          { name: 'Test Driver 2', name_slug: 'test-driver2' },
+          { name: 'Some Driver 3', name_slug: 'some-driver3' }
+        ]
+        const res = webHookController.extractDriverNames(arr)
+        assert(res, Array.isArray(res))
+        assert(res[0].hasOwnProperty('firstName'))
+        assert(res[0]['firstName'] === 'test')
+        assert(res[2].hasOwnProperty('lastName'))
+        assert(res[2]['firstName'] === 'some')
+        // assert(false, res)
       })
     })
     describe('cacheAndGetDriver()', () => {
