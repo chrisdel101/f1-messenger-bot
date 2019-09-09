@@ -103,19 +103,25 @@ exports.extractDriverNames = driversArr => {
     return driverObj
   })
 }
-exports.exactStringMatcher = (child, parent) => {}
-// check if string is driver name from api
+exports.exactStringMatcher = (lookUp, lookIn) => {
+  var match = lookIn.match(loopUp)
+  return match && lookIn === match[0]
+}
+// check if string is driver name from api- return name_slug or false
 exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
     return module.exports.getAllDriverSlugs().then(drivers => {
       drivers = module.exports.makeEntriesLower(drivers)
-      drivers = JSON.stringify(
-        module.exports.extractDriverNames(JSON.parse(drivers))
-      )
-      if (drivers.includes(nameToCheck)) {
-        return true
+      drivers = module.exports.extractDriverNames(JSON.parse(drivers))
+      // console.log(drivers)
+      for (let driver of drivers) {
+        for (let key in driver) {
+          if (driver[key] === nameToCheck) {
+            return driver['name_slug']
+          }
+        }
       }
       return false
     })
@@ -138,12 +144,10 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
   // if not in cache add to cache
   if (!driversCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
-
-    return module.exports.checkDriverApi(driverSlug).then(bool => {
+    return module.exports.checkDriverApi(driverSlug).then(slug => {
       // if driver name is valid
-      if (bool) {
+      if (slug) {
         //  add to cache
-        console.log('here', driverSlug)
         driversCache[driverSlug] = {
           slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),
@@ -191,17 +195,13 @@ exports.checkInputText = inputText => {
   // check if input was a driver name
   try {
     log('checkInputText')
-    return module.exports.checkDriverApi(inputText).then(bool => {
-      console.log('bool', bool)
+    return module.exports.checkDriverApi(inputText).then(slug => {
+      console.log('slug', slug)
       // true if a driver name
-      if (bool) {
-        // returns a promise if calling from API
-        // returns an object if in the cache
-        const driverSlug = module.exports.slugifyDriver(inputText)
-        const driver = module.exports.cacheAndGetDriver(
-          driverSlug,
-          driversCache
-        )
+      if (slug) {
+        // - returns a promise if calling from API
+        // - returns an object if in the cache
+        const driver = module.exports.cacheAndGetDriver(slug, driversCache)
         // console.log('DD', driver)
         // send driver card info
         return {

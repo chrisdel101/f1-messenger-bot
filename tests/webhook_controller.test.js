@@ -46,20 +46,26 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe.only('checkDriverApi()', () => {
+    describe('checkDriverApi()', () => {
       it('returns true when matches', function() {
-        return webhookController.checkDriverApi('Pierre Gasly').then(bool => {
-          assert(bool === true)
+        return webhookController.checkDriverApi('Pierre Gasly').then(res => {
+          console.log(res)
+          assert.strictEqual(res, 'pierre-gasly')
         })
       })
       it('returns false when not matches', function() {
-        return webhookController.checkDriverApi('Pierre Gaslly').then(bool => {
-          assert(bool === false)
+        return webhookController.checkDriverApi('Pierre Gaslly').then(res => {
+          assert(res === false)
         })
       })
-      it.only('gets partial names of drivers', function() {
-        return webhookController.checkDriverApi('Pierre Gaslly').then(bool => {
-          assert(bool === false)
+      it('gets partial names of drivers', function() {
+        return webhookController.checkDriverApi('lewi').then(res => {
+          assert(res === false)
+        })
+      })
+      it('gets partial names of drivers', function() {
+        return webhookController.checkDriverApi('lewis').then(res => {
+          assert.strictEqual(res, 'lewis-hamilton')
         })
       })
     })
@@ -94,6 +100,34 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('handleMessageType()', () => {
+      it('handleMessageType handles partial driver name', function() {
+        // replace function with a spy
+        sinon.spy(webhookController, 'callSendAPI')
+        return (
+          // call with partial name
+          webhookController
+            .handleMessageType('2399043010191818', {
+              message: {
+                text: 'pierre'
+              }
+            })
+            // check func gets called/
+            .then(res => {
+              // check callSendAPI called
+              assert(webhookController.callSendAPI.calledOnce)
+              // check return value
+              assert.deepEqual(res.attachment, {
+                type: 'image',
+                payload: {
+                  url:
+                    'https://f1-cards.herokuapp.com//api/driver/pierre-gasly',
+                  is_reusable: true
+                }
+              })
+              webhookController.callSendAPI.restore()
+            })
+        )
+      })
       it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
