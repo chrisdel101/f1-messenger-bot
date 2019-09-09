@@ -179,7 +179,7 @@ describe('F1 Messenger tests', function() {
           })
       )
     })
-    it.only('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
+    it('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'checkInputText')
       return (
@@ -206,10 +206,8 @@ describe('F1 Messenger tests', function() {
         webhookController
           .checkInputText('Just some text')
           // check func gets called/
-
           .then(res => {
             assert(res.payload === 'Filler text for now')
-            // assert(webhookController.checkInputText.calledOnce)
           })
       )
     })
@@ -228,7 +226,7 @@ describe('F1 Messenger tests', function() {
     })
     it('checkInputText returns driver', function() {
       // set to use rewire
-      let webHookController = rewire('../controllers/webhook.controller')
+      // let webHookController = rewire('../controllers/webhook.controller')
       fakeCache = {
         'fake-test-driver': {
           imageUrl: 'fake url',
@@ -262,7 +260,7 @@ describe('F1 Messenger tests', function() {
       // console.log('res', res)
     })
     it('cacheAndGetDriver adds to cache', function() {
-      let webHookController = rewire('../controllers/webhook.controller')
+      // let webHookController = rewire('../controllers/webhook.controller')
       const fakeCache = {
         'lewis-hamilton': {
           imageUrl: 'An image Url',

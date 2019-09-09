@@ -241,8 +241,8 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
               // resolve second promise if it exists
               return Promise.resolve(dataObj.payload)
                 .then(payload => {
-                  console.log('payload', payload)
-                  console.log('HERE', res)
+                  // console.log('payload', payload)
+                  // console.log('HERE', res)
                   if (dataObj.type === 'image') {
                     // .then(payload => {
                     console.log('res1', payload)
@@ -258,10 +258,10 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
                     // calls api then returns response
                     module.exports.callSendAPI(sender_psid, response)
                     return response
-                  } else if (res.type === 'text') {
-                    // console.log('res', res)
+                  } else if (dataObj.type === 'text') {
+                    console.log('res text', res)
                     response = {
-                      text: res.payload
+                      text: payload
                     }
                     // calls api then returns response
                     module.exports.callSendAPI(sender_psid, response)
