@@ -1,20 +1,21 @@
-var assert = require('assert')
-const webhookController = require('../controllers/webhook.controller')
+const assert = require('assert')
+let webhookController = require('../controllers/webhook.controller')
+let driverContoller = require('../controllers/driver.controller')
 const { httpsFetch } = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
 
-let webHookController
 let stub
 before(function() {
   // set to use rewire
   webHookController = rewire('../controllers/webhook.controller')
+  driverContoller = rewire('../controllers/driver.controller')
   stub = sinon.stub()
   // set what func should return
   stub.returns({
     type: 'text',
-    payload: 'payload from a stub'
+    payload: 'fake cache payload - from a stub'
   })
   // patch the function to get handleMessageType to take correct path
   webHookController.__set__('driversCache', stub)
@@ -22,15 +23,9 @@ before(function() {
 describe('F1 Messenger tests', function() {
   // stub cache
   describe('webhook controller', function() {
-    describe('slugifyDriver()', function() {
-      it('slugifies the driver name', function() {
-        const res = webhookController.slugifyDriver('Lewis Hamilton')
-        assert.equal(res, 'lewis-hamilton')
-      })
-    })
     describe('getAllDriverSlugs()', () => {
       it('getAllDriverSlugs returns an array', function() {
-        return webhookController.getAllDriverSlugs().then(result => {
+        return driverContoller.getAllDriverSlugs().then(result => {
           // unparsed json
           assert(typeof result === 'string')
           //   parse Json
@@ -40,7 +35,7 @@ describe('F1 Messenger tests', function() {
       })
       //   check json string before parsing
       it('getAllDriverSlugs returns all drivers', () => {
-        return webhookController.getAllDriverSlugs().then(result => {
+        return driverContoller.getAllDriverSlugs().then(result => {
           // console.log(result)
           assert(result.includes('lewis-hamilton'))
           assert(result.includes('alexander-albon'))
@@ -49,23 +44,23 @@ describe('F1 Messenger tests', function() {
     })
     describe('checkDriverApi()', () => {
       it('returns true when matches', function() {
-        return webhookController.checkDriverApi('Pierre Gasly').then(res => {
+        return driverContoller.checkDriverApi('Pierre Gasly').then(res => {
           console.log(res)
           assert.strictEqual(res, 'pierre-gasly')
         })
       })
       it('returns false when not matches', function() {
-        return webhookController.checkDriverApi('Pierre Gaslly').then(res => {
+        return driverContoller.checkDriverApi('Pierre Gaslly').then(res => {
           assert(res === false)
         })
       })
       it('gets partial names of drivers', function() {
-        return webhookController.checkDriverApi('lewi').then(res => {
+        return driverContoller.checkDriverApi('lewi').then(res => {
           assert(res === false)
         })
       })
       it('gets partial names of drivers', function() {
-        return webhookController.checkDriverApi('lewis').then(res => {
+        return driverContoller.checkDriverApi('lewis').then(res => {
           assert.strictEqual(res, 'lewis-hamilton')
         })
       })
@@ -80,7 +75,7 @@ describe('F1 Messenger tests', function() {
           }
         ])
         // need to parse here to check values
-        const res = JSON.parse(webhookController.makeEntriesLower(stringified))
+        const res = JSON.parse(driverContoller.makeEntriesLower(stringified))
         const ex = {
           name: 'test name here',
           name_slug: 'test-name-here'
@@ -96,7 +91,7 @@ describe('F1 Messenger tests', function() {
           }
         ])
         // need to parse here to check values
-        const res = webhookController.makeEntriesLower(stringified)
+        const res = driverContoller.makeEntriesLower(stringified)
         assert(typeof res === 'string')
       })
     })
