@@ -257,8 +257,7 @@ describe('F1 Messenger tests', function() {
             .checkInputText('racer')
             // check func gets called/
             .then(res => {
-              console.log('res', res)
-              assert.strictEqual(res, responses.card.driver)
+              assert.strictEqual(res.payload, responses.card.driver)
             })
         )
       })

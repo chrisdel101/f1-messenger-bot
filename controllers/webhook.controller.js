@@ -228,16 +228,27 @@ exports.checkInputText = (inputText, cache) => {
           console.log(
             testWordsJson.prompt_card.indexOf(inputText.toLowerCase())
           )
-          console.log('BLAH', inputText, cache)
           switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
             case 0:
-              return responses.card.driver
+              return {
+                type: 'text',
+                payload: responses.card.driver
+              }
             case 1:
-              return responses.card.team
+              return {
+                type: 'text',
+                payload: responses.card.team
+              }
             case 2:
-              return responses.card.team
+              return {
+                type: 'text',
+                payload: responses.card.team
+              }
             case 3:
-              return responses.card.driver
+              return {
+                type: 'text',
+                payload: responses.card.driver
+              }
           }
         } else {
           return {
