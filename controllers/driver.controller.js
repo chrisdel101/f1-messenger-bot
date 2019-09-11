@@ -68,10 +68,8 @@ exports.verifyTimeStamp = (timeStamp, mins) => {
 }
 // gets/caches drivers from api and returns array
 exports.cacheAndGetDrivers = cache => {
-  if (
-    !cache.hasOwnProperty('drivers_slugs') ||
-    module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)
-  ) {
+  // if not in cache add it
+  if (!cache.hasOwnProperty('drivers_slugs')) {
     return module.exports.getAllDriverSlugs().then(drivers => {
       drivers = JSON.parse(drivers)
       cache['drivers_slugs'] = {
@@ -80,16 +78,14 @@ exports.cacheAndGetDrivers = cache => {
       }
       return drivers
     })
-  } else {
-    // if less and 24 hours old get from cache
-    console.log('here ')
-    // if (module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
+  } else if (
+    // if less and 24 hours old get from cache - no api call
+    cache.hasOwnProperty('drivers_slugs') &&
+    module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)
+  ) {
     return cache['drivers_slugs']
-    // } else {
-    //   cache['drivers'] = {
-    //     drivers_slugs: drivers,
-    //     timeStamp: new Date()
-    //   }
+    // call api and re-cache
+  } else {
   }
 }
 
