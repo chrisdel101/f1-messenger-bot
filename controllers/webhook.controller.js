@@ -1,6 +1,6 @@
 const request = require('request')
 const endpoints = require('../endpoints')
-const driversCache = require('../driversCache')
+const driverCache = require('../cache').driverCache
 const moment = require('moment')
 // https://stackoverflow.com/q/26885685/5972531
 const debug = require('debug')
@@ -83,7 +83,7 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       return (
         // use driver cache - This might be problem later
         driverController
-          .checkInputText(webhook_event.message.text, driversCache)
+          .checkInputText(webhook_event.message.text, driverCache)
           .then(res => {
             res = Promise.resolve(res)
             // resolve first promise

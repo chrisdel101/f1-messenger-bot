@@ -2,7 +2,7 @@ const { httpsFetch } = require('../utils')
 const endpoints = require('../endpoints')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
-const driversCache = require('../driversCache')
+const { driverCache, driversCache } = require('../cache')
 const moment = require('moment')
 // https://stackoverflow.com/q/26885685/5972531
 const debug = require('debug')
@@ -57,30 +57,58 @@ exports.checkDriverApi = nameToCheck => {
   }
 }
 // check if timestamp is older than 30 mins
-exports.verifyTimeStamp = timeStamp => {
+exports.verifyTimeStamp = (timeStamp, mins) => {
   const d1 = new moment(timeStamp)
   const d2 = new moment()
   // subract time1 from time 2
   const diff = moment.duration(d2.diff(d1)).asMinutes()
+  console.log('diff', diff)
   // less than 30 mins true, else false
-  return diff < 30 ? true : false
+  return diff < mins ? true : false
 }
+// gets/caches drivers from api and returns array
+exports.cacheAndGetDrivers = cache => {
+  if (
+    !cache.hasOwnProperty('drivers_slugs') ||
+    module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)
+  ) {
+    return module.exports.getAllDriverSlugs().then(drivers => {
+      drivers = JSON.parse(drivers)
+      cache['drivers_slugs'] = {
+        drivers_slugs: drivers,
+        timeStamp: new Date()
+      }
+      return drivers
+    })
+  } else {
+    // if less and 24 hours old get from cache
+    console.log('here ')
+    // if (module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
+    return cache['drivers_slugs']
+    // } else {
+    //   cache['drivers'] = {
+    //     drivers_slugs: drivers,
+    //     timeStamp: new Date()
+    //   }
+  }
+}
+
 // handle caching and return driver obj - returns a promise or object
-exports.cacheAndGetDriver = (driverSlug, driversCache) => {
+exports.cacheAndGetDriver = (driverSlug, driverCache) => {
   log('cacheAndGetDriver')
   // if not in cache add to cache
-  if (!driversCache.hasOwnProperty(driverSlug)) {
+  if (!driverCache.hasOwnProperty(driverSlug)) {
     // call all drivers api and check if it's there
     return module.exports.checkDriverApi(driverSlug).then(slug => {
       // if driver name is valid
       if (slug) {
         //  add to cache
-        driversCache[driverSlug] = {
+        driverCache[driverSlug] = {
           slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),
           timeStamp: new Date()
         }
-        // console.log('here', driversCache)
+        // console.log('here', driverCache)
         // return new driver obj
         return {
           slug: driverSlug,
@@ -93,15 +121,15 @@ exports.cacheAndGetDriver = (driverSlug, driversCache) => {
       }
     })
     // if driver is in cache already
-  } else if (driversCache.hasOwnProperty(driverSlug)) {
+  } else if (driverCache.hasOwnProperty(driverSlug)) {
     // check if time is valid
-    if (module.exports.verifyTimeStamp(driversCache[driverSlug].timeStamp)) {
+    if (module.exports.verifyTimeStamp(driverCache[driverSlug].timeStamp)) {
       // if valid get from cache
       console.log('valid time stamp')
-      return driversCache[driverSlug]
+      return driverCache[driverSlug]
       // if not valid then re-add
     } else {
-      driversCache[driverSlug] = {
+      driverCache[driverSlug] = {
         slug: driverSlug,
         imageUrl: endpoints.productionCards(driverSlug),
         timeStamp: new Date()

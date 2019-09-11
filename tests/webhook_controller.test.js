@@ -42,6 +42,71 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
+    describe.only('cacheAndGetDrivers()', () => {
+      it('cacheAndGetDrivers adds driver slugs array to cache', function() {
+        const fakeCache = {}
+        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+          // console.log(fakeCache['drivers'])
+          assert(fakeCache.hasOwnProperty('drivers_slugs'))
+          assert(fakeCache.drivers_slugs.hasOwnProperty('drivers_slugs'))
+          assert(Array.isArray(fakeCache.drivers_slugs['drivers_slugs']))
+        })
+      })
+      it('cacheAndGetDrivers returns drivers arr after caching', function() {
+        const fakeCache = {}
+        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+          assert(Array.isArray(res))
+          assert(res.length > 0)
+        })
+      })
+      it('cacheAndGetDrivers adds timestamp to cache', function() {
+        const fakeCache = {}
+        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+          assert(fakeCache.drivers_slugs.hasOwnProperty('timeStamp'))
+        })
+      })
+      it('cacheAndGetDrivers gets values from cache', function() {
+        sinon.spy(driverController, 'verifyTimeStamp')
+        sinon.spy(driverController, 'getAllDriverSlugs')
+        const fakeCache = {
+          drivers_slugs: {
+            drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
+            timeStamp: new Date('2019-09-04 19:30:26')
+          }
+        }
+        Promise.resolve(driverController.cacheAndGetDrivers(fakeCache)).then(
+          res => {
+            // should call buy bypass verifyTimeStamp
+            assert(driverController.verifyTimeStamp.calledOnce)
+            // should bypass call to API
+            assert(driverController.getAllDriverSlugs.notCalled)
+            // check cache value
+            assert.deepEqual(res, {
+              drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
+              timeStamp: new Date('2019-09-05T01:30:26.000Z')
+            })
+            driverController.getAllDriverSlugs.restore()
+            driverController.verifyTimeStamp.restore()
+          }
+        )
+      })
+      it('cacheAndGetDrivers fails timestamp validation', function() {
+        sinon.spy(driverController, 'getAllDriverSlugs')
+        const fakeCache = {
+          drivers_slugs: {
+            drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
+            timeStamp: new Date('2019-09-04 19:30:26')
+          }
+        }
+        Promise.resolve(driverController.cacheAndGetDrivers(fakeCache)).then(
+          res => {
+            // does not call API function
+            assert.ok(!driverController.getAllDriverSlugs.calledOnce)
+            driverController.getAllDriverSlugs.restore()
+          }
+        )
+      })
+    })
     describe('checkDriverApi()', () => {
       it('returns true when matches', function() {
         return driverController.checkDriverApi('Pierre Gasly').then(res => {
@@ -410,12 +475,6 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('cacheAndGetDriver()', () => {
-      it('cacheAndGetDriver adds to cache', function() {
-        const fakeCache = {
-          'test-driver': 'An image here'
-        }
-        const res = driverController.cacheAndGetDriver('test-driver', fakeCache)
-      })
       it('cacheAndGetDriver adds to cache', function() {
         // let webHookController = rewire('../controllers/webhook.controller')
         const fakeCache = {
