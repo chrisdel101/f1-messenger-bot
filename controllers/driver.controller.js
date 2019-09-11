@@ -1,6 +1,5 @@
 const { httpsFetch } = require('../utils')
 const endpoints = require('../endpoints')
-
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
 const driversCache = require('../driversCache')
@@ -123,7 +122,6 @@ exports.checkInputText = (inputText, cache) => {
   // check if input was a driver name
   try {
     log('checkInputText')
-    console.log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(slug => {
       console.log('slug', slug)
       // true if a driver name
