@@ -82,7 +82,7 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       // console.log(webhook_event.message)
       return (
         // use driver cache - This might be problem later
-        module.exports
+        driverController
           .checkInputText(webhook_event.message.text, driversCache)
           .then(res => {
             res = Promise.resolve(res)
@@ -189,84 +189,6 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
     console.error('Error in handleMessageType', e)
   }
 }
-// take user input and check to send back response
-exports.checkInputText = (inputText, cache) => {
-  // check if input was a driver name
-  try {
-    log('checkInputText')
-    console.log('checkInputText')
-    return driverController.checkDriverApi(inputText).then(slug => {
-      console.log('slug', slug)
-      // true if a driver name
-      if (slug) {
-        // - returns a promise if calling from API
-        // - returns an object if in the cache
-        const driver = module.exports.cacheAndGetDriver(slug, cache)
-        // console.log('DD', driver)
-        // send driver card info
-        return {
-          type: 'image',
-          payload: driver
-        }
-        // if not driver
-      } else {
-        // if in array return greeting
-        if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
-          return {
-            type: 'text',
-            payload: responses.profile.greeting
-          }
-        } else if (
-          testWordsJson.prompt_help.includes(inputText.toLowerCase())
-        ) {
-          return {
-            type: 'text',
-            payload: responses.help.ask
-          }
-          // if text is hello, or other start word, welcome/
-          // if help listing a few options
-          // if card, driver, team, prompt with which driver?
-        } else if (
-          testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
-        ) {
-          console.log(
-            testWordsJson.prompt_card.indexOf(inputText.toLowerCase())
-          )
-          switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
-            case 0:
-              return {
-                type: 'text',
-                payload: responses.card.driver
-              }
-            case 1:
-              return {
-                type: 'text',
-                payload: responses.card.team
-              }
-            case 2:
-              return {
-                type: 'text',
-                payload: responses.card.team
-              }
-            case 3:
-              return {
-                type: 'text',
-                payload: responses.card.driver
-              }
-          }
-        } else {
-          return {
-            type: 'text',
-            payload: responses.filler
-          }
-        }
-      }
-    })
-  } catch (e) {
-    console.log('An error in checkInputText', e)
-  }
-}
-
 // Handles messaging_postbacks events
 function handlePostback(sender_psid, received_postback) {
   let response

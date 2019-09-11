@@ -222,7 +222,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it.only('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
+      it.skip('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'checkInputText')
         // let spy = sinon.spy()
