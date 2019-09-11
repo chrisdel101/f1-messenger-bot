@@ -123,6 +123,7 @@ exports.checkInputText = (inputText, cache) => {
   // check if input was a driver name
   try {
     log('checkInputText')
+    console.log('checkInputText')
     return module.exports.checkDriverApi(inputText).then(slug => {
       console.log('slug', slug)
       // true if a driver name

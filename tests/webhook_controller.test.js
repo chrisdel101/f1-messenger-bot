@@ -1,6 +1,6 @@
 const assert = require('assert')
 let webhookController = require('../controllers/webhook.controller')
-let driverContoller = require('../controllers/driver.controller')
+let driverController = require('../controllers/driver.controller')
 const { httpsFetch } = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
@@ -10,7 +10,7 @@ let stub
 before(function() {
   // set to use rewire
   webHookController = rewire('../controllers/webhook.controller')
-  driverContoller = rewire('../controllers/driver.controller')
+  driverController = rewire('../controllers/driver.controller')
   stub = sinon.stub()
   // set what func should return
   stub.returns({
@@ -25,7 +25,7 @@ describe('F1 Messenger tests', function() {
   describe('webhook controller', function() {
     describe('getAllDriverSlugs()', () => {
       it('getAllDriverSlugs returns an array', function() {
-        return driverContoller.getAllDriverSlugs().then(result => {
+        return driverController.getAllDriverSlugs().then(result => {
           // unparsed json
           assert(typeof result === 'string')
           //   parse Json
@@ -35,7 +35,7 @@ describe('F1 Messenger tests', function() {
       })
       //   check json string before parsing
       it('getAllDriverSlugs returns all drivers', () => {
-        return driverContoller.getAllDriverSlugs().then(result => {
+        return driverController.getAllDriverSlugs().then(result => {
           // console.log(result)
           assert(result.includes('lewis-hamilton'))
           assert(result.includes('alexander-albon'))
@@ -44,23 +44,23 @@ describe('F1 Messenger tests', function() {
     })
     describe('checkDriverApi()', () => {
       it('returns true when matches', function() {
-        return driverContoller.checkDriverApi('Pierre Gasly').then(res => {
+        return driverController.checkDriverApi('Pierre Gasly').then(res => {
           console.log(res)
           assert.strictEqual(res, 'pierre-gasly')
         })
       })
       it('returns false when not matches', function() {
-        return driverContoller.checkDriverApi('Pierre Gaslly').then(res => {
+        return driverController.checkDriverApi('Pierre Gaslly').then(res => {
           assert(res === false)
         })
       })
       it('gets partial names of drivers', function() {
-        return driverContoller.checkDriverApi('lewi').then(res => {
+        return driverController.checkDriverApi('lewi').then(res => {
           assert(res === false)
         })
       })
       it('gets partial names of drivers', function() {
-        return driverContoller.checkDriverApi('lewis').then(res => {
+        return driverController.checkDriverApi('lewis').then(res => {
           assert.strictEqual(res, 'lewis-hamilton')
         })
       })
@@ -75,7 +75,7 @@ describe('F1 Messenger tests', function() {
           }
         ])
         // need to parse here to check values
-        const res = JSON.parse(driverContoller.makeEntriesLower(stringified))
+        const res = JSON.parse(driverController.makeEntriesLower(stringified))
         const ex = {
           name: 'test name here',
           name_slug: 'test-name-here'
@@ -91,7 +91,7 @@ describe('F1 Messenger tests', function() {
           }
         ])
         // need to parse here to check values
-        const res = driverContoller.makeEntriesLower(stringified)
+        const res = driverController.makeEntriesLower(stringified)
         assert(typeof res === 'string')
       })
     })
@@ -222,9 +222,12 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
+      it.only('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'checkInputText')
+        // let spy = sinon.spy()
+        // driverController.__set__('checkInputText', spy)
+        console.log(webhookController)
         return (
           webhookController
             .handleMessageType('2399043010191818', {
@@ -237,10 +240,10 @@ describe('F1 Messenger tests', function() {
             .then(res => {
               // console.log(res)
               // check that callSendAPI is called
-              assert(webhookController.checkInputText.calledOnce)
+              assert(driverController.checkInputText.calledOnce)
               // check return value
-              assert.deepEqual(res, { text: responses.filler })
-              webhookController.checkInputText.restore()
+              // assert.deepEqual(res, { text: responses.filler })
+              // driverController.checkInputText.restore()
             })
         )
       })
@@ -248,7 +251,7 @@ describe('F1 Messenger tests', function() {
     describe('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
-          webhookController
+          driverController
             .checkInputText('racer')
             // check func gets called/
             .then(res => {
@@ -258,7 +261,7 @@ describe('F1 Messenger tests', function() {
       })
       it('checkInputText returns filler text', function() {
         return (
-          webhookController
+          driverController
             .checkInputText('Just some text')
             // check func gets called/
             .then(res => {
@@ -267,7 +270,7 @@ describe('F1 Messenger tests', function() {
         )
       })
       it('checkInputText returns greeting prompt - lowercase', function() {
-        return webhookController.checkInputText('hello').then(res => {
+        return driverController.checkInputText('hello').then(res => {
           assert.strictEqual(
             res.payload,
             'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
@@ -275,12 +278,12 @@ describe('F1 Messenger tests', function() {
         })
       })
       it('checkInputText returns help prompt - lowercase ', function() {
-        return webhookController.checkInputText('help').then(res => {
+        return driverController.checkInputText('help').then(res => {
           assert.strictEqual(res.payload, 'What can we do to help you today?')
         })
       })
       it('checkInputText returns help prompt - uppercase ', function() {
-        return webhookController.checkInputText('HELP').then(res => {
+        return driverController.checkInputText('HELP').then(res => {
           assert.strictEqual(res.payload, 'What can we do to help you today?')
         })
       })
@@ -293,8 +296,8 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        webHookController.__set__('driversCache', fakeCache)
-        return webHookController
+        driverController.__set__('driversCache', fakeCache)
+        return driverController
           .checkInputText('Lewis Hamilton', fakeCache)
           .then(res1 => {
             res1.payload.then(payload => {
@@ -305,7 +308,7 @@ describe('F1 Messenger tests', function() {
               assert(payload.slug === 'lewis-hamilton')
               // check that new driver added to cache
               assert(
-                Object.keys(webHookController.__get__('driversCache')).includes(
+                Object.keys(driverController.__get__('driversCache')).includes(
                   'lewis-hamilton'
                 )
               )
@@ -319,7 +322,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return webHookController
+        return driverController
           .checkInputText('lewis', fakeCache)
           .then(res => {
             res.payload
@@ -353,7 +356,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return webHookController
+        return driverController
           .checkInputText('lewis', fakeCache)
           .then(res => {
             res.payload
@@ -386,7 +389,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return webHookController
+        return driverController
           .checkInputText('VALTERI', fakeCache)
           .then(res => console.log('res', res))
       })
@@ -398,7 +401,7 @@ describe('F1 Messenger tests', function() {
           { name: 'Test Driver 2', name_slug: 'test-driver2' },
           { name: 'Some Driver 3', name_slug: 'some-driver3' }
         ]
-        const res = webHookController.extractDriverNames(arr)
+        const res = driverController.extractDriverNames(arr)
         assert(res, Array.isArray(res))
         assert(res[0].hasOwnProperty('firstName'))
         assert(res[0]['firstName'] === 'test')
@@ -411,10 +414,7 @@ describe('F1 Messenger tests', function() {
         const fakeCache = {
           'test-driver': 'An image here'
         }
-        const res = webhookController.cacheAndGetDriver(
-          'test-driver',
-          fakeCache
-        )
+        const res = driverController.cacheAndGetDriver('test-driver', fakeCache)
       })
       it('cacheAndGetDriver adds to cache', function() {
         // let webHookController = rewire('../controllers/webhook.controller')
@@ -424,9 +424,9 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date()
           }
         }
-        webHookController.__set__('driversCache', fakeCache)
+        driverController.__set__('driversCache', fakeCache)
         // check if cache has that key
-        webhookController
+        driverController
           .cacheAndGetDriver('alexander-albon', fakeCache)
           .then(res => {
             // console.log('RES', res)
@@ -452,7 +452,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('2019-09-04 19:30:26')
           }
         }
-        const res = webhookController.verifyTimeStamp(
+        const res = driverController.verifyTimeStamp(
           fakeCache['lewis-hamilton'].timeStamp
         )
         assert(!res)
@@ -465,7 +465,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date()
           }
         }
-        const res = webhookController.verifyTimeStamp(
+        const res = driverController.verifyTimeStamp(
           fakeCache['lewis-hamilton'].timeStamp
         )
         assert(res)
@@ -478,7 +478,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        const res = webhookController.verifyTimeStamp(
+        const res = driverController.verifyTimeStamp(
           fakeCache['lewis-hamilton'].timeStamp
         )
         assert(res === false)
