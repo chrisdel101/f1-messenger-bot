@@ -56,8 +56,9 @@ exports.checkDriverApi = nameToCheck => {
     console.error('An error in checkDriverApi', e)
   }
 }
-// check if timestamp is older than 30 mins
+// check if timestamp is older than mins entered
 exports.verifyTimeStamp = (timeStamp, mins) => {
+  // console.log('verify')
   const d1 = new moment(timeStamp)
   const d2 = new moment()
   // subract time1 from time 2
@@ -66,13 +67,18 @@ exports.verifyTimeStamp = (timeStamp, mins) => {
   // less than 30 mins true, else false
   return diff < mins ? true : false
 }
-// gets/caches drivers from api and returns array
-exports.cacheAndGetDrivers = cache => {
+// gets/caches drivers array from api and returns array
+exports.cacheAndGetDrivers = (cache, expiryTime) => {
+  // if not in cache OR time stamp passes fails use new call
   if (
     !cache.hasOwnProperty('drivers_slugs') ||
-    module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)
+    !module.exports.verifyTimeStamp(
+      cache['drivers_slugs'].timeStamp,
+      expiryTime
+    )
   ) {
     return module.exports.getAllDriverSlugs().then(drivers => {
+      console.log('here ')
       drivers = JSON.parse(drivers)
       cache['drivers_slugs'] = {
         drivers_slugs: drivers,
@@ -82,7 +88,6 @@ exports.cacheAndGetDrivers = cache => {
     })
   } else {
     // if less and 24 hours old get from cache
-    console.log('here ')
     // if (module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
     return cache['drivers_slugs']
     // } else {
@@ -124,11 +129,12 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
   } else if (driverCache.hasOwnProperty(driverSlug)) {
     // check if time is valid
     if (module.exports.verifyTimeStamp(driverCache[driverSlug].timeStamp)) {
-      // if valid get from cache
       console.log('valid time stamp')
+      // if valid get from cache
       return driverCache[driverSlug]
       // if not valid then re-add
     } else {
+      console.log('failed time stamp')
       driverCache[driverSlug] = {
         slug: driverSlug,
         imageUrl: endpoints.productionCards(driverSlug),

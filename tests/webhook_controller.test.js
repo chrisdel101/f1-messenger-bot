@@ -26,6 +26,7 @@ describe('F1 Messenger tests', function() {
     describe('getAllDriverSlugs()', () => {
       it('getAllDriverSlugs returns an array', function() {
         return driverController.getAllDriverSlugs().then(result => {
+          // console.log('re', res)
           // unparsed json
           assert(typeof result === 'string')
           //   parse Json
@@ -42,8 +43,8 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe.only('cacheAndGetDrivers()', () => {
-      it('cacheAndGetDrivers adds driver slugs array to cache', function() {
+    describe('cacheAndGetDrivers()', () => {
+      it('cacheAndGetDrivers adds driver slugs array to cache - no driver slugs', function() {
         const fakeCache = {}
         driverController.cacheAndGetDrivers(fakeCache).then(res => {
           // console.log(fakeCache['drivers'])
@@ -65,7 +66,29 @@ describe('F1 Messenger tests', function() {
           assert(fakeCache.drivers_slugs.hasOwnProperty('timeStamp'))
         })
       })
-      it('cacheAndGetDrivers gets values from cache', function() {
+      it('cacheAndGetDrivers gets from cache - passes timestamp validation', function() {
+        // console.log('bottom', driverController)
+        sinon.spy(driverController, 'getAllDriverSlugs')
+        sinon.spy(driverController, 'verifyTimeStamp')
+
+        const fakeCache = {
+          drivers_slugs: {
+            drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
+            timeStamp: new Date()
+          }
+        }
+        Promise.resolve(
+          driverController.cacheAndGetDrivers(fakeCache, 1400)
+        ).then(res => {
+          // does not call API function
+          assert(driverController.getAllDriverSlugs.notCalled)
+          // does call verification
+          assert(driverController.verifyTimeStamp.calledOnce)
+          driverController.getAllDriverSlugs.restore()
+          driverController.verifyTimeStamp.restore()
+        })
+      })
+      it.skip('cacheAndGetDrivers gets values from api - fails verifyTimeStamp ', function() {
         sinon.spy(driverController, 'verifyTimeStamp')
         sinon.spy(driverController, 'getAllDriverSlugs')
         const fakeCache = {
@@ -74,37 +97,17 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('2019-09-04 19:30:26')
           }
         }
-        Promise.resolve(driverController.cacheAndGetDrivers(fakeCache)).then(
-          res => {
-            // should call buy bypass verifyTimeStamp
-            assert(driverController.verifyTimeStamp.calledOnce)
-            // should bypass call to API
-            assert(driverController.getAllDriverSlugs.notCalled)
-            // check cache value
-            assert.deepEqual(res, {
-              drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
-              timeStamp: new Date('2019-09-05T01:30:26.000Z')
-            })
-            driverController.getAllDriverSlugs.restore()
-            driverController.verifyTimeStamp.restore()
-          }
-        )
-      })
-      it('cacheAndGetDrivers fails timestamp validation', function() {
-        sinon.spy(driverController, 'getAllDriverSlugs')
-        const fakeCache = {
-          drivers_slugs: {
-            drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
-            timeStamp: new Date('2019-09-04 19:30:26')
-          }
-        }
-        Promise.resolve(driverController.cacheAndGetDrivers(fakeCache)).then(
-          res => {
-            // does not call API function
-            assert.ok(!driverController.getAllDriverSlugs.calledOnce)
-            driverController.getAllDriverSlugs.restore()
-          }
-        )
+        Promise.resolve(
+          driverController.cacheAndGetDrivers(fakeCache, 1400)
+        ).then(res => {
+          // should call buy bypass verifyTimeStamp
+          assert(driverController.verifyTimeStamp.calledOnce)
+          // should byp ass call to API
+          assert(driverController.getAllDriverSlugs.calledOnce)
+          // check cache value.
+          driverController.getAllDriverSlugs.restore()
+          driverController.verifyTimeStamp.restore()
+        })
       })
     })
     describe('checkDriverApi()', () => {
@@ -503,7 +506,7 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('verifyTimeStamp()', () => {
-      it('verifyTimeStamp returns true', function() {
+      it('verifyTimeStamp fails older than mins entered', function() {
         // older than 30 mins
         const fakeCache = {
           'lewis-hamilton': {
@@ -512,11 +515,12 @@ describe('F1 Messenger tests', function() {
           }
         }
         const res = driverController.verifyTimeStamp(
-          fakeCache['lewis-hamilton'].timeStamp
+          fakeCache['lewis-hamilton'].timeStamp,
+          30
         )
         assert(!res)
       })
-      it('verifyTimeStamp returns true when less than 30 mins', function() {
+      it('verifyTimeStamp returns passes when less than time entered', function() {
         // return exact same time as func
         const fakeCache = {
           'lewis-hamilton': {
@@ -525,22 +529,10 @@ describe('F1 Messenger tests', function() {
           }
         }
         const res = driverController.verifyTimeStamp(
-          fakeCache['lewis-hamilton'].timeStamp
+          fakeCache['lewis-hamilton'].timeStamp,
+          30
         )
         assert(res)
-      })
-      it('verifyTimeStamp returns false', function() {
-        // return exact same time as func
-        const fakeCache = {
-          'lewis-hamilton': {
-            imageUrl: 'An image Url',
-            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
-          }
-        }
-        const res = driverController.verifyTimeStamp(
-          fakeCache['lewis-hamilton'].timeStamp
-        )
-        assert(res === false)
       })
     })
   })
