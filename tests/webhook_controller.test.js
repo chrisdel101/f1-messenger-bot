@@ -2,6 +2,7 @@ const assert = require('assert')
 let webhookController = require('../controllers/webhook.controller')
 let driverController = require('../controllers/driver.controller')
 const { httpsFetch } = require('../utils')
+const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
@@ -22,7 +23,7 @@ before(function() {
 })
 describe('F1 Messenger tests', function() {
   // stub cache
-  describe('webhook controller', function() {
+  describe('drivers controller', function() {
     describe('getAllDriverSlugs()', () => {
       it('getAllDriverSlugs returns an array', function() {
         return driverController.getAllDriverSlugs().then(result => {
@@ -69,7 +70,7 @@ describe('F1 Messenger tests', function() {
       it('cacheAndGetDrivers gets from cache - passes timestamp validation', function() {
         // console.log('bottom', driverController)
         sinon.spy(driverController, 'getAllDriverSlugs')
-        sinon.spy(driverController, 'verifyTimeStamp')
+        sinon.spy(utils, 'verifyTimeStamp')
 
         const fakeCache = {
           drivers_slugs: {
@@ -83,13 +84,13 @@ describe('F1 Messenger tests', function() {
           // does not call API function
           assert(driverController.getAllDriverSlugs.notCalled)
           // does call verification
-          assert(driverController.verifyTimeStamp.calledOnce)
+          assert(utils.verifyTimeStamp.calledOnce)
           driverController.getAllDriverSlugs.restore()
-          driverController.verifyTimeStamp.restore()
+          utils.verifyTimeStamp.restore()
         })
       })
       it.skip('cacheAndGetDrivers gets values from api - fails verifyTimeStamp ', function() {
-        sinon.spy(driverController, 'verifyTimeStamp')
+        sinon.spy(utils, 'verifyTimeStamp')
         sinon.spy(driverController, 'getAllDriverSlugs')
         const fakeCache = {
           drivers_slugs: {
@@ -101,12 +102,12 @@ describe('F1 Messenger tests', function() {
           driverController.cacheAndGetDrivers(fakeCache, 1400)
         ).then(res => {
           // should call buy bypass verifyTimeStamp
-          assert(driverController.verifyTimeStamp.calledOnce)
+          assert(utils.verifyTimeStamp.calledOnce)
           // should byp ass call to API
           assert(driverController.getAllDriverSlugs.calledOnce)
           // check cache value.
           driverController.getAllDriverSlugs.restore()
-          driverController.verifyTimeStamp.restore()
+          utils.verifyTimeStamp.restore()
         })
       })
     })
@@ -131,6 +132,49 @@ describe('F1 Messenger tests', function() {
         return driverController.checkDriverApi('lewis').then(res => {
           assert.strictEqual(res, 'lewis-hamilton')
         })
+      })
+    })
+    describe('extractDriverNames', () => {
+      it('test', function() {
+        const arr = [
+          { name: 'Test Driver 1', name_slug: 'test-driver1' },
+          { name: 'Test Driver 2', name_slug: 'test-driver2' },
+          { name: 'Some Driver 3', name_slug: 'some-driver3' }
+        ]
+        const res = driverController.extractDriverNames(arr)
+        assert(res, Array.isArray(res))
+        assert(res[0].hasOwnProperty('firstName'))
+        assert(res[0]['firstName'] === 'test')
+        assert(res[2].hasOwnProperty('lastName'))
+        assert(res[2]['firstName'] === 'some')
+      })
+    })
+    describe('cacheAndGetDriver()', () => {
+      it('cacheAndGetDriver adds to cache', function() {
+        // let webHookController = rewire('../controllers/webhook.controller')
+        const fakeCache = {
+          'lewis-hamilton': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        driverController.__set__('driversCache', fakeCache)
+        // check if cache has that key
+        driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            // console.log('RES', res)
+            // check that new key was added
+            assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
+            // check url is formed correct
+            assert.strictEqual(
+              res.imageUrl,
+              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
+            )
+          })
+          .catch(e => {
+            console.error('error in cacheAndGetDriver() - adds to cache', e)
+          })
       })
     })
     describe('makeEntriesLower()', () => {
@@ -163,6 +207,8 @@ describe('F1 Messenger tests', function() {
         assert(typeof res === 'string')
       })
     })
+  })
+  describe('webhook controller', function() {
     describe('handleMessageType()', () => {
       it('handleMessageType handles partial driver name', function() {
         // replace function with a spy
@@ -316,7 +362,7 @@ describe('F1 Messenger tests', function() {
         )
       })
     })
-    describe.only('checkInputText()', () => {
+    describe('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
           Promise.resolve(driverController.checkInputText('racer'))
@@ -474,49 +520,6 @@ describe('F1 Messenger tests', function() {
         ).then(res => console.log('res', res))
       })
     })
-    describe('extractDriverNames', () => {
-      it('test', function() {
-        const arr = [
-          { name: 'Test Driver 1', name_slug: 'test-driver1' },
-          { name: 'Test Driver 2', name_slug: 'test-driver2' },
-          { name: 'Some Driver 3', name_slug: 'some-driver3' }
-        ]
-        const res = driverController.extractDriverNames(arr)
-        assert(res, Array.isArray(res))
-        assert(res[0].hasOwnProperty('firstName'))
-        assert(res[0]['firstName'] === 'test')
-        assert(res[2].hasOwnProperty('lastName'))
-        assert(res[2]['firstName'] === 'some')
-      })
-    })
-    describe('cacheAndGetDriver()', () => {
-      it('cacheAndGetDriver adds to cache', function() {
-        // let webHookController = rewire('../controllers/webhook.controller')
-        const fakeCache = {
-          'lewis-hamilton': {
-            imageUrl: 'An image Url',
-            timeStamp: new Date()
-          }
-        }
-        driverController.__set__('driversCache', fakeCache)
-        // check if cache has that key
-        driverController
-          .cacheAndGetDriver('alexander-albon', fakeCache)
-          .then(res => {
-            // console.log('RES', res)
-            // check that new key was added
-            assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
-            // check url is formed correct
-            assert.strictEqual(
-              res.imageUrl,
-              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
-            )
-          })
-          .catch(e => {
-            console.error('error in cacheAndGetDriver() - adds to cache', e)
-          })
-      })
-    })
     describe('verifyTimeStamp()', () => {
       it('verifyTimeStamp fails older than mins entered', function() {
         // older than 30 mins
@@ -526,7 +529,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('2019-09-04 19:30:26')
           }
         }
-        const res = driverController.verifyTimeStamp(
+        const res = utils.verifyTimeStamp(
           fakeCache['lewis-hamilton'].timeStamp,
           30
         )
@@ -540,7 +543,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date()
           }
         }
-        const res = driverController.verifyTimeStamp(
+        const res = utils.verifyTimeStamp(
           fakeCache['lewis-hamilton'].timeStamp,
           30
         )
