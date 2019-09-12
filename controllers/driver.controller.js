@@ -52,6 +52,7 @@ exports.checkDriverApi = nameToCheck => {
       console.log('DDD', drivers)
       drivers = module.exports.makeEntriesLower(drivers)
       drivers = module.exports.extractDriverNames(JSON.parse(drivers))
+      // check user input first/last names of drivers against data
       for (let driver of drivers) {
         for (let key in driver) {
           if (driver[key] === nameToCheck) {
@@ -165,74 +166,68 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
 }
 // take user input and check to send back response
 exports.checkInputText = (inputText, cache) => {
-  // check if input was a driver name
+  log('checkInputText')
   try {
-    log('checkInputText')
-    return module.exports.checkDriverApi(inputText).then(slug => {
-      console.log('slug', slug)
+    // check json first
+    if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
+      return {
+        type: 'text',
+        payload: responses.profile.greeting
+      }
+    } else if (testWordsJson.prompt_help.includes(inputText.toLowerCase())) {
+      return {
+        type: 'text',
+        payload: responses.help.ask
+      }
+    } else if (
+      testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
+    ) {
+      // if text is hello, or other start word, welcome/
+      // if help listing a few options
+      // if card, driver, team, prompt with which driver?
+      switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
+        case 0:
+          return {
+            type: 'text',
+            payload: responses.card.driver
+          }
+        case 1:
+          return {
+            type: 'text',
+            payload: responses.card.team
+          }
+        case 2:
+          return {
+            type: 'text',
+            payload: responses.card.team
+          }
+        case 3:
+          return {
+            type: 'text',
+            payload: responses.card.driver
+          }
+      }
+    }
+    // else check if input was a driver name
+    // console.log('pp', Promise.resolve(module.exports.checkDriverApi(inputText)))
+    return module.exports.checkDriverApi(inputText).then(driverSlug => {
+      console.log('driverSlug', driverSlug)
       // true if a driver name
-      if (slug) {
+      if (driverSlug) {
         // - returns a promise if calling from API
         // - returns an object if in the cache
-        const driver = module.exports.cacheAndGetDriver(slug, cache)
+        const driver = module.exports.cacheAndGetDriver(driverSlug, cache)
         // console.log('DD', driver)
         // send driver card info
         return {
           type: 'image',
           payload: driver
         }
-        // if not driver
-      } else {
-        // if in array return greeting
-        if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
-          return {
-            type: 'text',
-            payload: responses.profile.greeting
-          }
-        } else if (
-          testWordsJson.prompt_help.includes(inputText.toLowerCase())
-        ) {
-          return {
-            type: 'text',
-            payload: responses.help.ask
-          }
-          // if text is hello, or other start word, welcome/
-          // if help listing a few options
-          // if card, driver, team, prompt with which driver?
-        } else if (
-          testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
-        ) {
-          console.log(
-            testWordsJson.prompt_card.indexOf(inputText.toLowerCase())
-          )
-          switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
-            case 0:
-              return {
-                type: 'text',
-                payload: responses.card.driver
-              }
-            case 1:
-              return {
-                type: 'text',
-                payload: responses.card.team
-              }
-            case 2:
-              return {
-                type: 'text',
-                payload: responses.card.team
-              }
-            case 3:
-              return {
-                type: 'text',
-                payload: responses.card.driver
-              }
-          }
-        } else {
-          return {
-            type: 'text',
-            payload: responses.filler
-          }
-        }
+        // if not driver call team
+      }
+      return {
+        type: 'text',
+        payload: responses.filler
       }
     })
   } catch (e) {

@@ -110,7 +110,7 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe.only('checkDriverApi()', () => {
+    describe('checkDriverApi()', () => {
       it('returns true when matches', function() {
         return driverController.checkDriverApi('Pierre Gasly').then(res => {
           console.log(res)
@@ -316,12 +316,11 @@ describe('F1 Messenger tests', function() {
         )
       })
     })
-    describe('checkInputText()', () => {
+    describe.only('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
-          driverController
-            .checkInputText('racer')
-            // check func gets called/
+          Promise.resolve(driverController.checkInputText('racer'))
+            // check f(unPromise.resolvec gets called/
             .then(res => {
               assert.strictEqual(res.payload, responses.card.driver)
             })
@@ -329,31 +328,42 @@ describe('F1 Messenger tests', function() {
       })
       it('checkInputText returns filler text', function() {
         return (
-          driverController
-            .checkInputText('Just some text')
+          Promise.resolve(driverController.checkInputText('Just some text'))
             // check func gets called/
             .then(res => {
-              assert(res.payload, responses.filler)
+              console.log(res)
+              if (res.payload) {
+                console.log('HERE')
+                assert(res.payload, responses.filler)
+              } else {
+                assert(res, responses.filler)
+              }
             })
         )
       })
       it('checkInputText returns greeting prompt - lowercase', function() {
-        return driverController.checkInputText('hello').then(res => {
-          assert.strictEqual(
-            res.payload,
-            'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
-          )
-        })
+        return Promise.resolve(driverController.checkInputText('hello')).then(
+          res => {
+            assert.strictEqual(
+              res.payload,
+              'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
+            )
+          }
+        )
       })
       it('checkInputText returns help prompt - lowercase ', function() {
-        return driverController.checkInputText('help').then(res => {
-          assert.strictEqual(res.payload, 'What can we do to help you today?')
-        })
+        return Promise.resolve(driverController.checkInputText('help')).then(
+          res => {
+            assert.strictEqual(res.payload, 'What can we do to help you today?')
+          }
+        )
       })
       it('checkInputText returns help prompt - uppercase ', function() {
-        return driverController.checkInputText('HELP').then(res => {
-          assert.strictEqual(res.payload, 'What can we do to help you today?')
-        })
+        return Promise.resolve(driverController.checkInputText('HELP')).then(
+          res => {
+            assert.strictEqual(res.payload, 'What can we do to help you today?')
+          }
+        )
       })
       it('checkInputText returns driver', function() {
         // set to use rewire
@@ -365,23 +375,23 @@ describe('F1 Messenger tests', function() {
           }
         }
         driverController.__set__('driversCache', fakeCache)
-        return driverController
-          .checkInputText('Lewis Hamilton', fakeCache)
-          .then(res1 => {
-            res1.payload.then(payload => {
-              assert(
-                payload.hasOwnProperty('slug') &&
-                  payload.hasOwnProperty('imageUrl')
+        return Promise.resolve(
+          driverController.checkInputText('Lewis Hamilton', fakeCache)
+        ).then(res1 => {
+          res1.payload.then(payload => {
+            assert(
+              payload.hasOwnProperty('slug') &&
+                payload.hasOwnProperty('imageUrl')
+            )
+            assert(payload.slug === 'lewis-hamilton')
+            // check that new driver added to cache
+            assert(
+              Object.keys(driverController.__get__('driversCache')).includes(
+                'lewis-hamilton'
               )
-              assert(payload.slug === 'lewis-hamilton')
-              // check that new driver added to cache
-              assert(
-                Object.keys(driverController.__get__('driversCache')).includes(
-                  'lewis-hamilton'
-                )
-              )
-            })
+            )
           })
+        })
       })
       it('checks for partial names - returns correct driver slug and URL', function() {
         const fakeCache = {
@@ -390,8 +400,9 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return driverController
-          .checkInputText('lewis', fakeCache)
+        return Promise.resolve(
+          driverController.checkInputText('lewis', fakeCache)
+        )
           .then(res => {
             res.payload
               .then(payload => {
@@ -424,8 +435,9 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return driverController
-          .checkInputText('lewis', fakeCache)
+        return Promise.resolve(
+          driverController.checkInputText('lewis', fakeCache)
+        )
           .then(res => {
             res.payload
               .then(payload => {
@@ -457,9 +469,9 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return driverController
-          .checkInputText('VALTERI', fakeCache)
-          .then(res => console.log('res', res))
+        return Promise.resolve(
+          driverController.checkInputText('VALTERI', fakeCache)
+        ).then(res => console.log('res', res))
       })
     })
     describe('extractDriverNames', () => {
