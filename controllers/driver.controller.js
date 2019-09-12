@@ -14,14 +14,20 @@ exports.getAllDriverSlugs = () => {
 }
 // make all names lowercase
 exports.makeEntriesLower = arr => {
-  arr = JSON.parse(arr)
-  let newArr = arr.map(obj => {
-    obj['name'] = obj['name'].toLowerCase()
-    obj['name_slug'] = obj['name_slug'].toLowerCase()
-    return obj
-  })
-  // re-stringify for searching later on
-  return JSON.stringify(newArr)
+  try {
+    if (typeof arr === 'string' && !Array.isArray(arr)) {
+      arr = JSON.parse(arr)
+    }
+    let newArr = arr.map(obj => {
+      obj['name'] = obj['name'].toLowerCase()
+      obj['name_slug'] = obj['name_slug'].toLowerCase()
+      return obj
+    })
+    // re-stringify for searching later on
+    return JSON.stringify(newArr)
+  } catch (e) {
+    console.error('An error in makeEntriesLower', e)
+  }
 }
 // take in drivers json and add first and last name keys
 // return new arr
@@ -39,10 +45,13 @@ exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
-    return module.exports.getAllDriverSlugs().then(drivers => {
+
+    return Promise.resolve(
+      module.exports.cacheAndGetDrivers(driversCache, 1400)
+    ).then(drivers => {
+      console.log('DDD', drivers)
       drivers = module.exports.makeEntriesLower(drivers)
       drivers = module.exports.extractDriverNames(JSON.parse(drivers))
-      // console.log(drivers)
       for (let driver of drivers) {
         for (let key in driver) {
           if (driver[key] === nameToCheck) {
@@ -78,18 +87,21 @@ exports.cacheAndGetDrivers = (cache, expiryTime) => {
     )
   ) {
     return module.exports.getAllDriverSlugs().then(drivers => {
-      console.log('here ')
+      console.log('NOT FROM CACHE')
       drivers = JSON.parse(drivers)
       cache['drivers_slugs'] = {
         drivers_slugs: drivers,
         timeStamp: new Date()
       }
+      // console.log('here', drivers)
       return drivers
     })
   } else {
+    console.log('FROM CACHE')
     // if less and 24 hours old get from cache
     // if (module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
-    return cache['drivers_slugs']
+    console.log('CA', cache['drivers_slugs'].timeStamp)
+    return cache['drivers_slugs']['drivers_slugs']
     // } else {
     //   cache['drivers'] = {
     //     drivers_slugs: drivers,

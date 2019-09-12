@@ -110,7 +110,7 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe('checkDriverApi()', () => {
+    describe.only('checkDriverApi()', () => {
       it('returns true when matches', function() {
         return driverController.checkDriverApi('Pierre Gasly').then(res => {
           console.log(res)
