@@ -1,10 +1,11 @@
-const { verifyTimeStamp } = require('../utils')
+const { verifyTimeStamp, httpsFetch } = require('../utils')
 const { teamsCache } = require('../cache')
+const endpoints = require('../endpoints')
 
 exports.checkTeamApi = input => {}
 
-exports.getAllTeamSlugs() = () => {
-    
+exports.getAllTeamSlugs = () => {
+  return httpsFetch(endpoints.productionAPI('teams')).then(drivers => drivers)
 }
 
 exports.getAndCacheTeams = (cache, expiryTime) => {
@@ -19,7 +20,7 @@ exports.getAndCacheTeams = (cache, expiryTime) => {
       cache['drivers_slugs'] = {
         drivers_slugs: drivers,
         timeStamp: new Date()
-      } 
+      }
       // console.log('here', drivers)
       return drivers
     })

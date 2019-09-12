@@ -1,6 +1,7 @@
 const assert = require('assert')
 let webhookController = require('../controllers/webhook.controller')
 let driverController = require('../controllers/driver.controller')
+let teamController = require('../controllers/team.controller')
 const { httpsFetch } = require('../utils')
 const utils = require('../utils')
 const rewire = require('rewire')
@@ -22,10 +23,33 @@ before(function() {
   webHookController.__set__('driversCache', stub)
 })
 describe('F1 Messenger tests', function() {
-  // stub cache
+  describe.only('teams controller', function() {
+    describe('getAllTeamSlugs()', () => {
+      it('getAllTeamSlugs returns an array after parsing', function() {
+        return teamController.getAllTeamSlugs().then(result => {
+          assert(typeof result === 'string')
+          //   parse Json
+          const parsed = JSON.parse(result)
+          assert(Array.isArray(parsed))
+        })
+      })
+      //   check json string before parsing
+      it('getAllTeamSlugs returns all teams', () => {
+        return teamController.getAllTeamSlugs().then(result => {
+          assert(result.includes('mercedes'))
+          assert(result.includes('ferrari'))
+        })
+      })
+    })
+    describe('getAndCacheTeams', () => {
+      it(
+        'getAndCacheTeams adds slugs array to cache - hits the no team slugs condition'
+      )
+    })
+  })
   describe('drivers controller', function() {
     describe('getAllDriverSlugs()', () => {
-      it('getAllDriverSlugs returns an array', function() {
+      it('getAllDriverSlugs returns an array after parsing', function() {
         return driverController.getAllDriverSlugs().then(result => {
           // console.log('re', res)
           // unparsed json
@@ -45,7 +69,7 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('cacheAndGetDrivers()', () => {
-      it('cacheAndGetDrivers adds driver slugs array to cache - no driver slugs', function() {
+      it('cacheAndGetDrivers adds driver slugs array to cache - hits the no driver slugs ', function() {
         const fakeCache = {}
         driverController.cacheAndGetDrivers(fakeCache).then(res => {
           // console.log(fakeCache['drivers'])
