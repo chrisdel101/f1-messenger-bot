@@ -28,8 +28,8 @@ exports.getAndCacheTeams = (cache, expiryTime) => {
     console.log('FROM CACHE')
     // if less and 24 hours old get from cache
     // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
-    console.log('CA', cache['drivers_slugs'].timeStamp)
-    return cache['drivers_slugs']['drivers_slugs']
+    // console.log('CA', cache['teams_slugs'])
+    return cache['teams_slugs']['teams_slugs']
     // } else {
     //   cache['drivers'] = {
     //     drivers_slugs: drivers,

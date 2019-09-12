@@ -23,7 +23,7 @@ before(function() {
   webHookController.__set__('driversCache', stub)
 })
 describe('F1 Messenger tests', function() {
-  describe.only('teams controller', function() {
+  describe('teams controller', function() {
     describe('getAllTeamSlugs()', () => {
       it('getAllTeamSlugs returns an array after parsing', function() {
         return teamController.getAllTeamSlugs().then(result => {
@@ -45,9 +45,9 @@ describe('F1 Messenger tests', function() {
       it('getAndCacheTeams adds slugs array to cache - hits the no team slugs condition', function() {
         sinon.spy(teamController, 'getAllTeamSlugs')
         let fakeCache = {}
-        teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
+        return teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
           // console.log(fakeCache['team_slugs'])
-          // get goes correct path
+          // get goes correct path - fix once SO question answered
           assert(teamController.getAllTeamSlugs.calledOnce)
           // check added to cache
           assert(fakeCache.hasOwnProperty('team_slugs'))
@@ -57,10 +57,51 @@ describe('F1 Messenger tests', function() {
       })
       it('getAndCacheTeams returns drivers arr after caching', function() {
         const fakeCache = {}
-        teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
+        return teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
           assert(Array.isArray(res))
           assert(res.length > 0)
         })
+      })
+      it('getAndCacheTeams gets drivers data from cache - verifyTimestamp and getAllTeamSlugs not called', function() {
+        sinon.spy(utils, 'verifyTimeStamp')
+        sinon.spy(teamController, 'getAllTeamSlugs')
+        const fakeCache = {
+          teams_slugs: {
+            teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
+            timeStamp: new Date()
+          }
+        }
+        return Promise.resolve(
+          teamController.getAndCacheTeams(fakeCache, 1400)
+        ).then(res => {
+          assert(utils.verifyTimeStamp.notCalled)
+          assert(teamController.getAllTeamSlugs.notCalled)
+          // teamController.getAllTeamSlugs.restore()
+          utils.verifyTimeStamp.restore()
+        })
+      })
+      it('getAndCacheTeams gets drivers data from cache - returns drivers', function() {
+        const fakeCache = {
+          teams_slugs: {
+            teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
+            timeStamp: new Date()
+          }
+        }
+        return Promise.resolve(teamController.getAndCacheTeams(fakeCache, 1400))
+          .then(res => {
+            // convert to strings to compare res - to comapre 2 arrays
+            console.log(JSON.stringify(res))
+            console.log(JSON.stringify(fakeCache['teams_slugs']['teams_slugs']))
+            assert.strictEqual(
+              JSON.stringify(res),
+              JSON.stringify(fakeCache['teams_slugs']['teams_slugs'])
+            )
+            // assert(1 === 2)
+          })
+          .catch(e => {
+            assert.fail()
+            console.error('an error', e)
+          })
       })
     })
   })
