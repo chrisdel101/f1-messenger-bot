@@ -41,10 +41,27 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe('getAndCacheTeams', () => {
-      it(
-        'getAndCacheTeams adds slugs array to cache - hits the no team slugs condition'
-      )
+    describe.only('getAndCacheTeams', () => {
+      it('getAndCacheTeams adds slugs array to cache - hits the no team slugs condition', function() {
+        sinon.spy(teamController, 'getAllTeamSlugs')
+        let fakeCache = {}
+        teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
+          // console.log(fakeCache['team_slugs'])
+          // get goes correct path
+          assert(teamController.getAllTeamSlugs.calledOnce)
+          // check added to cache
+          assert(fakeCache.hasOwnProperty('team_slugs'))
+          assert(fakeCache['team_slugs'].hasOwnProperty('timeStamp'))
+          teamController.getAllTeamSlugs.restore()
+        })
+      })
+      it('getAndCacheTeams returns drivers arr after caching', function() {
+        const fakeCache = {}
+        teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
+          assert(Array.isArray(res))
+          assert(res.length > 0)
+        })
+      })
     })
   })
   describe('drivers controller', function() {

@@ -14,15 +14,15 @@ exports.getAndCacheTeams = (cache, expiryTime) => {
     !cache.hasOwnProperty('teams_slugs') ||
     !verifyTimeStamp(cache['teams_slugs'].timeStamp, expiryTime)
   ) {
-    return module.exports.getAllDriverSlugs().then(drivers => {
+    return module.exports.getAllTeamSlugs().then(teams => {
       console.log('NOT FROM CACHE')
-      drivers = JSON.parse(drivers)
-      cache['drivers_slugs'] = {
-        drivers_slugs: drivers,
+      teams = JSON.parse(teams)
+      cache['team_slugs'] = {
+        team_slugs: teams,
         timeStamp: new Date()
       }
       // console.log('here', drivers)
-      return drivers
+      return teams
     })
   } else {
     console.log('FROM CACHE')
