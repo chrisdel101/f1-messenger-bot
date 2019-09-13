@@ -74,7 +74,7 @@ describe('F1 Messenger tests', function() {
         return Promise.resolve(
           teamController.getAndCacheTeams(fakeCache, 1400)
         ).then(res => {
-          assert(utils.verifyTimeStamp.notCalled)
+          assert(utils.verifyTimeStamp.calledOnce)
           assert(teamController.getAllTeamSlugs.notCalled)
           // teamController.getAllTeamSlugs.restore()
           utils.verifyTimeStamp.restore()
@@ -96,6 +96,47 @@ describe('F1 Messenger tests', function() {
             JSON.stringify(fakeCache['teams_slugs']['teams_slugs'])
           )
         })
+      })
+    })
+    describe.only('checkTeamApi', () => {
+      it('checkTeamApi returns correct team name - ferrari', function() {
+        return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
+          res => {
+            assert.strictEqual(res, 'ferrari')
+          }
+        )
+      })
+      it('checkTeamApi returns correct team name - Aston Martin', function() {
+        return Promise.resolve(
+          teamController.checkTeamApi('Aston Martin')
+        ).then(res => {
+          assert.strictEqual(res, 'red_bull_racing')
+        })
+      })
+      it('checkTeamApi returns correct team name - Haas', function() {
+        return Promise.resolve(teamController.checkTeamApi('Haas')).then(
+          res => {
+            assert.strictEqual(res, 'haas_f1_team')
+          }
+        )
+      })
+      it('checkTeamApi returns false', function() {
+        return Promise.resolve(teamController.checkTeamApi('mclaaren')).then(
+          res => {
+            assert(!res)
+          }
+        )
+      })
+    })
+    describe('makeTeamEntriesLower()', () => {
+      it('makeTeamEntriesLower makes entries name lower', function() {
+        const testArr = [
+          { name: 'Test Team Racing', name_slug: 'test_team_racing' },
+          { name: 'Some Long Team Racing Name', name_slug: 'some_racing_name' }
+        ]
+        const res = teamController.makeTeamEntriesLower(testArr)
+        assert.strictEqual(res[0].name, testArr[0].name.toLowerCase())
+        assert.strictEqual(res[1].name, testArr[1].name.toLowerCase())
       })
     })
   })
@@ -442,7 +483,7 @@ describe('F1 Messenger tests', function() {
     describe('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
-          Promise.resolve(driverController.checkInputText('racer'))
+          Promise.resolve(webhookController.checkInputText('racer'))
             // check f(unPromise.resolvec gets called/
             .then(res => {
               assert.strictEqual(res.payload, responses.card.driver)
@@ -451,7 +492,7 @@ describe('F1 Messenger tests', function() {
       })
       it('checkInputText returns filler text', function() {
         return (
-          Promise.resolve(driverController.checkInputText('Just some text'))
+          Promise.resolve(webhookController.checkInputText('Just some text'))
             // check func gets called/
             .then(res => {
               console.log(res)
@@ -465,7 +506,7 @@ describe('F1 Messenger tests', function() {
         )
       })
       it('checkInputText returns greeting prompt - lowercase', function() {
-        return Promise.resolve(driverController.checkInputText('hello')).then(
+        return Promise.resolve(webhookController.checkInputText('hello')).then(
           res => {
             assert.strictEqual(
               res.payload,
@@ -475,14 +516,14 @@ describe('F1 Messenger tests', function() {
         )
       })
       it('checkInputText returns help prompt - lowercase ', function() {
-        return Promise.resolve(driverController.checkInputText('help')).then(
+        return Promise.resolve(webhookController.checkInputText('help')).then(
           res => {
             assert.strictEqual(res.payload, 'What can we do to help you today?')
           }
         )
       })
       it('checkInputText returns help prompt - uppercase ', function() {
-        return Promise.resolve(driverController.checkInputText('HELP')).then(
+        return Promise.resolve(webhookController.checkInputText('HELP')).then(
           res => {
             assert.strictEqual(res.payload, 'What can we do to help you today?')
           }
@@ -499,7 +540,7 @@ describe('F1 Messenger tests', function() {
         }
         driverController.__set__('driversCache', fakeCache)
         return Promise.resolve(
-          driverController.checkInputText('Lewis Hamilton', fakeCache)
+          webhookController.checkInputText('Lewis Hamilton', fakeCache)
         ).then(res1 => {
           res1.payload.then(payload => {
             assert(
@@ -524,7 +565,7 @@ describe('F1 Messenger tests', function() {
           }
         }
         return Promise.resolve(
-          driverController.checkInputText('lewis', fakeCache)
+          webhookController.checkInputText('lewis', fakeCache)
         )
           .then(res => {
             res.payload
@@ -559,10 +600,10 @@ describe('F1 Messenger tests', function() {
           }
         }
         return Promise.resolve(
-          driverController.checkInputText('lewis', fakeCache)
+          webhookController.checkInputText('lewis', fakeCache)
         )
           .then(res => {
-            res.payload
+            return res.payload
               .then(payload => {
                 assert.deepEqual(payload, {
                   slug: 'lewis-hamilton',
@@ -573,7 +614,7 @@ describe('F1 Messenger tests', function() {
               })
               .catch(e => {
                 console.error(
-                  'error in checks for partial names - returns returns correct obj bottom',
+                  'error in checks for partial names - return correct obj bottom',
                   e
                 )
               })
@@ -593,7 +634,7 @@ describe('F1 Messenger tests', function() {
           }
         }
         return Promise.resolve(
-          driverController.checkInputText('VALTERI', fakeCache)
+          webhookController.checkInputText('VALTERI', fakeCache)
         ).then(res => console.log('res', res))
       })
     })

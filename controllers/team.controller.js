@@ -1,18 +1,59 @@
-const { verifyTimeStamp, httpsFetch } = require('../utils')
-const { teamsCache } = require('../cache')
+const utils = require('../utils')
+const { teamsCache, teamCache } = require('../cache')
 const endpoints = require('../endpoints')
+const debug = require('debug')
+const log = debug('f1:log')
+const error = debug('f1:error')
 
-exports.checkTeamApi = input => {}
-
+exports.checkTeamApi = nameToCheck => {
+  // check if string is team name from api- return name_slug or false
+  try {
+    log('checkTeamApi')
+    nameToCheck = nameToCheck.toLowerCase()
+    return Promise.resolve(
+      module.exports.getAndCacheTeams(, teamCache, 1400)
+    ).then(teams => {
+      teams = module.exports.makeTeamEntriesLower(teams)
+      // console.log('DDD', teams)
+      // compare entry to team name
+      for (let team of teams) {
+        // compare against team name
+        if (team.name.includes(nameToCheck)) {
+          return team.name_slug
+        }
+      }
+      return false
+    })
+  } catch (e) {
+    console.error('An error in checkTeamApi', e)
+  }
+}
+exports.makeTeamEntriesLower = arr => {
+  try {
+    if (typeof arr === 'string' && !Array.isArray(arr)) {
+      arr = JSON.parse(arr)
+    }
+    return arr.map(obj => {
+      obj['name'] = obj['name'].toLowerCase()
+      return obj
+    })
+    // re-stringify for searching later on
+  } catch (e) {
+    console.error('An error in makeEntriesLower', e)
+  }
+}
 exports.getAllTeamSlugs = () => {
-  return httpsFetch(endpoints.productionAPI('teams')).then(drivers => drivers)
+  return utils
+    .httpsFetch(endpoints.productionAPI('teams'))
+    .then(drivers => drivers)
 }
 
 exports.getAndCacheTeams = (cache, expiryTime) => {
+  console.log('getAndCacheTeams')
   // if not in cache OR time stamp passes fails use new call
   if (
     !cache.hasOwnProperty('teams_slugs') ||
-    !verifyTimeStamp(cache['teams_slugs'].timeStamp, expiryTime)
+    !utils.verifyTimeStamp(cache['teams_slugs'].timeStamp, expiryTime)
   ) {
     return module.exports.getAllTeamSlugs().then(teams => {
       console.log('NOT FROM CACHE')
@@ -21,19 +62,64 @@ exports.getAndCacheTeams = (cache, expiryTime) => {
         team_slugs: teams,
         timeStamp: new Date()
       }
-      // console.log('here', drivers)
       return teams
     })
   } else {
     console.log('FROM CACHE')
     // if less and 24 hours old get from cache
-    // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
-    // console.log('CA', cache['teams_slugs'])
     return cache['teams_slugs']['teams_slugs']
-    // } else {
-    //   cache['drivers'] = {
-    //     drivers_slugs: drivers,
-    //     timeStamp: new Date()
-    //   }
+  }
+}
+// handle caching and return driver obj - returns a promise or object
+exports.cacheAndGetTeam = (teamSlug, teamCache) => {
+  log('cacheAndGetTeam')
+  // if not in cache add to cache
+  if (!teamCache.hasOwnProperty(teamSlug)) {
+    // call all drivers api and check if it's there
+    return module.exports.checkTeamApi(teamSlug).then(slug => {
+      // if driver name is valid
+      if (slug) {
+        //  add to cache
+        teamCache[teamSlug] = {
+          slug: teamSlug,
+          imageUrl: endpoints.productionCards(teamSlug),
+          timeStamp: new Date()
+        }
+        // console.log('here', teamCache)
+        // return new driver obj
+        return {
+          slug: teamSlug,
+          imageUrl: endpoints.productionCards(teamSlug),
+          timeStamp: new Date()
+        }
+      } else {
+        console.log('Not a valid driver name')
+        return false
+      }
+    })
+    // if driver is in cache already
+  } else if (teamCache.hasOwnProperty(teamSlug)) {
+    // check if time is valid
+    if (utils.verifyTimeStamp(teamCache[teamSlug].timeStamp)) {
+      console.log('valid time stamp')
+      // if valid get from cache
+      return teamCache[teamSlug]
+      // if not valid then re-add
+    } else {
+      console.log('failed time stamp')
+      teamCache[teamSlug] = {
+        slug: teamSlug,
+        imageUrl: endpoints.productionCards(teamSlug),
+        timeStamp: new Date()
+      }
+      return {
+        slug: teamSlug,
+        imageUrl: endpoints.productionCards(teamSlug),
+        timeStamp: new Date()
+      }
+    }
+  } else {
+    console.log('Not a valid driver name to cache')
+    return false
   }
 }
