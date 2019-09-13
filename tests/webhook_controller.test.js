@@ -41,7 +41,7 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe.only('getAndCacheTeams', () => {
+    describe('getAndCacheTeams', () => {
       it('getAndCacheTeams adds slugs array to cache - hits the no team slugs condition', function() {
         sinon.spy(teamController, 'getAllTeamSlugs')
         let fakeCache = {}
@@ -87,21 +87,15 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date()
           }
         }
-        return Promise.resolve(teamController.getAndCacheTeams(fakeCache, 1400))
-          .then(res => {
-            // convert to strings to compare res - to comapre 2 arrays
-            console.log(JSON.stringify(res))
-            console.log(JSON.stringify(fakeCache['teams_slugs']['teams_slugs']))
-            assert.strictEqual(
-              JSON.stringify(res),
-              JSON.stringify(fakeCache['teams_slugs']['teams_slugs'])
-            )
-            // assert(1 === 2)
-          })
-          .catch(e => {
-            assert.fail()
-            console.error('an error', e)
-          })
+        return Promise.resolve(
+          teamController.getAndCacheTeams(fakeCache, 1400)
+        ).then(res => {
+          // convert to strings to compare res - to comapre 2 arrays
+          assert.strictEqual(
+            JSON.stringify(res),
+            JSON.stringify(fakeCache['teams_slugs']['teams_slugs'])
+          )
+        })
       })
     })
   })
@@ -129,7 +123,7 @@ describe('F1 Messenger tests', function() {
     describe('cacheAndGetDrivers()', () => {
       it('cacheAndGetDrivers adds driver slugs array to cache - hits the no driver slugs ', function() {
         const fakeCache = {}
-        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+        return driverController.cacheAndGetDrivers(fakeCache).then(res => {
           // console.log(fakeCache['drivers'])
           assert(fakeCache.hasOwnProperty('drivers_slugs'))
           assert(fakeCache.drivers_slugs.hasOwnProperty('drivers_slugs'))
@@ -138,14 +132,14 @@ describe('F1 Messenger tests', function() {
       })
       it('cacheAndGetDrivers returns drivers arr after caching', function() {
         const fakeCache = {}
-        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+        return driverController.cacheAndGetDrivers(fakeCache).then(res => {
           assert(Array.isArray(res))
           assert(res.length > 0)
         })
       })
       it('cacheAndGetDrivers adds timestamp to cache', function() {
         const fakeCache = {}
-        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+        return driverController.cacheAndGetDrivers(fakeCache).then(res => {
           assert(fakeCache.drivers_slugs.hasOwnProperty('timeStamp'))
         })
       })
@@ -160,7 +154,7 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date()
           }
         }
-        Promise.resolve(
+        return Promise.resolve(
           driverController.cacheAndGetDrivers(fakeCache, 1400)
         ).then(res => {
           // does not call API function
@@ -171,7 +165,7 @@ describe('F1 Messenger tests', function() {
           utils.verifyTimeStamp.restore()
         })
       })
-      it.skip('cacheAndGetDrivers gets values from api - fails verifyTimeStamp ', function() {
+      it('cacheAndGetDrivers gets values from api - fails verifyTimeStamp ', function() {
         sinon.spy(utils, 'verifyTimeStamp')
         sinon.spy(driverController, 'getAllDriverSlugs')
         const fakeCache = {
@@ -180,9 +174,10 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('2019-09-04 19:30:26')
           }
         }
-        Promise.resolve(
+        return Promise.resolve(
           driverController.cacheAndGetDrivers(fakeCache, 1400)
         ).then(res => {
+          console.log('utils', utils)
           // should call buy bypass verifyTimeStamp
           assert(utils.verifyTimeStamp.calledOnce)
           // should byp ass call to API

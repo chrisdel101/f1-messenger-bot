@@ -13,7 +13,7 @@ exports.httpsFetch = url => {
 }
 // check if timestamp is older than mins entered
 exports.verifyTimeStamp = (timeStamp, mins) => {
-  // console.log('verify')
+  console.log('verify')
   const d1 = new moment(timeStamp)
   const d2 = new moment()
   // subract time1 from time 2
