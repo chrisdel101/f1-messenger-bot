@@ -76,7 +76,7 @@ exports.cacheAndGetDrivers = (cache, expiryTime) => {
     !utils.verifyTimeStamp(cache['drivers_slugs'].timeStamp, expiryTime)
   ) {
     return module.exports.getAllDriverSlugs().then(drivers => {
-      console.log('NOT FROM CACHE')
+      console.log('DRIVERS - NOT FROM CACHE')
       drivers = JSON.parse(drivers)
       cache['drivers_slugs'] = {
         drivers_slugs: drivers,
@@ -86,7 +86,7 @@ exports.cacheAndGetDrivers = (cache, expiryTime) => {
       return drivers
     })
   } else {
-    console.log('FROM CACHE')
+    console.log('DRIVERS - FROM CACHE')
     // if less and 24 hours old get from cache
     // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
     // console.log('CA', cache['drivers_slugs'].timeStamp)
@@ -118,6 +118,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
         // console.log('after', driverCache)
         // console.log('here', driverCache)
         // return new driver obj
+        console.log('here')
         return {
           slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),

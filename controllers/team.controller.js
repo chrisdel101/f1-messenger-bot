@@ -15,10 +15,17 @@ exports.checkTeamApi = nameToCheck => {
     ).then(teams => {
       teams = module.exports.makeTeamEntriesLower(teams)
       // console.log('DDD', teams)
-      // compare entry to team name
+      // compare entry to team names first
       for (let team of teams) {
         // compare against team name
         if (team.name.includes(nameToCheck)) {
+          return team.name_slug
+        }
+      }
+      // if not match names - compare entry to team slugs second
+      for (let team of teams) {
+        // compare against team name
+        if (team.name_slug.includes(nameToCheck)) {
           return team.name_slug
         }
       }

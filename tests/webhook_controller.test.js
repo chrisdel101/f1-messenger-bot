@@ -99,21 +99,19 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('cacheAndGetTeam', () => {
-      it('cacheAndGetTeam adds to cache', function() {
-        // let webHookController = rewire('../controllers/webhook.controller')
+      it.only('cacheAndGetTeam returns new tean obj', function() {
         const fakeCache = {
-          'lewis-hamilton': {
+          'test-team': {
             imageUrl: 'An image Url',
             timeStamp: new Date()
           }
         }
-        driverController.__set__('driversCache', fakeCache)
         // check if cache has that key
-        driverController
-          .cacheAndGetDriver('alexander-albon', fakeCache)
+        return teamController
+          .cacheAndGetTeam('red_bull_racing', fakeCache)
           .then(res => {
-            // console.log('RES', res)
             // check that new key was added
+            console.log('res', res)
             assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
             // check url is formed correct
             assert.strictEqual(
@@ -121,32 +119,61 @@ describe('F1 Messenger tests', function() {
               'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
             )
           })
-          .catch(e => {
-            console.error('error in cacheAndGetDriver() - adds to cache', e)
+      })
+      it('cacheAndGetTeam adds new driver to cache', function() {
+        const fakeCache = {
+          'test-team': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        return driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            assert(fakeCache.hasOwnProperty('lewis-hamilton'))
+            assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
+            assert(fakeCache.hasOwnProperty('alexander-albon'))
+            assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
           })
       })
     })
     describe('checkTeamApi', () => {
-      it('checkTeamApi returns correct team name - ferrari', function() {
+      it('checkTeamApi returns correct team name - using name ferrari', function() {
         return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
           res => {
             assert.strictEqual(res, 'ferrari')
           }
         )
       })
-      it('checkTeamApi returns correct team name - Aston Martin', function() {
+      it('checkTeamApi returns correct team name - using name Aston Martin', function() {
         return Promise.resolve(
           teamController.checkTeamApi('Aston Martin')
         ).then(res => {
           assert.strictEqual(res, 'red_bull_racing')
         })
       })
-      it('checkTeamApi returns correct team name - Haas', function() {
+      it('checkTeamApi returns correct team name - using name Haas', function() {
         return Promise.resolve(teamController.checkTeamApi('Haas')).then(
           res => {
             assert.strictEqual(res, 'haas_f1_team')
           }
         )
+      })
+      it('checkTeamApi returns correct team name - using slug red_bull_racing', function() {
+        return Promise.resolve(
+          teamController.checkTeamApi('red_bull_racing')
+        ).then(res => {
+          console.log(res)
+          assert.strictEqual(res, 'red_bull_racing')
+        })
+      })
+      it('checkTeamApi returns correct team name - using slug alfa_romeo_racing', function() {
+        return Promise.resolve(
+          teamController.checkTeamApi('alfa_romeo_racing')
+        ).then(res => {
+          console.log(res)
+          assert.strictEqual(res, 'alfa_romeo_racing')
+        })
       })
       it('checkTeamApi returns false', function() {
         return Promise.resolve(teamController.checkTeamApi('mclaaren')).then(
