@@ -41,11 +41,11 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe('getAndCacheTeams', () => {
-      it('getAndCacheTeams adds slugs array to cache - hits the no team slugs condition', function() {
+    describe('cacheAndGetTeams()', () => {
+      it('cacheAndGetTeams adds slugs array to cache - hits the no team slugs condition', function() {
         sinon.spy(teamController, 'getAllTeamSlugs')
         let fakeCache = {}
-        return teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
+        return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
           // console.log(fakeCache['team_slugs'])
           // get goes correct path - fix once SO question answered
           assert(teamController.getAllTeamSlugs.calledOnce)
@@ -55,14 +55,14 @@ describe('F1 Messenger tests', function() {
           teamController.getAllTeamSlugs.restore()
         })
       })
-      it('getAndCacheTeams returns drivers arr after caching', function() {
+      it('cacheAndGetTeams returns drivers arr after caching', function() {
         const fakeCache = {}
-        return teamController.getAndCacheTeams(fakeCache, 1400).then(res => {
+        return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
           assert(Array.isArray(res))
           assert(res.length > 0)
         })
       })
-      it('getAndCacheTeams gets drivers data from cache - verifyTimestamp and getAllTeamSlugs not called', function() {
+      it('cacheAndGetTeams gets drivers data from cache - verifyTimestamp and getAllTeamSlugs not called', function() {
         sinon.spy(utils, 'verifyTimeStamp')
         sinon.spy(teamController, 'getAllTeamSlugs')
         const fakeCache = {
@@ -72,7 +72,7 @@ describe('F1 Messenger tests', function() {
           }
         }
         return Promise.resolve(
-          teamController.getAndCacheTeams(fakeCache, 1400)
+          teamController.cacheAndGetTeams(fakeCache, 1400)
         ).then(res => {
           assert(utils.verifyTimeStamp.calledOnce)
           assert(teamController.getAllTeamSlugs.notCalled)
@@ -80,7 +80,7 @@ describe('F1 Messenger tests', function() {
           utils.verifyTimeStamp.restore()
         })
       })
-      it('getAndCacheTeams gets drivers data from cache - returns drivers', function() {
+      it('cacheAndGetTeams gets drivers data from cache - returns drivers', function() {
         const fakeCache = {
           teams_slugs: {
             teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
@@ -88,7 +88,7 @@ describe('F1 Messenger tests', function() {
           }
         }
         return Promise.resolve(
-          teamController.getAndCacheTeams(fakeCache, 1400)
+          teamController.cacheAndGetTeams(fakeCache, 1400)
         ).then(res => {
           // convert to strings to compare res - to comapre 2 arrays
           assert.strictEqual(
@@ -98,7 +98,35 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe.only('checkTeamApi', () => {
+    describe('cacheAndGetTeam', () => {
+      it('cacheAndGetTeam adds to cache', function() {
+        // let webHookController = rewire('../controllers/webhook.controller')
+        const fakeCache = {
+          'lewis-hamilton': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        driverController.__set__('driversCache', fakeCache)
+        // check if cache has that key
+        driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            // console.log('RES', res)
+            // check that new key was added
+            assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
+            // check url is formed correct
+            assert.strictEqual(
+              res.imageUrl,
+              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
+            )
+          })
+          .catch(e => {
+            console.error('error in cacheAndGetDriver() - adds to cache', e)
+          })
+      })
+    })
+    describe('checkTeamApi', () => {
       it('checkTeamApi returns correct team name - ferrari', function() {
         return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
           res => {
@@ -128,6 +156,7 @@ describe('F1 Messenger tests', function() {
         )
       })
     })
+
     describe('makeTeamEntriesLower()', () => {
       it('makeTeamEntriesLower makes entries name lower', function() {
         const testArr = [
@@ -268,20 +297,17 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('cacheAndGetDriver()', () => {
-      it('cacheAndGetDriver adds to cache', function() {
-        // let webHookController = rewire('../controllers/webhook.controller')
+      it('cacheAndGetDriver returns new driver to obj', function() {
         const fakeCache = {
           'lewis-hamilton': {
             imageUrl: 'An image Url',
             timeStamp: new Date()
           }
         }
-        driverController.__set__('driversCache', fakeCache)
         // check if cache has that key
-        driverController
+        return driverController
           .cacheAndGetDriver('alexander-albon', fakeCache)
           .then(res => {
-            // console.log('RES', res)
             // check that new key was added
             assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
             // check url is formed correct
@@ -290,8 +316,21 @@ describe('F1 Messenger tests', function() {
               'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
             )
           })
-          .catch(e => {
-            console.error('error in cacheAndGetDriver() - adds to cache', e)
+      })
+      it('cacheAndGetDriver adds new driver to cache', function() {
+        const fakeCache = {
+          'lewis-hamilton': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        return driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            assert(fakeCache.hasOwnProperty('lewis-hamilton'))
+            assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
+            assert(fakeCache.hasOwnProperty('alexander-albon'))
+            assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
           })
       })
     })

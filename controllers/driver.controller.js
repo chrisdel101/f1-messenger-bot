@@ -101,6 +101,7 @@ exports.cacheAndGetDrivers = (cache, expiryTime) => {
 
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driverCache) => {
+  console.log(driverCache)
   log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driverCache.hasOwnProperty(driverSlug)) {
@@ -114,6 +115,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
           imageUrl: endpoints.productionCards(driverSlug),
           timeStamp: new Date()
         }
+        // console.log('after', driverCache)
         // console.log('here', driverCache)
         // return new driver obj
         return {

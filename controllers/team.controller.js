@@ -11,7 +11,7 @@ exports.checkTeamApi = nameToCheck => {
     log('checkTeamApi')
     nameToCheck = nameToCheck.toLowerCase()
     return Promise.resolve(
-      module.exports.getAndCacheTeams(, teamCache, 1400)
+      module.exports.cacheAndGetTeams(teamCache, 1400)
     ).then(teams => {
       teams = module.exports.makeTeamEntriesLower(teams)
       // console.log('DDD', teams)
@@ -48,8 +48,8 @@ exports.getAllTeamSlugs = () => {
     .then(drivers => drivers)
 }
 
-exports.getAndCacheTeams = (cache, expiryTime) => {
-  console.log('getAndCacheTeams')
+exports.cacheAndGetTeams = (cache, expiryTime) => {
+  console.log('cacheAndGetTeams')
   // if not in cache OR time stamp passes fails use new call
   if (
     !cache.hasOwnProperty('teams_slugs') ||
@@ -75,9 +75,9 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
   log('cacheAndGetTeam')
   // if not in cache add to cache
   if (!teamCache.hasOwnProperty(teamSlug)) {
-    // call all drivers api and check if it's there
+    // call all team api and check if it's there
     return module.exports.checkTeamApi(teamSlug).then(slug => {
-      // if driver name is valid
+      // if team name is valid
       if (slug) {
         //  add to cache
         teamCache[teamSlug] = {
@@ -86,7 +86,7 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
           timeStamp: new Date()
         }
         // console.log('here', teamCache)
-        // return new driver obj
+        // return new team obj
         return {
           slug: teamSlug,
           imageUrl: endpoints.productionCards(teamSlug),
@@ -97,7 +97,7 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
         return false
       }
     })
-    // if driver is in cache already
+    // if team is in cache already
   } else if (teamCache.hasOwnProperty(teamSlug)) {
     // check if time is valid
     if (utils.verifyTimeStamp(teamCache[teamSlug].timeStamp)) {
@@ -119,7 +119,7 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
       }
     }
   } else {
-    console.log('Not a valid driver name to cache')
+    console.log('Not a valid team name to cache')
     return false
   }
 }
