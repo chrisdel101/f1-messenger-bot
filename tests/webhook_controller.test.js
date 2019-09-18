@@ -393,8 +393,7 @@ describe('F1 Messenger tests', function() {
     })
   })
   describe('webhook controller', function() {
-    describe()
-    describe('handleMessageType()', () => {
+    describe.only('handleMessageType()', () => {
       it('handleMessageType handles partial driver name', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
