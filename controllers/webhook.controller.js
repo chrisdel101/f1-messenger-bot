@@ -35,7 +35,7 @@ exports.sendHookResponse = (req, res) => {
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
       if (webhook_event.message) {
-        handleMessageType(sender_psid, webhook_event)
+        module.exports.handleMessageType(sender_psid, webhook_event)
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback)
       }
