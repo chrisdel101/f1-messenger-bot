@@ -393,7 +393,7 @@ describe('F1 Messenger tests', function() {
     })
   })
   describe('webhook controller', function() {
-    describe.only('handleMessageType()', () => {
+    describe('handleMessageType()', () => {
       it('handleMessageType handles partial driver name', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
@@ -778,7 +778,7 @@ describe('F1 Messenger tests', function() {
           })
         })
       })
-      it('checkInputText returns team payload - normal team name', function() {
+      it.only('checkInputText returns team payload - normal team name', function() {
         const fakeCache = {}
         return Promise.resolve(
           webhookController.checkInputText('mercedes', fakeCache)

@@ -123,6 +123,7 @@ exports.checkInputText = (inputText, cache) => {
       // console.log('driverSlug', driverSlug)
       // true if a driver name - check not false
       if (driverSlug) {
+        console.log('driverSlug', driverSlug)
         // - returns a promise if calling from API
         // - returns an object if in the cache
         const driver = driverController.cacheAndGetDriver(driverSlug, cache)
@@ -135,8 +136,8 @@ exports.checkInputText = (inputText, cache) => {
       } else {
         return teamController.checkTeamApi(inputText).then(teamSlug => {
           if (teamSlug) {
+            console.log('TEAM', teamSlug)
             const team = teamController.cacheAndGetTeam(teamSlug, cache)
-            console.log('TEAM')
             return {
               type: 'image',
               payload: team
