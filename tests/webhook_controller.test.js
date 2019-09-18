@@ -421,7 +421,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI', function() {
+      it('handleMessageType handles driver image: returns response and calls callSendAPI; spy callSendAPI', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         return (
@@ -450,7 +450,7 @@ describe('F1 Messenger tests', function() {
         )
       })
       // stub of checkInputText not working
-      it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
+      it('handleMessageType handles driver mage: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         // console.log('res', webHookController.callSendAPI)
@@ -490,7 +490,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it('handleMessageType handles image: returns response and calls callSendAPI', function() {
+      it('handleMessageType handles driver image: returns response and calls callSendAPI', function() {
         // webhookController.callSendAPI.restore()
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
@@ -545,8 +545,64 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
+      it.only('handleMessageType handles team image - team name: returns response and calls callSendAPI', function() {
+        // replace function with a spy
+        sinon.spy(webhookController, 'callSendAPI')
+        // console.log(typeof webHookController.callSendAPI)
+        return (
+          webhookController
+            .handleMessageType('2399043010191818', {
+              message: {
+                text: 'haas'
+              }
+            })
+            // check func gets called/
+            .then(res => {
+              console.log('RES', res)
+              // check callSendAPI called
+              assert(webhookController.callSendAPI.calledOnce)
+              // check return value
+              assert.deepEqual(res.attachment, {
+                type: 'image',
+                payload: {
+                  url: 'https://f1-cards.herokuapp.com/api/driver/haas_f1_team',
+                  is_reusable: true
+                }
+              })
+              webhookController.callSendAPI.restore()
+            })
+        )
+      })
+      it.only('handleMessageType handles team image - team slug: returns response and calls callSendAPI', function() {
+        // replace function with a spy
+        sinon.spy(webhookController, 'callSendAPI')
+        // console.log(typeof webHookController.callSendAPI)
+        return (
+          webhookController
+            .handleMessageType('2399043010191818', {
+              message: {
+                text: 'racing_point'
+              }
+            })
+            // check func gets called/
+            .then(res => {
+              console.log('RES', res)
+              // check callSendAPI called
+              assert(webhookController.callSendAPI.calledOnce)
+              // check return value
+              assert.deepEqual(res.attachment, {
+                type: 'image',
+                payload: {
+                  url: 'https://f1-cards.herokuapp.com/api/driver/racing_point',
+                  is_reusable: true
+                }
+              })
+              webhookController.callSendAPI.restore()
+            })
+        )
+      })
     })
-    describe.only('checkInputText()', () => {
+    describe('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
           Promise.resolve(webhookController.checkInputText('racer'))
@@ -623,7 +679,7 @@ describe('F1 Messenger tests', function() {
           })
         })
       })
-      it('checks for partial names - returns correct driver slug and URL', function() {
+      it('checkInputText for partial names - returns correct driver slug and URL', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
@@ -658,7 +714,7 @@ describe('F1 Messenger tests', function() {
             )
           })
       })
-      it('checks for partial names - returns correct obj', function() {
+      it('checkInputText for partial names - returns correct obj', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
@@ -692,7 +748,7 @@ describe('F1 Messenger tests', function() {
             )
           })
       })
-      it.only('checks for partial names - uppercase', function() {
+      it('checkInputText for partial names - uppercase', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
@@ -702,21 +758,39 @@ describe('F1 Messenger tests', function() {
         return Promise.resolve(
           webhookController.checkInputText('VALTTERI', fakeCache)
         ).then(res => {
-          return res.payload.then(res => {
+          return Promise.resolve(res.payload).then(payload => {
             // check it returns correct driver
-            assert.strictEqual(res.slug, 'valtteri-bottas')
-            assert(res.hasOwnProperty('imageUrl'))
-            assert(res.imageUrl.includes('valtteri-bottas'))
+            assert.strictEqual(payload.slug, 'valtteri-bottas')
+            assert(payload.hasOwnProperty('imageUrl'))
+            assert(payload.imageUrl.includes('valtteri-bottas'))
           })
         })
       })
-      // it('teams', function() {
-      //   const fakeCache = {
-      //   }
-      //   return Promise.resolve(
-      //     webhookController.checkInputText('mercedes', fakeCache)
-      //   ).then(res => console.log('res', res))
-      // })
+      it('checkInputText returns team payload - normal team name', function() {
+        const fakeCache = {}
+        return Promise.resolve(
+          webhookController.checkInputText('mercedes', fakeCache)
+        ).then(res => {
+          Promise.resolve(res.payload).then(payload => {
+            assert.strictEqual(payload.slug, 'mercedes')
+            assert(payload.hasOwnProperty('imageUrl'))
+            assert(payload.imageUrl.includes('mercedes'))
+          })
+        })
+      })
+      it('checkInputText returns team payload - partial name', function() {
+        const fakeCache = {}
+        return Promise.resolve(
+          webhookController.checkInputText('red bull', fakeCache)
+        ).then(res => {
+          Promise.resolve(res.payload).then(payload => {
+            // console.log(payload)
+            assert.strictEqual(payload.slug, 'red_bull_racing')
+            assert(payload.hasOwnProperty('imageUrl'))
+            assert(payload.imageUrl.includes('red_bull'))
+          })
+        })
+      })
     })
     describe('verifyTimeStamp()', () => {
       it('verifyTimeStamp fails older than mins entered', function() {

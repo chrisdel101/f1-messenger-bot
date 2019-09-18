@@ -118,33 +118,36 @@ exports.checkInputText = (inputText, cache) => {
     }
     // else check if input was a driver name
     // console.log('pp', Promise.resolve(module.exports.checkDriverApi(inputText)))
-    return driverController
-      .checkDriverApi(inputText)
-      .then(driverSlug => {
-        console.log('driverSlug', driverSlug)
-        // true if a driver name - check not false
-        if (driverSlug) {
-          // - returns a promise if calling from API
-          // - returns an object if in the cache
-          const driver = driverController.cacheAndGetDriver(driverSlug, cache)
-          // console.log('DD', driver)
-          // send driver card info
-          return {
-            type: 'image',
-            payload: driver
-          }
-        }
-
+    return driverController.checkDriverApi(inputText).then(driverSlug => {
+      // console.log('driverSlug', driverSlug)
+      // true if a driver name - check not false
+      if (driverSlug) {
+        // - returns a promise if calling from API
+        // - returns an object if in the cache
+        const driver = driverController.cacheAndGetDriver(driverSlug, cache)
+        // console.log('DD', driver)
+        // send driver card info
         return {
-          type: 'text',
-          payload: responses.filler
+          type: 'image',
+          payload: driver
         }
-      })
-      .finally(() => {
+      } else {
         return teamController.checkTeamApi(inputText).then(teamSlug => {
-          console.log('team', teamSlug)
+          if (teamSlug) {
+            const team = teamController.cacheAndGetTeam(teamSlug, cache)
+            console.log('TEAM')
+            return {
+              type: 'image',
+              payload: team
+            }
+          }
+          return {
+            type: 'text',
+            payload: responses.filler
+          }
         })
-      })
+      }
+    })
   } catch (e) {
     console.log('An error in checkInputText', e)
   }

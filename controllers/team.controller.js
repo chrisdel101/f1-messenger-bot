@@ -55,6 +55,7 @@ exports.getAllTeamSlugs = () => {
     .then(drivers => drivers)
 }
 
+// get array of all teams and cache it - return it
 exports.cacheAndGetTeams = (cache, expiryTime) => {
   console.log('cacheAndGetTeams')
   // if not in cache OR time stamp passes fails use new call
@@ -77,7 +78,7 @@ exports.cacheAndGetTeams = (cache, expiryTime) => {
     return cache['teams_slugs']['teams_slugs']
   }
 }
-// handle caching and return driver obj - returns a promise or object
+// handle caching and return team obj - returns a promise or object
 exports.cacheAndGetTeam = (teamSlug, teamCache) => {
   log('cacheAndGetTeam')
   // if not in cache add to cache
