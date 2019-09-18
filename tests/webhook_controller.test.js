@@ -545,7 +545,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it.only('handleMessageType handles team image - team name: returns response and calls callSendAPI', function() {
+      it('handleMessageType handles team image - team name: returns response and calls callSendAPI', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         // console.log(typeof webHookController.callSendAPI)
@@ -573,7 +573,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it.only('handleMessageType handles team image - team slug: returns response and calls callSendAPI', function() {
+      it('handleMessageType handles team image - team slug: returns response and calls callSendAPI', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         // console.log(typeof webHookController.callSendAPI)
