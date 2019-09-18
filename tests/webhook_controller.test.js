@@ -393,8 +393,8 @@ describe('F1 Messenger tests', function() {
     })
   })
   describe('webhook controller', function() {
-    describe('handleMessageType()', () => {
-      it.only('handleMessageType handles partial driver name', function() {
+    describe.only('handleMessageType()', () => {
+      it('handleMessageType handles partial driver name', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         return (
@@ -520,30 +520,42 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it.skip('handleMessageType calls checkInput text when passed text; spy checkTextInput', function() {
+      it('handleMessageType returns response with normal text passed in', function() {
         // replace function with a spy
-        sinon.spy(webhookController, 'checkInputText')
+        // sinon.spy(webhookController, 'checkInputText')
         // let spy = sinon.spy()
         // driverController.__set__('checkInputText', spy)
-        console.log(webhookController)
         return (
           webhookController
             .handleMessageType('2399043010191818', {
               message: {
-                text: 'Some text passed in'
+                text: responses.filler
               }
             })
             // check func gets called/
 
             .then(res => {
-              // console.log(res)
-              // check that callSendAPI is called
-              assert(driverController.checkInputText.calledOnce)
               // check return value
-              // assert.deepEqual(res, { text: responses.filler })
-              // driverController.checkInputText.restore()
+              assert.deepEqual(res, { text: responses.filler })
             })
         )
+      })
+      it('handleMessageType returns response - normal text; spy checkTextInput', function() {
+        // replace function with a spy
+        sinon.spy(webhookController, 'checkInputText')
+        return webhookController
+          .handleMessageType('2399043010191818', {
+            message: {
+              text: responses.filler
+            }
+          })
+          .then(res => {
+            // check that callSendAPI is called
+            assert(webhookController.checkInputText.calledOnce)
+            // check return value
+            assert.deepEqual(res, { text: responses.filler })
+            webhookController.checkInputText.restore()
+          })
       })
       it('handleMessageType handles team image - team name: returns response and calls callSendAPI', function() {
         // replace function with a spy
