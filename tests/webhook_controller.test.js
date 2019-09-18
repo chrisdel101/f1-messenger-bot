@@ -1,7 +1,9 @@
 const assert = require('assert')
 let webhookController = require('../controllers/webhook.controller')
 let driverController = require('../controllers/driver.controller')
+let teamController = require('../controllers/team.controller')
 const { httpsFetch } = require('../utils')
+const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
@@ -21,11 +23,184 @@ before(function() {
   webHookController.__set__('driversCache', stub)
 })
 describe('F1 Messenger tests', function() {
-  // stub cache
-  describe('webhook controller', function() {
+  describe('teams controller', function() {
+    describe('getAllTeamSlugs()', () => {
+      it('getAllTeamSlugs returns an array after parsing', function() {
+        return teamController.getAllTeamSlugs().then(result => {
+          assert(typeof result === 'string')
+          //   parse Json
+          const parsed = JSON.parse(result)
+          assert(Array.isArray(parsed))
+        })
+      })
+      //   check json string before parsing
+      it('getAllTeamSlugs returns all teams', () => {
+        return teamController.getAllTeamSlugs().then(result => {
+          assert(result.includes('mercedes'))
+          assert(result.includes('ferrari'))
+        })
+      })
+    })
+    describe('cacheAndGetTeams()', () => {
+      it('cacheAndGetTeams adds slugs array to cache - hits the no team slugs condition', function() {
+        sinon.spy(teamController, 'getAllTeamSlugs')
+        let fakeCache = {}
+        return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
+          // console.log(fakeCache['team_slugs'])
+          // get goes correct path - fix once SO question answered
+          assert(teamController.getAllTeamSlugs.calledOnce)
+          // check added to cache
+          assert(fakeCache.hasOwnProperty('team_slugs'))
+          assert(fakeCache['team_slugs'].hasOwnProperty('timeStamp'))
+          teamController.getAllTeamSlugs.restore()
+        })
+      })
+      it('cacheAndGetTeams returns drivers arr after caching', function() {
+        const fakeCache = {}
+        return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
+          assert(Array.isArray(res))
+          assert(res.length > 0)
+        })
+      })
+      it('cacheAndGetTeams gets drivers data from cache - verifyTimestamp and getAllTeamSlugs not called', function() {
+        sinon.spy(utils, 'verifyTimeStamp')
+        sinon.spy(teamController, 'getAllTeamSlugs')
+        const fakeCache = {
+          teams_slugs: {
+            teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
+            timeStamp: new Date()
+          }
+        }
+        return Promise.resolve(
+          teamController.cacheAndGetTeams(fakeCache, 1400)
+        ).then(res => {
+          assert(utils.verifyTimeStamp.calledOnce)
+          assert(teamController.getAllTeamSlugs.notCalled)
+          // teamController.getAllTeamSlugs.restore()
+          utils.verifyTimeStamp.restore()
+        })
+      })
+      it('cacheAndGetTeams gets drivers data from cache - returns drivers', function() {
+        const fakeCache = {
+          teams_slugs: {
+            teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
+            timeStamp: new Date()
+          }
+        }
+        return Promise.resolve(
+          teamController.cacheAndGetTeams(fakeCache, 1400)
+        ).then(res => {
+          // convert to strings to compare res - to comapre 2 arrays
+          assert.strictEqual(
+            JSON.stringify(res),
+            JSON.stringify(fakeCache['teams_slugs']['teams_slugs'])
+          )
+        })
+      })
+    })
+    describe('cacheAndGetTeam', () => {
+      it('cacheAndGetTeam returns new tean obj', function() {
+        const fakeCache = {
+          'test-team': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        // check if cache has that key
+        return teamController
+          .cacheAndGetTeam('red_bull_racing', fakeCache)
+          .then(res => {
+            // check that new key was added
+            console.log('res', res)
+            assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
+            // check url is formed correct
+            assert.strictEqual(
+              res.imageUrl,
+              'https://f1-cards.herokuapp.com/api/driver/red_bull_racing'
+            )
+          })
+      })
+      it('cacheAndGetTeam adds new driver to cache', function() {
+        const fakeCache = {
+          'test-team': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        return driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            assert(fakeCache.hasOwnProperty('test-team'))
+            assert(fakeCache['test-team'].hasOwnProperty('imageUrl'))
+            assert(fakeCache.hasOwnProperty('alexander-albon'))
+            assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          })
+      })
+    })
+    describe('checkTeamApi', () => {
+      it('checkTeamApi returns correct team name - using name ferrari', function() {
+        return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
+          res => {
+            assert.strictEqual(res, 'ferrari')
+          }
+        )
+      })
+      it('checkTeamApi returns correct team name - using name Aston Martin', function() {
+        return Promise.resolve(
+          teamController.checkTeamApi('Aston Martin')
+        ).then(res => {
+          assert.strictEqual(res, 'red_bull_racing')
+        })
+      })
+      it('checkTeamApi returns correct team name - using name Haas', function() {
+        return Promise.resolve(teamController.checkTeamApi('Haas')).then(
+          res => {
+            assert.strictEqual(res, 'haas_f1_team')
+          }
+        )
+      })
+      it('checkTeamApi returns correct team name - using slug red_bull_racing', function() {
+        return Promise.resolve(
+          teamController.checkTeamApi('red_bull_racing')
+        ).then(res => {
+          console.log(res)
+          assert.strictEqual(res, 'red_bull_racing')
+        })
+      })
+      it('checkTeamApi returns correct team name - using slug alfa_romeo_racing', function() {
+        return Promise.resolve(
+          teamController.checkTeamApi('alfa_romeo_racing')
+        ).then(res => {
+          console.log(res)
+          assert.strictEqual(res, 'alfa_romeo_racing')
+        })
+      })
+      it('checkTeamApi returns false', function() {
+        return Promise.resolve(teamController.checkTeamApi('mclaaren')).then(
+          res => {
+            assert(!res)
+          }
+        )
+      })
+    })
+
+    describe('makeTeamEntriesLower()', () => {
+      it('makeTeamEntriesLower makes entries name lower', function() {
+        const testArr = [
+          { name: 'Test Team Racing', name_slug: 'test_team_racing' },
+          { name: 'Some Long Team Racing Name', name_slug: 'some_racing_name' }
+        ]
+        const res = teamController.makeTeamEntriesLower(testArr)
+        assert.strictEqual(res[0].name, testArr[0].name.toLowerCase())
+        assert.strictEqual(res[1].name, testArr[1].name.toLowerCase())
+      })
+    })
+  })
+  describe('drivers controller', function() {
     describe('getAllDriverSlugs()', () => {
-      it('getAllDriverSlugs returns an array', function() {
+      it('getAllDriverSlugs returns an array after parsing', function() {
         return driverController.getAllDriverSlugs().then(result => {
+          // console.log('re', res)
           // unparsed json
           assert(typeof result === 'string')
           //   parse Json
@@ -42,10 +217,10 @@ describe('F1 Messenger tests', function() {
         })
       })
     })
-    describe.only('cacheAndGetDrivers()', () => {
-      it('cacheAndGetDrivers adds driver slugs array to cache', function() {
+    describe('cacheAndGetDrivers()', () => {
+      it('cacheAndGetDrivers adds driver slugs array to cache - hits the no driver slugs ', function() {
         const fakeCache = {}
-        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+        return driverController.cacheAndGetDrivers(fakeCache).then(res => {
           // console.log(fakeCache['drivers'])
           assert(fakeCache.hasOwnProperty('drivers_slugs'))
           assert(fakeCache.drivers_slugs.hasOwnProperty('drivers_slugs'))
@@ -54,43 +229,41 @@ describe('F1 Messenger tests', function() {
       })
       it('cacheAndGetDrivers returns drivers arr after caching', function() {
         const fakeCache = {}
-        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+        return driverController.cacheAndGetDrivers(fakeCache).then(res => {
           assert(Array.isArray(res))
           assert(res.length > 0)
         })
       })
       it('cacheAndGetDrivers adds timestamp to cache', function() {
         const fakeCache = {}
-        driverController.cacheAndGetDrivers(fakeCache).then(res => {
+        return driverController.cacheAndGetDrivers(fakeCache).then(res => {
           assert(fakeCache.drivers_slugs.hasOwnProperty('timeStamp'))
         })
       })
-      it('cacheAndGetDrivers gets values from cache', function() {
-        sinon.spy(driverController, 'verifyTimeStamp')
+      it('cacheAndGetDrivers gets from cache - passes timestamp validation', function() {
+        // console.log('bottom', driverController)
         sinon.spy(driverController, 'getAllDriverSlugs')
+        sinon.spy(utils, 'verifyTimeStamp')
+
         const fakeCache = {
           drivers_slugs: {
             drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
-            timeStamp: new Date('2019-09-04 19:30:26')
+            timeStamp: new Date()
           }
         }
-        Promise.resolve(driverController.cacheAndGetDrivers(fakeCache)).then(
-          res => {
-            // should call buy bypass verifyTimeStamp
-            assert(driverController.verifyTimeStamp.calledOnce)
-            // should bypass call to API
-            assert(driverController.getAllDriverSlugs.notCalled)
-            // check cache value
-            assert.deepEqual(res, {
-              drivers_slugs: [{ name: 'Test Name1', name_slug: 'test-name1' }],
-              timeStamp: new Date('2019-09-05T01:30:26.000Z')
-            })
-            driverController.getAllDriverSlugs.restore()
-            driverController.verifyTimeStamp.restore()
-          }
-        )
+        return Promise.resolve(
+          driverController.cacheAndGetDrivers(fakeCache, 1400)
+        ).then(res => {
+          // does not call API function
+          assert(driverController.getAllDriverSlugs.notCalled)
+          // does call verification
+          assert(utils.verifyTimeStamp.calledOnce)
+          driverController.getAllDriverSlugs.restore()
+          utils.verifyTimeStamp.restore()
+        })
       })
-      it('cacheAndGetDrivers fails timestamp validation', function() {
+      it('cacheAndGetDrivers gets values from api - fails verifyTimeStamp ', function() {
+        sinon.spy(utils, 'verifyTimeStamp')
         sinon.spy(driverController, 'getAllDriverSlugs')
         const fakeCache = {
           drivers_slugs: {
@@ -98,13 +271,18 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('2019-09-04 19:30:26')
           }
         }
-        Promise.resolve(driverController.cacheAndGetDrivers(fakeCache)).then(
-          res => {
-            // does not call API function
-            assert.ok(!driverController.getAllDriverSlugs.calledOnce)
-            driverController.getAllDriverSlugs.restore()
-          }
-        )
+        return Promise.resolve(
+          driverController.cacheAndGetDrivers(fakeCache, 1400)
+        ).then(res => {
+          console.log('utils', utils)
+          // should call buy bypass verifyTimeStamp
+          assert(utils.verifyTimeStamp.calledOnce)
+          // should byp ass call to API
+          assert(driverController.getAllDriverSlugs.calledOnce)
+          // check cache value.
+          driverController.getAllDriverSlugs.restore()
+          utils.verifyTimeStamp.restore()
+        })
       })
     })
     describe('checkDriverApi()', () => {
@@ -128,6 +306,59 @@ describe('F1 Messenger tests', function() {
         return driverController.checkDriverApi('lewis').then(res => {
           assert.strictEqual(res, 'lewis-hamilton')
         })
+      })
+    })
+    describe('extractDriverNames', () => {
+      it('test', function() {
+        const arr = [
+          { name: 'Test Driver 1', name_slug: 'test-driver1' },
+          { name: 'Test Driver 2', name_slug: 'test-driver2' },
+          { name: 'Some Driver 3', name_slug: 'some-driver3' }
+        ]
+        const res = driverController.extractDriverNames(arr)
+        assert(res, Array.isArray(res))
+        assert(res[0].hasOwnProperty('firstName'))
+        assert(res[0]['firstName'] === 'test')
+        assert(res[2].hasOwnProperty('lastName'))
+        assert(res[2]['firstName'] === 'some')
+      })
+    })
+    describe('cacheAndGetDriver()', () => {
+      it('cacheAndGetDriver returns new driver to obj', function() {
+        const fakeCache = {
+          'lewis-hamilton': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        // check if cache has that key
+        return driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            // check that new key was added
+            assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
+            // check url is formed correct
+            assert.strictEqual(
+              res.imageUrl,
+              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
+            )
+          })
+      })
+      it('cacheAndGetDriver adds new driver to cache', function() {
+        const fakeCache = {
+          'lewis-hamilton': {
+            imageUrl: 'An image Url',
+            timeStamp: new Date()
+          }
+        }
+        return driverController
+          .cacheAndGetDriver('alexander-albon', fakeCache)
+          .then(res => {
+            assert(fakeCache.hasOwnProperty('lewis-hamilton'))
+            assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
+            assert(fakeCache.hasOwnProperty('alexander-albon'))
+            assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          })
       })
     })
     describe('makeEntriesLower()', () => {
@@ -160,6 +391,8 @@ describe('F1 Messenger tests', function() {
         assert(typeof res === 'string')
       })
     })
+  })
+  describe('webhook controller', function() {
     describe('handleMessageType()', () => {
       it('handleMessageType handles partial driver name', function() {
         // replace function with a spy
@@ -188,7 +421,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI', function() {
+      it('handleMessageType handles driver image: returns response and calls callSendAPI; spy callSendAPI', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         return (
@@ -217,7 +450,7 @@ describe('F1 Messenger tests', function() {
         )
       })
       // stub of checkInputText not working
-      it('handleMessageType handles image: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
+      it('handleMessageType handles driver mage: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
         // console.log('res', webHookController.callSendAPI)
@@ -257,7 +490,7 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
-      it('handleMessageType handles image: returns response and calls callSendAPI', function() {
+      it('handleMessageType handles driver image: returns response and calls callSendAPI', function() {
         // webhookController.callSendAPI.restore()
         // replace function with a spy
         sinon.spy(webhookController, 'callSendAPI')
@@ -312,13 +545,68 @@ describe('F1 Messenger tests', function() {
             })
         )
       })
+      it.only('handleMessageType handles team image - team name: returns response and calls callSendAPI', function() {
+        // replace function with a spy
+        sinon.spy(webhookController, 'callSendAPI')
+        // console.log(typeof webHookController.callSendAPI)
+        return (
+          webhookController
+            .handleMessageType('2399043010191818', {
+              message: {
+                text: 'haas'
+              }
+            })
+            // check func gets called/
+            .then(res => {
+              console.log('RES', res)
+              // check callSendAPI called
+              assert(webhookController.callSendAPI.calledOnce)
+              // check return value
+              assert.deepEqual(res.attachment, {
+                type: 'image',
+                payload: {
+                  url: 'https://f1-cards.herokuapp.com/api/driver/haas_f1_team',
+                  is_reusable: true
+                }
+              })
+              webhookController.callSendAPI.restore()
+            })
+        )
+      })
+      it.only('handleMessageType handles team image - team slug: returns response and calls callSendAPI', function() {
+        // replace function with a spy
+        sinon.spy(webhookController, 'callSendAPI')
+        // console.log(typeof webHookController.callSendAPI)
+        return (
+          webhookController
+            .handleMessageType('2399043010191818', {
+              message: {
+                text: 'racing_point'
+              }
+            })
+            // check func gets called/
+            .then(res => {
+              console.log('RES', res)
+              // check callSendAPI called
+              assert(webhookController.callSendAPI.calledOnce)
+              // check return value
+              assert.deepEqual(res.attachment, {
+                type: 'image',
+                payload: {
+                  url: 'https://f1-cards.herokuapp.com/api/driver/racing_point',
+                  is_reusable: true
+                }
+              })
+              webhookController.callSendAPI.restore()
+            })
+        )
+      })
     })
     describe('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
-          driverController
-            .checkInputText('racer')
-            // check func gets called/
+          Promise.resolve(webhookController.checkInputText('racer'))
+            // check f(unPromise.resolvec gets called/
             .then(res => {
               assert.strictEqual(res.payload, responses.card.driver)
             })
@@ -326,31 +614,42 @@ describe('F1 Messenger tests', function() {
       })
       it('checkInputText returns filler text', function() {
         return (
-          driverController
-            .checkInputText('Just some text')
+          Promise.resolve(webhookController.checkInputText('Just some text'))
             // check func gets called/
             .then(res => {
-              assert(res.payload, responses.filler)
+              console.log(res)
+              if (res.payload) {
+                console.log('HERE')
+                assert(res.payload, responses.filler)
+              } else {
+                assert(res, responses.filler)
+              }
             })
         )
       })
       it('checkInputText returns greeting prompt - lowercase', function() {
-        return driverController.checkInputText('hello').then(res => {
-          assert.strictEqual(
-            res.payload,
-            'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
-          )
-        })
+        return Promise.resolve(webhookController.checkInputText('hello')).then(
+          res => {
+            assert.strictEqual(
+              res.payload,
+              'Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.'
+            )
+          }
+        )
       })
       it('checkInputText returns help prompt - lowercase ', function() {
-        return driverController.checkInputText('help').then(res => {
-          assert.strictEqual(res.payload, 'What can we do to help you today?')
-        })
+        return Promise.resolve(webhookController.checkInputText('help')).then(
+          res => {
+            assert.strictEqual(res.payload, 'What can we do to help you today?')
+          }
+        )
       })
       it('checkInputText returns help prompt - uppercase ', function() {
-        return driverController.checkInputText('HELP').then(res => {
-          assert.strictEqual(res.payload, 'What can we do to help you today?')
-        })
+        return Promise.resolve(webhookController.checkInputText('HELP')).then(
+          res => {
+            assert.strictEqual(res.payload, 'What can we do to help you today?')
+          }
+        )
       })
       it('checkInputText returns driver', function() {
         // set to use rewire
@@ -362,33 +661,34 @@ describe('F1 Messenger tests', function() {
           }
         }
         driverController.__set__('driversCache', fakeCache)
-        return driverController
-          .checkInputText('Lewis Hamilton', fakeCache)
-          .then(res1 => {
-            res1.payload.then(payload => {
-              assert(
-                payload.hasOwnProperty('slug') &&
-                  payload.hasOwnProperty('imageUrl')
+        return Promise.resolve(
+          webhookController.checkInputText('Lewis Hamilton', fakeCache)
+        ).then(res1 => {
+          res1.payload.then(payload => {
+            assert(
+              payload.hasOwnProperty('slug') &&
+                payload.hasOwnProperty('imageUrl')
+            )
+            assert(payload.slug === 'lewis-hamilton')
+            // check that new driver added to cache
+            assert(
+              Object.keys(driverController.__get__('driversCache')).includes(
+                'lewis-hamilton'
               )
-              assert(payload.slug === 'lewis-hamilton')
-              // check that new driver added to cache
-              assert(
-                Object.keys(driverController.__get__('driversCache')).includes(
-                  'lewis-hamilton'
-                )
-              )
-            })
+            )
           })
+        })
       })
-      it('checks for partial names - returns correct driver slug and URL', function() {
+      it('checkInputText for partial names - returns correct driver slug and URL', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return driverController
-          .checkInputText('lewis', fakeCache)
+        return Promise.resolve(
+          webhookController.checkInputText('lewis', fakeCache)
+        )
           .then(res => {
             res.payload
               .then(payload => {
@@ -414,17 +714,18 @@ describe('F1 Messenger tests', function() {
             )
           })
       })
-      it('checks for partial names - returns correct obj', function() {
+      it('checkInputText for partial names - returns correct obj', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return driverController
-          .checkInputText('lewis', fakeCache)
+        return Promise.resolve(
+          webhookController.checkInputText('lewis', fakeCache)
+        )
           .then(res => {
-            res.payload
+            return res.payload
               .then(payload => {
                 assert.deepEqual(payload, {
                   slug: 'lewis-hamilton',
@@ -435,7 +736,7 @@ describe('F1 Messenger tests', function() {
               })
               .catch(e => {
                 console.error(
-                  'error in checks for partial names - returns returns correct obj bottom',
+                  'error in checks for partial names - return correct obj bottom',
                   e
                 )
               })
@@ -447,63 +748,52 @@ describe('F1 Messenger tests', function() {
             )
           })
       })
-      it('checks for partial names - uppercase', function() {
+      it('checkInputText for partial names - uppercase', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
             timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
           }
         }
-        return driverController
-          .checkInputText('VALTERI', fakeCache)
-          .then(res => console.log('res', res))
-      })
-    })
-    describe('extractDriverNames', () => {
-      it('test', function() {
-        const arr = [
-          { name: 'Test Driver 1', name_slug: 'test-driver1' },
-          { name: 'Test Driver 2', name_slug: 'test-driver2' },
-          { name: 'Some Driver 3', name_slug: 'some-driver3' }
-        ]
-        const res = driverController.extractDriverNames(arr)
-        assert(res, Array.isArray(res))
-        assert(res[0].hasOwnProperty('firstName'))
-        assert(res[0]['firstName'] === 'test')
-        assert(res[2].hasOwnProperty('lastName'))
-        assert(res[2]['firstName'] === 'some')
-      })
-    })
-    describe('cacheAndGetDriver()', () => {
-      it('cacheAndGetDriver adds to cache', function() {
-        // let webHookController = rewire('../controllers/webhook.controller')
-        const fakeCache = {
-          'lewis-hamilton': {
-            imageUrl: 'An image Url',
-            timeStamp: new Date()
-          }
-        }
-        driverController.__set__('driversCache', fakeCache)
-        // check if cache has that key
-        driverController
-          .cacheAndGetDriver('alexander-albon', fakeCache)
-          .then(res => {
-            // console.log('RES', res)
-            // check that new key was added
-            assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
-            // check url is formed correct
-            assert.strictEqual(
-              res.imageUrl,
-              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
-            )
+        return Promise.resolve(
+          webhookController.checkInputText('VALTTERI', fakeCache)
+        ).then(res => {
+          return Promise.resolve(res.payload).then(payload => {
+            // check it returns correct driver
+            assert.strictEqual(payload.slug, 'valtteri-bottas')
+            assert(payload.hasOwnProperty('imageUrl'))
+            assert(payload.imageUrl.includes('valtteri-bottas'))
           })
-          .catch(e => {
-            console.error('error in cacheAndGetDriver() - adds to cache', e)
+        })
+      })
+      it('checkInputText returns team payload - normal team name', function() {
+        const fakeCache = {}
+        return Promise.resolve(
+          webhookController.checkInputText('mercedes', fakeCache)
+        ).then(res => {
+          Promise.resolve(res.payload).then(payload => {
+            assert.strictEqual(payload.slug, 'mercedes')
+            assert(payload.hasOwnProperty('imageUrl'))
+            assert(payload.imageUrl.includes('mercedes'))
           })
+        })
+      })
+      it('checkInputText returns team payload - partial name', function() {
+        const fakeCache = {}
+        return Promise.resolve(
+          webhookController.checkInputText('red bull', fakeCache)
+        ).then(res => {
+          Promise.resolve(res.payload).then(payload => {
+            // console.log(payload)
+            assert.strictEqual(payload.slug, 'red_bull_racing')
+            assert(payload.hasOwnProperty('imageUrl'))
+            assert(payload.imageUrl.includes('red_bull'))
+          })
+        })
       })
     })
     describe('verifyTimeStamp()', () => {
-      it('verifyTimeStamp returns true', function() {
+      it('verifyTimeStamp fails older than mins entered', function() {
         // older than 30 mins
         const fakeCache = {
           'lewis-hamilton': {
@@ -511,12 +801,13 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date('2019-09-04 19:30:26')
           }
         }
-        const res = driverController.verifyTimeStamp(
-          fakeCache['lewis-hamilton'].timeStamp
+        const res = utils.verifyTimeStamp(
+          fakeCache['lewis-hamilton'].timeStamp,
+          30
         )
         assert(!res)
       })
-      it('verifyTimeStamp returns true when less than 30 mins', function() {
+      it('verifyTimeStamp returns passes when less than time entered', function() {
         // return exact same time as func
         const fakeCache = {
           'lewis-hamilton': {
@@ -524,23 +815,11 @@ describe('F1 Messenger tests', function() {
             timeStamp: new Date()
           }
         }
-        const res = driverController.verifyTimeStamp(
-          fakeCache['lewis-hamilton'].timeStamp
+        const res = utils.verifyTimeStamp(
+          fakeCache['lewis-hamilton'].timeStamp,
+          30
         )
         assert(res)
-      })
-      it('verifyTimeStamp returns false', function() {
-        // return exact same time as func
-        const fakeCache = {
-          'lewis-hamilton': {
-            imageUrl: 'An image Url',
-            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
-          }
-        }
-        const res = driverController.verifyTimeStamp(
-          fakeCache['lewis-hamilton'].timeStamp
-        )
-        assert(res === false)
       })
     })
   })

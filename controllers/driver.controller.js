@@ -1,4 +1,4 @@
-const { httpsFetch } = require('../utils')
+const utils = require('../utils')
 const endpoints = require('../endpoints')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
@@ -10,18 +10,26 @@ const log = debug('f1:log')
 const error = debug('f1:error')
 
 exports.getAllDriverSlugs = () => {
-  return httpsFetch(endpoints.productionAPI('drivers')).then(drivers => drivers)
+  return utils
+    .httpsFetch(endpoints.productionAPI('drivers'))
+    .then(drivers => drivers)
 }
 // make all names lowercase
 exports.makeEntriesLower = arr => {
-  arr = JSON.parse(arr)
-  let newArr = arr.map(obj => {
-    obj['name'] = obj['name'].toLowerCase()
-    obj['name_slug'] = obj['name_slug'].toLowerCase()
-    return obj
-  })
-  // re-stringify for searching later on
-  return JSON.stringify(newArr)
+  try {
+    if (typeof arr === 'string' && !Array.isArray(arr)) {
+      arr = JSON.parse(arr)
+    }
+    let newArr = arr.map(obj => {
+      obj['name'] = obj['name'].toLowerCase()
+      obj['name_slug'] = obj['name_slug'].toLowerCase()
+      return obj
+    })
+    // re-stringify for searching later on
+    return JSON.stringify(newArr)
+  } catch (e) {
+    console.error('An error in makeEntriesLower', e)
+  }
 }
 // take in drivers json and add first and last name keys
 // return new arr
@@ -39,10 +47,14 @@ exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
-    return module.exports.getAllDriverSlugs().then(drivers => {
+    console.log(nameToCheck)
+    return Promise.resolve(
+      module.exports.cacheAndGetDrivers(driversCache, 1400)
+    ).then(drivers => {
+      // console.log('DDD', drivers)
       drivers = module.exports.makeEntriesLower(drivers)
       drivers = module.exports.extractDriverNames(JSON.parse(drivers))
-      // console.log(drivers)
+      // check user input first/last names of drivers against data
       for (let driver of drivers) {
         for (let key in driver) {
           if (driver[key] === nameToCheck) {
@@ -56,41 +68,40 @@ exports.checkDriverApi = nameToCheck => {
     console.error('An error in checkDriverApi', e)
   }
 }
-// check if timestamp is older than 30 mins
-exports.verifyTimeStamp = (timeStamp, mins) => {
-  const d1 = new moment(timeStamp)
-  const d2 = new moment()
-  // subract time1 from time 2
-  const diff = moment.duration(d2.diff(d1)).asMinutes()
-  console.log('diff', diff)
-  // less than 30 mins true, else false
-  return diff < mins ? true : false
-}
-// gets/caches drivers from api and returns array
-exports.cacheAndGetDrivers = cache => {
-  // if not in cache add it
-  if (!cache.hasOwnProperty('drivers_slugs')) {
+// gets/caches drivers array from api and returns array
+exports.cacheAndGetDrivers = (cache, expiryTime) => {
+  // if not in cache OR time stamp passes fails use new call
+  if (
+    !cache.hasOwnProperty('drivers_slugs') ||
+    !utils.verifyTimeStamp(cache['drivers_slugs'].timeStamp, expiryTime)
+  ) {
     return module.exports.getAllDriverSlugs().then(drivers => {
+      console.log('DRIVERS - NOT FROM CACHE')
       drivers = JSON.parse(drivers)
       cache['drivers_slugs'] = {
         drivers_slugs: drivers,
         timeStamp: new Date()
       }
+      // console.log('here', drivers)
       return drivers
     })
-  } else if (
-    // if less and 24 hours old get from cache - no api call
-    cache.hasOwnProperty('drivers_slugs') &&
-    module.exports.verifyTimeStamp(cache['drivers_slugs'].timeStamp)
-  ) {
-    return cache['drivers_slugs']
-    // call api and re-cache
   } else {
+    console.log('DRIVERS - FROM CACHE')
+    // if less and 24 hours old get from cache
+    // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
+    // console.log('CA', cache['drivers_slugs'].timeStamp)
+    return cache['drivers_slugs']['drivers_slugs']
+    // } else {
+    //   cache['drivers'] = {
+    //     drivers_slugs: drivers,
+    //     timeStamp: new Date()
+    //   }
   }
 }
 
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driverCache) => {
+  console.log(driverCache)
   log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driverCache.hasOwnProperty(driverSlug)) {
@@ -104,8 +115,10 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
           imageUrl: endpoints.productionCards(driverSlug),
           timeStamp: new Date()
         }
+        // console.log('after', driverCache)
         // console.log('here', driverCache)
         // return new driver obj
+        // console.log('here')
         return {
           slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),
@@ -119,12 +132,13 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
     // if driver is in cache already
   } else if (driverCache.hasOwnProperty(driverSlug)) {
     // check if time is valid
-    if (module.exports.verifyTimeStamp(driverCache[driverSlug].timeStamp)) {
-      // if valid get from cache
+    if (utils.verifyTimeStamp(driverCache[driverSlug].timeStamp)) {
       console.log('valid time stamp')
+      // if valid get from cache
       return driverCache[driverSlug]
       // if not valid then re-add
     } else {
+      console.log('failed time stamp')
       driverCache[driverSlug] = {
         slug: driverSlug,
         imageUrl: endpoints.productionCards(driverSlug),
@@ -139,81 +153,5 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
   } else {
     console.log('Not a valid driver name to cache')
     return false
-  }
-}
-// take user input and check to send back response
-exports.checkInputText = (inputText, cache) => {
-  // check if input was a driver name
-  try {
-    log('checkInputText')
-    return module.exports.checkDriverApi(inputText).then(slug => {
-      console.log('slug', slug)
-      // true if a driver name
-      if (slug) {
-        // - returns a promise if calling from API
-        // - returns an object if in the cache
-        const driver = module.exports.cacheAndGetDriver(slug, cache)
-        // console.log('DD', driver)
-        // send driver card info
-        return {
-          type: 'image',
-          payload: driver
-        }
-        // if not driver
-      } else {
-        // if in array return greeting
-        if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
-          return {
-            type: 'text',
-            payload: responses.profile.greeting
-          }
-        } else if (
-          testWordsJson.prompt_help.includes(inputText.toLowerCase())
-        ) {
-          return {
-            type: 'text',
-            payload: responses.help.ask
-          }
-          // if text is hello, or other start word, welcome/
-          // if help listing a few options
-          // if card, driver, team, prompt with which driver?
-        } else if (
-          testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
-        ) {
-          console.log(
-            testWordsJson.prompt_card.indexOf(inputText.toLowerCase())
-          )
-          switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
-            case 0:
-              return {
-                type: 'text',
-                payload: responses.card.driver
-              }
-            case 1:
-              return {
-                type: 'text',
-                payload: responses.card.team
-              }
-            case 2:
-              return {
-                type: 'text',
-                payload: responses.card.team
-              }
-            case 3:
-              return {
-                type: 'text',
-                payload: responses.card.driver
-              }
-          }
-        } else {
-          return {
-            type: 'text',
-            payload: responses.filler
-          }
-        }
-      }
-    })
-  } catch (e) {
-    console.log('An error in checkInputText', e)
   }
 }

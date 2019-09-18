@@ -7,6 +7,7 @@ const debug = require('debug')
 const log = debug('f1:log')
 const error = debug('f1:error')
 const driverController = require('./driver.controller')
+const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
 
@@ -71,6 +72,87 @@ exports.verifyHook = (req, res) => {
     }
   }
 }
+// take user input and check to send back response
+exports.checkInputText = (inputText, cache) => {
+  log('checkInputText')
+  try {
+    // check json first
+    if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
+      return {
+        type: 'text',
+        payload: responses.profile.greeting
+      }
+    } else if (testWordsJson.prompt_help.includes(inputText.toLowerCase())) {
+      return {
+        type: 'text',
+        payload: responses.help.ask
+      }
+    } else if (
+      testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
+    ) {
+      // if text is hello, or other start word, welcome/
+      // if help listing a few options
+      // if card, driver, team, prompt with which driver?
+      switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
+        case 0:
+          return {
+            type: 'text',
+            payload: responses.card.driver
+          }
+        case 1:
+          return {
+            type: 'text',
+            payload: responses.card.team
+          }
+        case 2:
+          return {
+            type: 'text',
+            payload: responses.card.team
+          }
+        case 3:
+          return {
+            type: 'text',
+            payload: responses.card.driver
+          }
+      }
+    }
+    // else check if input was a driver name
+    // console.log('pp', Promise.resolve(module.exports.checkDriverApi(inputText)))
+    return driverController.checkDriverApi(inputText).then(driverSlug => {
+      // console.log('driverSlug', driverSlug)
+      // true if a driver name - check not false
+      if (driverSlug) {
+        // - returns a promise if calling from API
+        // - returns an object if in the cache
+        const driver = driverController.cacheAndGetDriver(driverSlug, cache)
+        // console.log('DD', driver)
+        // send driver card info
+        return {
+          type: 'image',
+          payload: driver
+        }
+      } else {
+        return teamController.checkTeamApi(inputText).then(teamSlug => {
+          if (teamSlug) {
+            const team = teamController.cacheAndGetTeam(teamSlug, cache)
+            console.log('TEAM')
+            return {
+              type: 'image',
+              payload: team
+            }
+          }
+          return {
+            type: 'text',
+            payload: responses.filler
+          }
+        })
+      }
+    })
+  } catch (e) {
+    console.log('An error in checkInputText', e)
+  }
+}
+
 exports.handleMessageType = (sender_psid, webhook_event) => {
   let response
   log('handleMessageType')
@@ -82,7 +164,7 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       // console.log(webhook_event.message)
       return (
         // use driver cache - This might be problem later
-        driverController
+        module.exports
           .checkInputText(webhook_event.message.text, driverCache)
           .then(res => {
             res = Promise.resolve(res)
