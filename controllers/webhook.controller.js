@@ -163,10 +163,16 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
     if (webhook_event.message.text) {
       // check if text is a driver name
       // console.log(webhook_event.message)
+      console.log(
+        'CHECK',
+        module.exports.checkInputText(webhook_event.message.text, driverCache)
+      )
       return (
         // use driver cache - This might be problem later
+
         module.exports
           .checkInputText(webhook_event.message.text, driverCache)
+
           .then(res => {
             res = Promise.resolve(res)
             // resolve first promise
@@ -269,7 +275,7 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
     // // Sends the response message
     // module.exports.callSendAPI(sender_psid, response)
   } catch (e) {
-    console.error('Error in handleMessageType', e)
+    console.error('Error in handleMessageType bottom', e)
   }
 }
 // Handles messaging_postbacks events
