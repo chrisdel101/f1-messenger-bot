@@ -47,7 +47,7 @@ exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
-
+    console.log(nameToCheck)
     return Promise.resolve(
       module.exports.cacheAndGetDrivers(driversCache, 1400)
     ).then(drivers => {
@@ -118,7 +118,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
         // console.log('after', driverCache)
         // console.log('here', driverCache)
         // return new driver obj
-        console.log('here')
+        // console.log('here')
         return {
           slug: driverSlug,
           imageUrl: endpoints.productionCards(driverSlug),

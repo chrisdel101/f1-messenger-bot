@@ -7,6 +7,7 @@ const debug = require('debug')
 const log = debug('f1:log')
 const error = debug('f1:error')
 const driverController = require('./driver.controller')
+const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
 
@@ -117,26 +118,33 @@ exports.checkInputText = (inputText, cache) => {
     }
     // else check if input was a driver name
     // console.log('pp', Promise.resolve(module.exports.checkDriverApi(inputText)))
-    return driverController.checkDriverApi(inputText).then(driverSlug => {
-      console.log('driverSlug', driverSlug)
-      // true if a driver name
-      if (driverSlug) {
-        // - returns a promise if calling from API
-        // - returns an object if in the cache
-        const driver = driverController.cacheAndGetDriver(driverSlug, cache)
-        // console.log('DD', driver)
-        // send driver card info
-        return {
-          type: 'image',
-          payload: driver
+    return driverController
+      .checkDriverApi(inputText)
+      .then(driverSlug => {
+        console.log('driverSlug', driverSlug)
+        // true if a driver name - check not false
+        if (driverSlug) {
+          // - returns a promise if calling from API
+          // - returns an object if in the cache
+          const driver = driverController.cacheAndGetDriver(driverSlug, cache)
+          // console.log('DD', driver)
+          // send driver card info
+          return {
+            type: 'image',
+            payload: driver
+          }
         }
-      }
 
-      return {
-        type: 'text',
-        payload: responses.filler
-      }
-    })
+        return {
+          type: 'text',
+          payload: responses.filler
+        }
+      })
+      .finally(() => {
+        return teamController.checkTeamApi(inputText).then(teamSlug => {
+          console.log('team', teamSlug)
+        })
+      })
   } catch (e) {
     console.log('An error in checkInputText', e)
   }

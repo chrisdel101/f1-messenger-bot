@@ -99,7 +99,7 @@ describe('F1 Messenger tests', function() {
       })
     })
     describe('cacheAndGetTeam', () => {
-      it.only('cacheAndGetTeam returns new tean obj', function() {
+      it('cacheAndGetTeam returns new tean obj', function() {
         const fakeCache = {
           'test-team': {
             imageUrl: 'An image Url',
@@ -116,7 +116,7 @@ describe('F1 Messenger tests', function() {
             // check url is formed correct
             assert.strictEqual(
               res.imageUrl,
-              'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
+              'https://f1-cards.herokuapp.com/api/driver/red_bull_racing'
             )
           })
       })
@@ -130,8 +130,8 @@ describe('F1 Messenger tests', function() {
         return driverController
           .cacheAndGetDriver('alexander-albon', fakeCache)
           .then(res => {
-            assert(fakeCache.hasOwnProperty('lewis-hamilton'))
-            assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
+            assert(fakeCache.hasOwnProperty('test-team'))
+            assert(fakeCache['test-team'].hasOwnProperty('imageUrl'))
             assert(fakeCache.hasOwnProperty('alexander-albon'))
             assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
           })
@@ -546,7 +546,7 @@ describe('F1 Messenger tests', function() {
         )
       })
     })
-    describe('checkInputText()', () => {
+    describe.only('checkInputText()', () => {
       it('checkInputText returns card.driver response', function() {
         return (
           Promise.resolve(webhookController.checkInputText('racer'))
@@ -692,7 +692,7 @@ describe('F1 Messenger tests', function() {
             )
           })
       })
-      it('checks for partial names - uppercase', function() {
+      it.only('checks for partial names - uppercase', function() {
         const fakeCache = {
           'fake-test-driver': {
             imageUrl: 'fake url',
@@ -700,9 +700,23 @@ describe('F1 Messenger tests', function() {
           }
         }
         return Promise.resolve(
-          webhookController.checkInputText('VALTERI', fakeCache)
-        ).then(res => console.log('res', res))
+          webhookController.checkInputText('VALTTERI', fakeCache)
+        ).then(res => {
+          return res.payload.then(res => {
+            // check it returns correct driver
+            assert.strictEqual(res.slug, 'valtteri-bottas')
+            assert(res.hasOwnProperty('imageUrl'))
+            assert(res.imageUrl.includes('valtteri-bottas'))
+          })
+        })
       })
+      // it('teams', function() {
+      //   const fakeCache = {
+      //   }
+      //   return Promise.resolve(
+      //     webhookController.checkInputText('mercedes', fakeCache)
+      //   ).then(res => console.log('res', res))
+      // })
     })
     describe('verifyTimeStamp()', () => {
       it('verifyTimeStamp fails older than mins entered', function() {
