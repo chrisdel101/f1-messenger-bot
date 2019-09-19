@@ -116,7 +116,7 @@ describe('F1 Messenger tests', function() {
             // check url is formed correct
             assert.strictEqual(
               res.imageUrl,
-              'https://f1-cards.herokuapp.com/api/driver/red_bull_racing'
+              'https://f1-cards.herokuapp.com/api/team/red_bull_racing'
             )
           })
       })
@@ -135,6 +135,30 @@ describe('F1 Messenger tests', function() {
             assert(fakeCache.hasOwnProperty('alexander-albon'))
             assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
           })
+      })
+      it('cacheAndGetTeam forms correct endpoint URL', function() {
+        const fakeCache = {}
+        return Promise.resolve(
+          teamController.cacheAndGetTeam('ferrari', fakeCache)
+        ).then(res => {
+          console.log(res)
+          assert.strictEqual(
+            res.imageUrl,
+            'https://f1-cards.herokuapp.com/api/team/ferrari'
+          )
+        })
+      })
+      it('cacheAndGetTeam forms correct endpoint URL', function() {
+        const fakeCache = {}
+        return Promise.resolve(
+          teamController.cacheAndGetTeam('racing_point', fakeCache)
+        ).then(res => {
+          console.log(res)
+          assert.strictEqual(
+            res.imageUrl,
+            'https://f1-cards.herokuapp.com/api/team/racing_point'
+          )
+        })
       })
     })
     describe('checkTeamApi', () => {
@@ -577,7 +601,7 @@ describe('F1 Messenger tests', function() {
               assert.deepEqual(res.attachment, {
                 type: 'image',
                 payload: {
-                  url: 'https://f1-cards.herokuapp.com/api/driver/haas_f1_team',
+                  url: 'https://f1-cards.herokuapp.com/api/team/haas_f1_team',
                   is_reusable: true
                 }
               })
@@ -605,7 +629,7 @@ describe('F1 Messenger tests', function() {
               assert.deepEqual(res.attachment, {
                 type: 'image',
                 payload: {
-                  url: 'https://f1-cards.herokuapp.com/api/driver/racing_point',
+                  url: 'https://f1-cards.herokuapp.com/api/team/racing_point',
                   is_reusable: true
                 }
               })
@@ -700,31 +724,15 @@ describe('F1 Messenger tests', function() {
         }
         return Promise.resolve(
           webhookController.checkInputText('lewis', fakeCache)
-        )
-          .then(res => {
-            res.payload
-              .then(payload => {
-                assert.strictEqual(payload.slug, 'lewis-hamilton')
-                assert.strictEqual(
-                  payload.imageUrl,
-                  'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton'
-                )
-              })
-              .catch(e => {
-                assert.fail()
-                console.error(
-                  'error in checkInputText(): checks for partial names - returns correct driver slug and URL',
-                  e
-                )
-              })
-          })
-          .catch(e => {
-            assert.fail()
-            console.error(
-              'error in checkInputText() - checks for partial names - returns correct driver slug and URL',
-              e
+        ).then(res => {
+          return Promise.resolve(res.payload).then(payload => {
+            assert.strictEqual(payload.slug, 'lewis-hamilton')
+            assert.strictEqual(
+              payload.imageUrl,
+              'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton'
             )
           })
+        })
       })
       it('checkInputText for partial names - returns correct obj', function() {
         const fakeCache = {
@@ -778,7 +786,7 @@ describe('F1 Messenger tests', function() {
           })
         })
       })
-      it.only('checkInputText returns team payload - normal team name', function() {
+      it('checkInputText returns team payload - normal team name', function() {
         const fakeCache = {}
         return Promise.resolve(
           webhookController.checkInputText('mercedes', fakeCache)

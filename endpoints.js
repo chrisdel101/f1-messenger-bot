@@ -13,5 +13,7 @@ module.exports = {
   },
   productionCards: params => {
     return `https://f1-cards.herokuapp.com/api/driver/${params}`
-  }
+  },
+  prodCardsEndpoint: `https://f1-cards.herokuapp.com`,
+  prodAPIEndpoint: `https://f1-api.herokuapp.com`
 }

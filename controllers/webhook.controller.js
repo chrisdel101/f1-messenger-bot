@@ -136,8 +136,9 @@ exports.checkInputText = (inputText, cache) => {
       } else {
         return teamController.checkTeamApi(inputText).then(teamSlug => {
           if (teamSlug) {
-            console.log('TEAM', teamSlug)
+            console.log('TEAM SLUG', teamSlug)
             const team = teamController.cacheAndGetTeam(teamSlug, cache)
+            console.log('TEAM', team)
             return {
               type: 'image',
               payload: team

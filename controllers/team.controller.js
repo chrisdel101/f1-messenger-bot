@@ -90,14 +90,14 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
         //  add to cache
         teamCache[teamSlug] = {
           slug: teamSlug,
-          imageUrl: endpoints.productionCards(teamSlug),
+          imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
           timeStamp: new Date()
         }
         // console.log('here', teamCache)
         // return new team obj
         return {
           slug: teamSlug,
-          imageUrl: endpoints.productionCards(teamSlug),
+          imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
           timeStamp: new Date()
         }
       } else {
@@ -117,12 +117,12 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
       console.log('failed time stamp')
       teamCache[teamSlug] = {
         slug: teamSlug,
-        imageUrl: endpoints.productionCards(teamSlug),
+        imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
         timeStamp: new Date()
       }
       return {
         slug: teamSlug,
-        imageUrl: endpoints.productionCards(teamSlug),
+        imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
         timeStamp: new Date()
       }
     }
