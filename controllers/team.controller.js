@@ -101,7 +101,7 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
           timeStamp: new Date()
         }
       } else {
-        console.log('Not a valid driver name')
+        console.log('Not a valid team name')
         return false
       }
     })
@@ -111,6 +111,7 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
     if (utils.verifyTimeStamp(teamCache[teamSlug].timeStamp)) {
       console.log('valid time stamp')
       // if valid get from cache
+      console.log('team from cache')
       return teamCache[teamSlug]
       // if not valid then re-add
     } else {
