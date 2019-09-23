@@ -5,6 +5,8 @@ const debug = require('debug')
 const log = debug('f1:log')
 const error = debug('f1:error')
 
+exports.resetCache = () => {}
+
 exports.checkTeamApi = nameToCheck => {
   // check if string is team name from api- return name_slug or false
   try {
