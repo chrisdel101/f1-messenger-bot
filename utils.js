@@ -24,37 +24,33 @@ exports.verifyTimeStamp = (timeStamp, mins) => {
   return diff < mins ? true : false
 }
 
-export.viewCache = (type) => {
+exports.viewCache = type => {
   try {
-    if(type === 'team'){
+    if (type === 'team') {
       return cache.teamCache
-    } else if(type === 'teams'){
+    } else if (type === 'teams') {
       return cache.teamsCache
-    } else if(type === 'driver'){
+    } else if (type === 'driver') {
       return cache.driverCache
-    } else if(type === 'drivers'){
+    } else if (type === 'drivers') {
       return cache.driversCache
     } else {
       return cache
     }
-  } catch(e){
+  } catch (e) {
     console.error('An error in resetCache', e)
   }
 }
-export.resetCache = type => {
+exports.resetCache = type => {
   try {
-    if(type === 'team'){
-  
-    } else if(type === 'teams'){
-  
-    } else if(type === 'driver'){
-  
-    } else if(type === 'drivers'){
-  
+    if (type === 'team') {
+    } else if (type === 'teams') {
+    } else if (type === 'driver') {
+    } else if (type === 'drivers') {
     } else {
       console.error('resetCache: Not a valid type')
     }
-  } catch(e){
+  } catch (e) {
     console.error('An error in resetCache', e)
   }
 }
