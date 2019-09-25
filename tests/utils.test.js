@@ -7,6 +7,7 @@ const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
+const isEmpty = require('lodash/isEmpty')
 const { cache, testCache } = require('../cache')
 
 describe('utils tests', function() {
@@ -119,6 +120,98 @@ describe('utils tests', function() {
           assert(cacheResult.hasOwnProperty('lewis-hamilton'))
           assert(cacheResult.hasOwnProperty('charles-leclerc'))
         })
+      })
+    })
+  })
+  describe('resetCache()', () => {
+    it('resetCache resets teams cache', function() {
+      return Promise.resolve(
+        //   fill cache with testTeamsCache to test
+        teamController.cacheAndGetTeams(testCache.testTeamsCache, 1400)
+      ).then(res => {
+        // check cache is filled
+        const cacheResult = utils.viewCache('teams')
+        assert(typeof cacheResult === 'object')
+        assert(Array.isArray(cacheResult.teams_slugs.teams_slugs))
+        assert(cacheResult.teams_slugs.teams_slugs.length > 0)
+        const cacheReset = utils.resetCache('teams')
+        assert(isEmpty(cacheReset))
+      })
+    })
+    it('resetCache resets team cache', function() {
+      return Promise.resolve(
+        //   fill cache with testTeamsCache to test
+        teamController.cacheAndGetTeam('mercedes', testCache.testTeamCache)
+      ).then(res => {
+        // check cache is filled
+        const cacheResult = utils.viewCache('team')
+        assert(cacheResult.hasOwnProperty('mercedes'))
+        const cacheReset = utils.resetCache('team')
+        assert(isEmpty(cacheReset))
+      })
+    })
+    it('resetCache resets drivers cache', function() {
+      return Promise.resolve(
+        //   fill cache with testTeamsCache to test
+        driverController.cacheAndGetDrivers(testCache.testDriversCache, 14000)
+      ).then(res => {
+        // check cache is filled
+        const cacheResult = utils.viewCache('drivers')
+        assert(typeof cacheResult === 'object')
+        assert(Array.isArray(cacheResult.drivers_slugs.drivers_slugs))
+        assert(cacheResult.drivers_slugs.drivers_slugs.length > 0)
+        const cacheReset = utils.resetCache('team')
+        assert(isEmpty(cacheReset))
+      })
+    })
+    it('resetCache resets driver cache', function() {
+      return Promise.resolve(
+        //   fill cache with testTeamsCache to test
+        driverController.cacheAndGetDriver(
+          'max-verstappen',
+          testCache.testDriverCache
+        )
+      ).then(res => {
+        // check cache is filled
+        const cacheResult = utils.viewCache('driver')
+        // console.log(cacheResult)
+        assert(typeof cacheResult === 'object')
+        assert(cacheResult['max-verstappen'].hasOwnProperty('slug'))
+        assert(cacheResult['max-verstappen'].slug === 'max-verstappen')
+        const cacheReset = utils.resetCache('driver')
+        assert(isEmpty(cacheReset))
+      })
+    })
+    it('resetCache resets entire cache', function() {
+      return Promise.resolve(
+        //   fill cache with testTeamsCache to test
+        driverController.cacheAndGetDriver(
+          'max-verstappen',
+          testCache.testDriverCache
+        )
+      ).then(_ => {
+        return driverController
+          .cacheAndGetDrivers(testCache.testDriversCache, 1400)
+          .then(_ => {
+            return teamController
+              .cacheAndGetTeams(testCache.testTeamsCache, 1400)
+              .then(_ => {
+                // // check cache is filled
+                const cacheResult = utils.viewCache()
+                // console.log(cacheResult)
+                assert(typeof cacheResult === 'object')
+                assert(
+                  cacheResult.testDriverCache.hasOwnProperty('max-verstappen')
+                )
+                assert(
+                  cacheResult.testDriversCache.hasOwnProperty('drivers_slugs')
+                )
+                assert(cacheResult.testTeamsCache.hasOwnProperty('teams_slugs'))
+                const cacheReset = utils.resetCache()
+                // console.log(cacheReset)
+                assert(isEmpty(cacheReset))
+              })
+          })
       })
     })
   })

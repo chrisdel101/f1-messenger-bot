@@ -59,15 +59,7 @@ exports.getAllTeamSlugs = () => {
 // takes the teams cache and expiry time
 exports.cacheAndGetTeams = (teamsCache, expiryTime) => {
   console.log('cacheAndGetTeams')
-  console.log('cache', teamsCache)
-  // console.log('slugs', teamsCache['teams_slugs'])
-  // if (utils.verifyTimeStamp(cache['teams_slugs'])) {
-  //   console.log(
-  //     'time',
-  //     utils.verifyTimeStamp(cache['teams_slugs'].timeStamp, expiryTime)
-  //   )
-  // }
-  // console.log('slug', cache.hasOwnProperty('teams_slugs'))
+  // console.log('cache', teamsCache)
   // if not in cache OR time stamp passes fails use new call
   if (
     !teamsCache.hasOwnProperty('teams_slugs') ||

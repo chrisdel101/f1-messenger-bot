@@ -1,6 +1,6 @@
 const https = require('https')
 const moment = require('moment')
-const { cache, testCache } = require('./cache')
+let { cache, testCache } = require('./cache')
 
 exports.httpsFetch = url => {
   return new Promise((resolve, reject) => {
@@ -42,7 +42,6 @@ exports.viewCache = type => {
       if (type === 'team') {
         return cache.teamCache
       } else if (type === 'teams') {
-        console.log()
         return cache.teamsCache
       } else if (type === 'driver') {
         return cache.driverCache
@@ -58,14 +57,38 @@ exports.viewCache = type => {
 }
 exports.resetCache = type => {
   try {
-    if (type === 'team') {
-    } else if (type === 'teams') {
-    } else if (type === 'driver') {
-    } else if (type === 'drivers') {
+    if (process.env.NODE_ENV === 'testing') {
+      if (type === 'team') {
+        testCache.testTeamCache = {}
+        return testCache.testTeamCache
+      } else if (type === 'teams') {
+        testCache.testTeamsCache = {}
+        return testCache.testTeamsCache
+      } else if (type === 'driver') {
+        testCache.testDriverCache = {}
+        return testCache.testDriverCache
+      } else if (type === 'drivers') {
+        testCache.testDriversCache = {}
+        return testCache.testDriversCache
+      } else {
+        testCache = {}
+        return testCache
+      }
     } else {
-      console.error('resetCache: Not a valid type')
+      if (type === 'team') {
+        return cache.teamCache
+      } else if (type === 'teams') {
+        cache.teamsCache = {}
+        return cache.teamsCache
+      } else if (type === 'driver') {
+        return cache.driverCache
+      } else if (type === 'drivers') {
+        return cache.driversCache
+      } else {
+        return cache
+      }
     }
   } catch (e) {
-    console.error('An error in resetCache', e)
+    console.error('An error in viewCache', e)
   }
 }
