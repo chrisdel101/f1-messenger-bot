@@ -20,6 +20,7 @@ exports.facebookObj = request_body => {
   }
 }
 exports.sendHookResponse = req => {
+  console.log('SEND HOOK')
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
@@ -180,7 +181,7 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       const responseVal = Promise.resolve(
         module.exports.checkInputText(webhook_event.message.text, cache)
       )
-      console.log('resposeVAl', responseVal)
+      // console.log('resposeVAl', responseVal)
       return responseVal
         .then(res => {
           res = Promise.resolve(res)

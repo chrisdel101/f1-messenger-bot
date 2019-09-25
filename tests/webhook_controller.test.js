@@ -22,6 +22,11 @@ before(function() {
   webHookController.__set__('driversCache', stub)
 })
 describe('webhook controller', function() {
+  describe.only('sendHookResponse()', () => {
+    it('tests', function() {
+      webhookController.sendHookResponse()
+    })
+  })
   describe('handleMessageType()', () => {
     it('handleMessageType handles partial driver name', function() {
       // replace function with a spy
