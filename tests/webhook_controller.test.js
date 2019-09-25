@@ -255,9 +255,9 @@ describe('webhook controller', function() {
         Promise.resolve(webhookController.checkInputText('Just some text'))
           // check func gets called/
           .then(res => {
-            console.log(res)
+            // console.log(res)
             if (res.payload) {
-              console.log('HERE')
+              // console.log('HERE')
               assert(res.payload, responses.filler)
             } else {
               assert(res, responses.filler)
@@ -293,34 +293,33 @@ describe('webhook controller', function() {
       // set to use rewire
       // let webHookController = rewire('../controllers/webhook.controller')
       const fakeCache = {
-        'fake-test-driver': {
-          imageUrl: 'fake url',
-          timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+        driverCache: {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
         }
       }
-      driverController.__set__('driversCache', fakeCache)
+      driverController.__set__('cache', fakeCache)
       return Promise.resolve(
         webhookController.checkInputText('Lewis Hamilton', fakeCache)
       ).then(res1 => {
-        res1.payload.then(payload => {
+        return Promise.resolve(res1.payload).then(payload => {
+          console.log('PL', payload)
           assert(
             payload.hasOwnProperty('slug') && payload.hasOwnProperty('imageUrl')
           )
           assert(payload.slug === 'lewis-hamilton')
-          // check that new driver added to cache
-          assert(
-            Object.keys(driverController.__get__('driversCache')).includes(
-              'lewis-hamilton'
-            )
-          )
         })
       })
     })
     it('checkInputText for partial names - returns correct driver slug and URL', function() {
       const fakeCache = {
-        'fake-test-driver': {
-          imageUrl: 'fake url',
-          timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+        driverCache: {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
         }
       }
       return Promise.resolve(
@@ -337,9 +336,11 @@ describe('webhook controller', function() {
     })
     it('checkInputText for partial names - returns correct obj', function() {
       const fakeCache = {
-        'fake-test-driver': {
-          imageUrl: 'fake url',
-          timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+        driverCache: {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
         }
       }
       return Promise.resolve(
@@ -371,9 +372,11 @@ describe('webhook controller', function() {
     })
     it('checkInputText for partial names - uppercase', function() {
       const fakeCache = {
-        'fake-test-driver': {
-          imageUrl: 'fake url',
-          timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+        driverCache: {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
         }
       }
       return Promise.resolve(
@@ -388,7 +391,9 @@ describe('webhook controller', function() {
       })
     })
     it('checkInputText returns team payload - normal team name', function() {
-      const fakeCache = {}
+      const fakeCache = {
+        teamCache: {}
+      }
       return Promise.resolve(
         webhookController.checkInputText('mercedes', fakeCache)
       ).then(res => {
@@ -400,7 +405,9 @@ describe('webhook controller', function() {
       })
     })
     it('checkInputText returns team payload - partial name', function() {
-      const fakeCache = {}
+      const fakeCache = {
+        teamCache: {}
+      }
       return Promise.resolve(
         webhookController.checkInputText('red bull', fakeCache)
       ).then(res => {

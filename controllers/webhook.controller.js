@@ -1,6 +1,6 @@
 const request = require('request')
 const endpoints = require('../endpoints')
-const driverCache = require('../cache').driverCache
+const cache = require('../cache').cache
 const moment = require('moment')
 // https://stackoverflow.com/q/26885685/5972531
 const debug = require('debug')
@@ -19,7 +19,7 @@ exports.facebookObj = request_body => {
     json: request_body
   }
 }
-exports.sendHookResponse = (req, res) => {
+exports.sendHookResponse = req => {
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
@@ -123,10 +123,13 @@ exports.checkInputText = (inputText, cache) => {
       // console.log('driverSlug', driverSlug)
       // true if a driver name - check not false
       if (driverSlug) {
-        console.log('driverSlug', driverSlug)
         // - returns a promise if calling from API
         // - returns an object if in the cache
-        const driver = driverController.cacheAndGetDriver(driverSlug, cache)
+        console.log('cache', cache)
+        const driver = driverController.cacheAndGetDriver(
+          driverSlug,
+          cache.driverCache
+        )
         // console.log('DD', driver)
         // send driver card info
         return {
@@ -137,7 +140,10 @@ exports.checkInputText = (inputText, cache) => {
         return teamController.checkTeamApi(inputText).then(teamSlug => {
           if (teamSlug) {
             console.log('TEAM SLUG', teamSlug)
-            const team = teamController.cacheAndGetTeam(teamSlug, cache)
+            const team = teamController.cacheAndGetTeam(
+              teamSlug,
+              cache.teamCache
+            )
             console.log('TEAM', team)
             return {
               type: 'image',
@@ -159,7 +165,7 @@ exports.checkInputText = (inputText, cache) => {
 exports.handleMessageType = (sender_psid, webhook_event) => {
   let response
   log('handleMessageType')
-  console.log('EVENT', webhook_event)
+  // console.log('EVENT', webhook_event)
 
   try {
     // Check if the message contains text
@@ -172,8 +178,9 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       // )
 
       const responseVal = Promise.resolve(
-        module.exports.checkInputText(webhook_event.message.text, driverCache)
+        module.exports.checkInputText(webhook_event.message.text, cache)
       )
+      console.log('resposeVAl', responseVal)
       return responseVal
         .then(res => {
           res = Promise.resolve(res)

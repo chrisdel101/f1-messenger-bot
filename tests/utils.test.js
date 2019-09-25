@@ -190,28 +190,24 @@ describe('utils tests', function() {
           testCache.testDriverCache
         )
       ).then(_ => {
-        return driverController
-          .cacheAndGetDrivers(testCache.testDriversCache, 1400)
-          .then(_ => {
-            return teamController
-              .cacheAndGetTeams(testCache.testTeamsCache, 1400)
-              .then(_ => {
-                // // check cache is filled
-                const cacheResult = utils.viewCache()
-                // console.log(cacheResult)
-                assert(typeof cacheResult === 'object')
-                assert(
-                  cacheResult.testDriverCache.hasOwnProperty('max-verstappen')
-                )
-                assert(
-                  cacheResult.testDriversCache.hasOwnProperty('drivers_slugs')
-                )
-                assert(cacheResult.testTeamsCache.hasOwnProperty('teams_slugs'))
-                const cacheReset = utils.resetCache()
-                // console.log(cacheReset)
-                assert(isEmpty(cacheReset))
-              })
+        return Promise.resolve(
+          driverController.cacheAndGetDrivers(testCache.testDriversCache, 1400)
+        ).then(_ => {
+          return Promise.resolve(
+            teamController.cacheAndGetTeams(testCache.testTeamsCache, 1400)
+          ).then(_ => {
+            // // check cache is filled
+            const cacheResult = utils.viewCache()
+            // console.log(cacheResult)
+            assert(typeof cacheResult === 'object')
+            assert(cacheResult.testDriverCache.hasOwnProperty('max-verstappen'))
+            assert(cacheResult.testDriversCache.hasOwnProperty('drivers_slugs'))
+            assert(cacheResult.testTeamsCache.hasOwnProperty('teams_slugs'))
+            const cacheReset = utils.resetCache()
+            // console.log(cacheReset)
+            assert(isEmpty(cacheReset))
           })
+        })
       })
     })
   })

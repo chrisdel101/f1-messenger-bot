@@ -101,7 +101,7 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
 
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driverCache) => {
-  // console.log(driverCache)
+  console.log('cacheAndGet', driverCache)
   log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driverCache.hasOwnProperty(driverSlug)) {
