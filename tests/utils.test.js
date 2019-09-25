@@ -52,7 +52,7 @@ describe('utils tests', function() {
         assert(cacheResult.hasOwnProperty('teams_slugs'))
       })
     })
-    it('viewCache displays stored teams cache with single team - with cacheAndGetTeam()', function() {
+    it('viewCache displays stored team cache with single team - with cacheAndGetTeam()', function() {
       // call with two teams
       return Promise.resolve(
         teamController.cacheAndGetTeam('ferrari', testCache.testTeamCache)
@@ -63,7 +63,7 @@ describe('utils tests', function() {
         assert(cacheResult.ferrari.hasOwnProperty('timeStamp'))
       })
     })
-    it('viewCache displays stored teams cache with multiple team - with cacheAndGetTeam()', function() {
+    it('viewCache displays stored team cache with multiple team - with cacheAndGetTeam()', function() {
       // call with two teams
       return Promise.resolve(
         teamController.cacheAndGetTeam('ferrari', testCache.testTeamCache)
@@ -72,13 +72,53 @@ describe('utils tests', function() {
           .cacheAndGetTeam('mclaren', testCache.testTeamCache)
           .then(res => {
             const cacheResult = utils.viewCache('team')
-            console.log(cacheResult)
             teamController
             assert(
               cacheResult.hasOwnProperty('ferrari') &&
                 cacheResult.hasOwnProperty('mclaren')
             )
           })
+      })
+    })
+    it('viewCache displays stored drivers cache - using cacheAndGetDrivers()', function() {
+      return Promise.resolve(
+        driverController.cacheAndGetDrivers(testCache.testDriversCache, 1400)
+      ).then(res => {
+        const cacheResult = utils.viewCache('drivers')
+        assert(cacheResult.hasOwnProperty('drivers_slugs'))
+        assert(Array.isArray(cacheResult.drivers_slugs.drivers_slugs))
+        assert(cacheResult.drivers_slugs.drivers_slugs.length > 0)
+      })
+    })
+    it('viewCache displays stored driver cache - single driver with cacheAndGetDriver()', function() {
+      return Promise.resolve(
+        driverController.cacheAndGetDriver(
+          'lewis-hamilton',
+          testCache.testDriverCache
+        )
+      ).then(res => {
+        const cacheResult = utils.viewCache('driver')
+        assert(cacheResult.hasOwnProperty('lewis-hamilton'))
+        assert(cacheResult['lewis-hamilton'].slug === 'lewis-hamilton')
+      })
+    })
+    it('viewCache displays stored driver cache - muitple driver with cacheAndGetDriver()', function() {
+      return Promise.resolve(
+        driverController.cacheAndGetDriver(
+          'lewis-hamilton',
+          testCache.testDriverCache
+        )
+      ).then(res => {
+        return Promise.resolve(
+          driverController.cacheAndGetDriver(
+            'charles-leclerc',
+            testCache.testDriverCache
+          )
+        ).then(res => {
+          const cacheResult = utils.viewCache('driver')
+          assert(cacheResult.hasOwnProperty('lewis-hamilton'))
+          assert(cacheResult.hasOwnProperty('charles-leclerc'))
+        })
       })
     })
   })

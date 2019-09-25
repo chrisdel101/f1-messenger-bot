@@ -2,7 +2,7 @@ const utils = require('../utils')
 const endpoints = require('../endpoints')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
-const { driverCache, driversCache } = require('../cache')
+const { cache } = require('../cache')
 const moment = require('moment')
 // https://stackoverflow.com/q/26885685/5972531
 const debug = require('debug')
@@ -47,9 +47,9 @@ exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
-    console.log(nameToCheck)
+    // console.log(nameToCheck)
     return Promise.resolve(
-      module.exports.cacheAndGetDrivers(driversCache, 1400)
+      module.exports.cacheAndGetDrivers(cache.driversCache, 1400)
     ).then(drivers => {
       // console.log('DDD', drivers)
       drivers = module.exports.makeEntriesLower(drivers)
@@ -69,16 +69,16 @@ exports.checkDriverApi = nameToCheck => {
   }
 }
 // gets/caches drivers array from api and returns array
-exports.cacheAndGetDrivers = (cache, expiryTime) => {
+exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
   // if not in cache OR time stamp passes fails use new call
   if (
-    !cache.hasOwnProperty('drivers_slugs') ||
-    !utils.verifyTimeStamp(cache['drivers_slugs'].timeStamp, expiryTime)
+    !driversCache.hasOwnProperty('drivers_slugs') ||
+    !utils.verifyTimeStamp(driversCache['drivers_slugs'].timeStamp, expiryTime)
   ) {
     return module.exports.getAllDriverSlugs().then(drivers => {
       console.log('DRIVERS - NOT FROM CACHE')
       drivers = JSON.parse(drivers)
-      cache['drivers_slugs'] = {
+      driversCache['drivers_slugs'] = {
         drivers_slugs: drivers,
         timeStamp: new Date()
       }
@@ -90,7 +90,7 @@ exports.cacheAndGetDrivers = (cache, expiryTime) => {
     // if less and 24 hours old get from cache
     // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
     // console.log('CA', cache['drivers_slugs'].timeStamp)
-    return cache['drivers_slugs']['drivers_slugs']
+    return driversCache['drivers_slugs']['drivers_slugs']
     // } else {
     //   cache['drivers'] = {
     //     drivers_slugs: drivers,
@@ -101,7 +101,7 @@ exports.cacheAndGetDrivers = (cache, expiryTime) => {
 
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driverCache) => {
-  console.log(driverCache)
+  // console.log(driverCache)
   log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driverCache.hasOwnProperty(driverSlug)) {
