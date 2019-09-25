@@ -18,7 +18,7 @@ const sinon = require('sinon')
 //   // patch the function to get handleMessageType to take correct path
 //   webHookController.__set__('driversCache', stub)
 // })
-describe.only('drivers controller', function() {
+describe('drivers controller', function() {
   describe('getAllDriverSlugs()', () => {
     it('getAllDriverSlugs returns an array after parsing', function() {
       return driverController.getAllDriverSlugs().then(result => {

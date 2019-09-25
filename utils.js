@@ -1,6 +1,6 @@
 const https = require('https')
 const moment = require('moment')
-const cache = require('./cache')
+const { cache, testCache } = require('./cache')
 
 exports.httpsFetch = url => {
   return new Promise((resolve, reject) => {
@@ -26,19 +26,34 @@ exports.verifyTimeStamp = (timeStamp, mins) => {
 
 exports.viewCache = type => {
   try {
-    if (type === 'team') {
-      return cache.teamCache
-    } else if (type === 'teams') {
-      return cache.teamsCache
-    } else if (type === 'driver') {
-      return cache.driverCache
-    } else if (type === 'drivers') {
-      return cache.driversCache
+    if (process.env.NODE_ENV === 'testing') {
+      if (type === 'team') {
+        return testCache.testTeamCache
+      } else if (type === 'teams') {
+        return testCache.testTeamsCache
+      } else if (type === 'driver') {
+        return testCache.testDriverCache
+      } else if (type === 'drivers') {
+        return testCache.testDriversCache
+      } else {
+        return testCache
+      }
     } else {
-      return cache
+      if (type === 'team') {
+        return cache.teamCache
+      } else if (type === 'teams') {
+        console.log()
+        return cache.teamsCache
+      } else if (type === 'driver') {
+        return cache.driverCache
+      } else if (type === 'drivers') {
+        return cache.driversCache
+      } else {
+        return cache
+      }
     }
   } catch (e) {
-    console.error('An error in resetCache', e)
+    console.error('An error in viewCache', e)
   }
 }
 exports.resetCache = type => {

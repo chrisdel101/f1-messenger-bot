@@ -1,12 +1,9 @@
 const assert = require('assert')
-let webhookController = require('../controllers/webhook.controller')
 let driverController = require('../controllers/driver.controller')
 let teamController = require('../controllers/team.controller')
-const { httpsFetch } = require('../utils')
 const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
-const responses = require('../responses.json')
 
 // let stub
 // before(function() {
@@ -40,16 +37,17 @@ describe('teams controller', function() {
     })
   })
   describe('cacheAndGetTeams()', () => {
-    it('cacheAndGetTeams adds slugs array to cache - hits the no team slugs condition', function() {
+    it('cacheAndGetTeams adds slugs array to cache - hits the hasOwnProperty team_slugs condition', function() {
       sinon.spy(teamController, 'getAllTeamSlugs')
       let fakeCache = {}
       return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
-        // console.log(fakeCache['team_slugs'])
+        // console.log('res', res)
+        // console.log('fake', fakeCache['teams_slugs'])
         // get goes correct path - fix once SO question answered
         assert(teamController.getAllTeamSlugs.calledOnce)
         // check added to cache
-        assert(fakeCache.hasOwnProperty('team_slugs'))
-        assert(fakeCache['team_slugs'].hasOwnProperty('timeStamp'))
+        assert(fakeCache.hasOwnProperty('teams_slugs'))
+        assert(fakeCache['teams_slugs'].hasOwnProperty('timeStamp'))
         teamController.getAllTeamSlugs.restore()
       })
     })
@@ -60,7 +58,7 @@ describe('teams controller', function() {
         assert(res.length > 0)
       })
     })
-    it('cacheAndGetTeams gets drivers data from cache - verifyTimestamp and getAllTeamSlugs not called', function() {
+    it('cacheAndGetTeams gets drivers data from cache - verifyTimestamp() called and getAllTeamSlugs() not called', function() {
       sinon.spy(utils, 'verifyTimeStamp')
       sinon.spy(teamController, 'getAllTeamSlugs')
       const fakeCache = {
@@ -74,7 +72,7 @@ describe('teams controller', function() {
       ).then(res => {
         assert(utils.verifyTimeStamp.calledOnce)
         assert(teamController.getAllTeamSlugs.notCalled)
-        // teamController.getAllTeamSlugs.restore()
+        teamController.getAllTeamSlugs.restore()
         utils.verifyTimeStamp.restore()
       })
     })
@@ -160,6 +158,13 @@ describe('teams controller', function() {
     })
   })
   describe('checkTeamApi', () => {
+    it('checkTeamApi returns correct team name - using name ferrari', function() {
+      return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
+        res => {
+          assert.strictEqual(res, 'ferrari')
+        }
+      )
+    })
     it('checkTeamApi returns correct team name - using name ferrari', function() {
       return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
         res => {

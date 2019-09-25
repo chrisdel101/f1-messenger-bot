@@ -4,5 +4,14 @@ let cache = {
   teamCache: {},
   teamsCache: {}
 }
+const testCache = {
+  testDriverCache: {},
+  testDriversCache: {},
+  testTeamCache: {},
+  testTeamsCache: {}
+}
 
-module.exports = cache
+module.exports = {
+  testCache,
+  cache
+}

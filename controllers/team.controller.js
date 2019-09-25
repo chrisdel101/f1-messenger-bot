@@ -1,11 +1,9 @@
 const utils = require('../utils')
-const { teamsCache, teamCache } = require('../cache')
+const { cache } = require('../cache')
 const endpoints = require('../endpoints')
 const debug = require('debug')
 const log = debug('f1:log')
 const error = debug('f1:error')
-
-
 
 exports.checkTeamApi = nameToCheck => {
   // check if string is team name from api- return name_slug or false
@@ -13,7 +11,7 @@ exports.checkTeamApi = nameToCheck => {
     log('checkTeamApi')
     nameToCheck = nameToCheck.toLowerCase()
     return Promise.resolve(
-      module.exports.cacheAndGetTeams(teamCache, 1400)
+      module.exports.cacheAndGetTeams(cache.teamsCache, 1400)
     ).then(teams => {
       teams = module.exports.makeTeamEntriesLower(teams)
       // console.log('DDD', teams)
@@ -58,18 +56,29 @@ exports.getAllTeamSlugs = () => {
 }
 
 // get array of all teams and cache it - return it
-exports.cacheAndGetTeams = (cache, expiryTime) => {
+// takes the teams cache and expiry time
+exports.cacheAndGetTeams = (teamsCache, expiryTime) => {
   console.log('cacheAndGetTeams')
+  console.log('cache', teamsCache)
+  // console.log('slugs', teamsCache['teams_slugs'])
+  // if (utils.verifyTimeStamp(cache['teams_slugs'])) {
+  //   console.log(
+  //     'time',
+  //     utils.verifyTimeStamp(cache['teams_slugs'].timeStamp, expiryTime)
+  //   )
+  // }
+  // console.log('slug', cache.hasOwnProperty('teams_slugs'))
   // if not in cache OR time stamp passes fails use new call
   if (
-    !cache.hasOwnProperty('teams_slugs') ||
-    !utils.verifyTimeStamp(cache['teams_slugs'].timeStamp, expiryTime)
+    !teamsCache.hasOwnProperty('teams_slugs') ||
+    !utils.verifyTimeStamp(teamsCache['teams_slugs'].timeStamp, expiryTime)
   ) {
     return module.exports.getAllTeamSlugs().then(teams => {
       console.log('NOT FROM CACHE')
       teams = JSON.parse(teams)
-      cache['team_slugs'] = {
-        team_slugs: teams,
+      // console.log('teams', teams)
+      teamsCache['teams_slugs'] = {
+        teams_slugs: teams,
         timeStamp: new Date()
       }
       return teams
@@ -77,12 +86,14 @@ exports.cacheAndGetTeams = (cache, expiryTime) => {
   } else {
     console.log('FROM CACHE')
     // if less and 24 hours old get from cache
-    return cache['teams_slugs']['teams_slugs']
+    return teamsCache['teams_slugs']['teams_slugs']
   }
 }
 // handle caching and return team obj - returns a promise or object
+// takes teamCache
 exports.cacheAndGetTeam = (teamSlug, teamCache) => {
-  log('cacheAndGetTeam')
+  // console.log('cacheAndGetTeam', teamCache)
+  // console.log('cacheAndGetTeam', teamsCache)
   // if not in cache add to cache
   if (!teamCache.hasOwnProperty(teamSlug)) {
     // call all team api and check if it's there
