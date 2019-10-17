@@ -1,19 +1,10 @@
 module.exports = {
-  localAPI: params => {
-    return `http://localhost:5000/${params}`
-  },
-  localWeb: params => {
-    return `http://localhost:3000/${params}`
-  },
-  productionWeb: params => {
-    return `https://f1-cards.herokuapp.com/${params}`
-  },
-  productionAPI: params => {
-    return `https://f1-api.herokuapp.com/${params}`
-  },
-  productionCards: params => {
-    return `https://f1-cards.herokuapp.com/api/driver/${params}`
-  },
+  // node
   prodCardsEndpoint: `https://f1-cards.herokuapp.com`,
-  prodAPIEndpoint: `https://f1-api.herokuapp.com`
+  // python
+  prodAPIEndpoint: `https://f1-api.herokuapp.com`,
+  prodTeamCardLg: teamSlug => `/api/team/${teamSlug}`,
+  prodTeamCardSm: teamSlug => `/api/mobile/team/${teamSlug}`,
+  prodDriverCardLg: driverSlug => `/api/driver/${driverSlug}`,
+  prodDriverCardSm: driverSlug => `/api/mobile/driver/${driverSlug}`
 }

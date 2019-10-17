@@ -11,7 +11,7 @@ const error = debug('f1:error')
 
 exports.getAllDriverSlugs = () => {
   return utils
-    .httpsFetch(endpoints.productionAPI('drivers'))
+    .httpsFetch(`${endpoints.prodAPIEndpoint}/drivers`)
     .then(drivers => drivers)
 }
 // make all names lowercase
@@ -58,6 +58,7 @@ exports.checkDriverApi = nameToCheck => {
       for (let driver of drivers) {
         for (let key in driver) {
           if (driver[key] === nameToCheck) {
+            // if true return driver name
             return driver['name_slug']
           }
         }
@@ -68,7 +69,7 @@ exports.checkDriverApi = nameToCheck => {
     console.error('An error in checkDriverApi', e)
   }
 }
-// gets/caches drivers array from api and returns array
+// gets/caches drivers array - returns array
 exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
   // if not in cache OR time stamp passes fails use new call
   if (
@@ -112,16 +113,18 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
         //  add to cache
         driverCache[driverSlug] = {
           slug: driverSlug,
-          imageUrl: endpoints.productionCards(driverSlug),
+          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+            driverSlug
+          )}`,
           timeStamp: new Date()
         }
-        // console.log('after', driverCache)
         // console.log('here', driverCache)
         // return new driver obj
-        // console.log('here')
         return {
           slug: driverSlug,
-          imageUrl: endpoints.productionCards(driverSlug),
+          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+            driverSlug
+          )}`,
           timeStamp: new Date()
         }
       } else {
@@ -141,12 +144,16 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
       console.log('failed time stamp')
       driverCache[driverSlug] = {
         slug: driverSlug,
-        imageUrl: endpoints.productionCards(driverSlug),
+        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+          driverSlug
+        )}`,
         timeStamp: new Date()
       }
       return {
         slug: driverSlug,
-        imageUrl: endpoints.productionCards(driverSlug),
+        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+          driverSlug
+        )}`,
         timeStamp: new Date()
       }
     }

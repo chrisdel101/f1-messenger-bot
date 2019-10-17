@@ -4,25 +4,11 @@ const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 
-// let stub
-// before(function() {
-//   // set to use rewire
-//   webHookController = rewire('../controllers/webhook.controller')
-//   driverController = rewire('../controllers/driver.controller')
-//   stub = sinon.stub()
-//   // set what func should return
-//   stub.returns({
-//     type: 'text',
-//     payload: 'fake cache payload - from a stub'
-//   })
-//   // patch the function to get handleMessageType to take correct path
-//   webHookController.__set__('driversCache', stub)
-// })
 describe('drivers controller', function() {
   describe('getAllDriverSlugs()', () => {
     it('getAllDriverSlugs returns an array after parsing', function() {
       return driverController.getAllDriverSlugs().then(result => {
-        // console.log('re', res)
+        // console.log('re', result)
         // unparsed json
         assert(typeof result === 'string')
         //   parse Json
@@ -145,7 +131,7 @@ describe('drivers controller', function() {
       assert(res[2]['firstName'] === 'some')
     })
   })
-  describe('cacheAndGetDriver()', () => {
+  describe.only('cacheAndGetDriver()', () => {
     it('cacheAndGetDriver returns new driver to obj', function() {
       const fakeCache = {
         'lewis-hamilton': {
@@ -180,6 +166,16 @@ describe('drivers controller', function() {
           assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
           assert(fakeCache.hasOwnProperty('alexander-albon'))
           assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+        })
+    })
+    it.only('cacheAndGetDriver adds new driver to empty cache', function() {
+      const fakeCache = {}
+      return driverController
+        .cacheAndGetDriver('alexander-albon', fakeCache)
+        .then(res => {
+          assert(fakeCache.hasOwnProperty('alexander-albon'))
+          assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          console.log(fakeCache)
         })
     })
   })

@@ -91,9 +91,7 @@ exports.checkInputText = (inputText, cache) => {
     } else if (
       testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
     ) {
-      // if text is hello, or other start word, welcome/
-      // if help listing a few options
-      // if card, driver, team, prompt with which driver?
+      // send proper response back
       switch (testWordsJson.prompt_card.indexOf(inputText.toLowerCase())) {
         case 0:
           return {
@@ -117,15 +115,13 @@ exports.checkInputText = (inputText, cache) => {
           }
       }
     }
-    // else check if input was a driver name
-    // console.log('pp', Promise.resolve(module.exports.checkDriverApi(inputText)))
     return driverController.checkDriverApi(inputText).then(driverSlug => {
       // console.log('driverSlug', driverSlug)
       // true if a driver name - check not false
       if (driverSlug) {
         // - returns a promise if calling from API
         // - returns an object if in the cache
-        console.log('cache', cache)
+        // console.log('cache', cache)
         const driver = driverController.cacheAndGetDriver(
           driverSlug,
           cache.driverCache
@@ -172,11 +168,6 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
     if (webhook_event.message.text) {
       // check if text is a driver name
       // console.log(webhook_event.message)
-      // console.log(
-      //   'CHECK',
-      //   module.exports.checkInputText(webhook_event.message.text, driverCache)
-      // )
-
       const responseVal = Promise.resolve(
         module.exports.checkInputText(webhook_event.message.text, cache)
       )
@@ -192,7 +183,6 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
               return Promise.resolve(dataObj.payload)
                 .then(payload => {
                   // console.log('payload', payload)
-                  // console.log('HERE', res)
                   if (dataObj.type === 'image') {
                     // .then(payload => {
                     console.log('Payload', payload)

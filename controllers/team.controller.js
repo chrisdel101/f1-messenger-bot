@@ -51,7 +51,7 @@ exports.makeTeamEntriesLower = arr => {
 }
 exports.getAllTeamSlugs = () => {
   return utils
-    .httpsFetch(endpoints.productionAPI('teams'))
+    .httpsFetch(`${endpoints.prodAPIEndpoint}/teams`)
     .then(drivers => drivers)
 }
 
@@ -85,7 +85,6 @@ exports.cacheAndGetTeams = (teamsCache, expiryTime) => {
 // takes teamCache
 exports.cacheAndGetTeam = (teamSlug, teamCache) => {
   // console.log('cacheAndGetTeam', teamCache)
-  // console.log('cacheAndGetTeam', teamsCache)
   // if not in cache add to cache
   if (!teamCache.hasOwnProperty(teamSlug)) {
     // call all team api and check if it's there
