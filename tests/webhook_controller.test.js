@@ -22,8 +22,8 @@ before(function() {
   webHookController.__set__('driversCache', stub)
 })
 describe('webhook controller', function() {
-  describe.only('sendHookResponse()', () => {
-    it('tests', function() {
+  describe('sendHookResponse()', () => {
+    it.skip('tests', function() {
       webhookController.sendHookResponse()
     })
   })

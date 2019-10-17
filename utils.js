@@ -76,16 +76,20 @@ exports.resetCache = type => {
       }
     } else {
       if (type === 'team') {
-        return cache.teamCache
+        testCache.testTeamCache = {}
+        return testCache.testTeamCache
       } else if (type === 'teams') {
-        cache.teamsCache = {}
-        return cache.teamsCache
+        testCache.testTeamsCache = {}
+        return testCache.testTeamsCache
       } else if (type === 'driver') {
-        return cache.driverCache
+        testCache.testDriverCache = {}
+        return testCache.testDriverCache
       } else if (type === 'drivers') {
-        return cache.driversCache
+        testCache.testDriversCache = {}
+        return testCache.testDriversCache
       } else {
-        return cache
+        testCache = {}
+        return testCache
       }
     }
   } catch (e) {
