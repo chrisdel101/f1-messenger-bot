@@ -49,7 +49,7 @@ exports.checkDriverApi = nameToCheck => {
     nameToCheck = nameToCheck.toLowerCase()
     // console.log(nameToCheck)
     return Promise.resolve(
-      module.exports.cacheAndGetDrivers(cache.driversCache, 1400, 'mobile')
+      module.exports.cacheAndGetDrivers(cache.driversCache, 1400)
     ).then(drivers => {
       // console.log('DDD', drivers)
       drivers = module.exports.makeEntriesLower(drivers)

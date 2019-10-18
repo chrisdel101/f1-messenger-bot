@@ -124,7 +124,8 @@ exports.checkInputText = (inputText, cache) => {
         // console.log('cache', cache)
         const driver = driverController.cacheAndGetDriver(
           driverSlug,
-          cache.driverCache
+          cache.driverCache,
+          'mobile'
         )
         // console.log('DD', driver)
         // send driver card info
