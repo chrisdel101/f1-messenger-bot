@@ -211,9 +211,4 @@ describe('utils tests', function() {
       })
     })
   })
-  describe.only('getBrowserDims()', () => {
-    it('test', function() {
-      utils.getBrowserDims()
-    })
-  })
 })

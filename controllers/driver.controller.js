@@ -101,7 +101,8 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
 }
 
 // handle caching and return driver obj - returns a promise or object
-exports.cacheAndGetDriver = (driverSlug, driverCache) => {
+exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
+  let imageUrl
   console.log('cacheAndGet', driverCache)
   log('cacheAndGetDriver')
   // if not in cache add to cache
@@ -110,21 +111,28 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
     return module.exports.checkDriverApi(driverSlug).then(slug => {
       // if driver name is valid
       if (slug) {
+        // choose card type - TODO sep func
+        if (type === 'mobile') {
+          imageUrl = `${
+            endpoints.prodCardsEndpoint
+          }${endpoints.prodDriverCardSm(driverSlug)}`
+        } else {
+          imageUrl = `${
+            endpoints.prodCardsEndpoint
+          }${endpoints.prodDriverCardLg(driverSlug)}`
+        }
         //  add to cache
         driverCache[driverSlug] = {
           slug: driverSlug,
-          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
-            driverSlug
-          )}`,
+          imageUrl: imageUrl,
           timeStamp: new Date()
         }
         // console.log('here', driverCache)
         // return new driver obj
+        // console.log('here')
         return {
           slug: driverSlug,
-          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
-            driverSlug
-          )}`,
+          imageUrl: imageUrl,
           timeStamp: new Date()
         }
       } else {
@@ -144,14 +152,14 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
       console.log('failed time stamp')
       driverCache[driverSlug] = {
         slug: driverSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
+        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
           driverSlug
         )}`,
         timeStamp: new Date()
       }
       return {
         slug: driverSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
+        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
           driverSlug
         )}`,
         timeStamp: new Date()

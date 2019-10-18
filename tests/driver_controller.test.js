@@ -152,6 +152,26 @@ describe('drivers controller', function() {
           )
         })
     })
+    it('cacheAndGetDriver returns mobile URL', function() {
+      const fakeCache = {
+        'lewis-hamilton': {
+          imageUrl: 'An image Url',
+          timeStamp: new Date()
+        }
+      }
+      // check if cache has that key
+      return driverController
+        .cacheAndGetDriver('alexander-albon', fakeCache, 'mobile')
+        .then(res => {
+          // check that new key was added
+          assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
+          // check url is formed correct
+          assert.strictEqual(
+            res.imageUrl,
+            'https://f1-cards.herokuapp.com/api/mobile/driver/alexander-albon'
+          )
+        })
+    })
     it('cacheAndGetDriver adds new driver to cache', function() {
       const fakeCache = {
         'lewis-hamilton': {
