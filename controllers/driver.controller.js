@@ -113,7 +113,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
         //  add to cache
         driverCache[driverSlug] = {
           slug: driverSlug,
-          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
             driverSlug
           )}`,
           timeStamp: new Date()
@@ -122,7 +122,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
         // return new driver obj
         return {
           slug: driverSlug,
-          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
             driverSlug
           )}`,
           timeStamp: new Date()
@@ -144,14 +144,14 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
       console.log('failed time stamp')
       driverCache[driverSlug] = {
         slug: driverSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
           driverSlug
         )}`,
         timeStamp: new Date()
       }
       return {
         slug: driverSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
           driverSlug
         )}`,
         timeStamp: new Date()

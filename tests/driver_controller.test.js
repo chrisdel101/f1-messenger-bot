@@ -131,7 +131,7 @@ describe('drivers controller', function() {
       assert(res[2]['firstName'] === 'some')
     })
   })
-  describe.only('cacheAndGetDriver()', () => {
+  describe('cacheAndGetDriver()', () => {
     it('cacheAndGetDriver returns new driver to obj', function() {
       const fakeCache = {
         'lewis-hamilton': {
@@ -168,14 +168,13 @@ describe('drivers controller', function() {
           assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
         })
     })
-    it.only('cacheAndGetDriver adds new driver to empty cache', function() {
+    it('cacheAndGetDriver adds new driver to empty cache', function() {
       const fakeCache = {}
       return driverController
         .cacheAndGetDriver('alexander-albon', fakeCache)
         .then(res => {
           assert(fakeCache.hasOwnProperty('alexander-albon'))
           assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
-          console.log(fakeCache)
         })
     })
   })

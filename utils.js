@@ -1,6 +1,7 @@
 const https = require('https')
 const moment = require('moment')
 let { cache, testCache } = require('./cache')
+const puppeteer = require('puppeteer')
 
 exports.httpsFetch = url => {
   return new Promise((resolve, reject) => {
@@ -94,5 +95,14 @@ exports.resetCache = type => {
     }
   } catch (e) {
     console.error('An error in viewCache', e)
+  }
+}
+exports.getBrowserDims = () => {
+  try {
+    puppeteer.connect({
+      browserUrl: `http://localhost:3000`
+    })
+  } catch (e) {
+    console.error('An error in utils.getBrowserDims()', e)
   }
 }
