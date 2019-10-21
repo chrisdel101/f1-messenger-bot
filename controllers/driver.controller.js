@@ -98,9 +98,21 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
     //   }
   }
 }
+exports.createDriverObject = driverSlug => {
+  return {
+    slug: driverSlug,
+    mobileImageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
+      driverSlug
+    )}`,
+    imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+      driverSlug
+    )}`,
+    timeStamp: new Date()
+  }
+}
 
 // handle caching and return driver obj - returns a promise or object
-exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
+exports.cacheAndGetDriver = (driverSlug, driverCache) => {
   let imageUrl
   console.log('cacheAndGetDriver()', driverCache)
   log('cacheAndGetDriver')
@@ -111,16 +123,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
       // if driver name is valid
       if (slug) {
         //  add to cache
-        driverCache[driverSlug] = {
-          slug: driverSlug,
-          mobileImageUrl: `${
-            endpoints.prodCardsEndpoint
-          }${endpoints.prodDriverCardSm(driverSlug)}`,
-          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
-            driverSlug
-          )}`,
-          timeStamp: new Date()
-        }
+        driverCache[driverSlug] = this.createDriverObject(driverSlug)
         // console.log('here', driverCache)
         // return new driver obj
         return driverCache[driverSlug]
@@ -139,16 +142,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
       // if not valid then re-add
     } else {
       console.log('failed time stamp')
-      driverCache[driverSlug] = {
-        slug: driverSlug,
-        mobileImageUrl: `${
-          endpoints.prodCardsEndpoint
-        }${endpoints.prodDriverCardSm(driverSlug)}`,
-        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
-          driverSlug
-        )}`,
-        timeStamp: new Date()
-      }
+      driverCache[driverSlug] = this.createDriverObject(driverSlug)
       // console.log('here', driverCache)
       // return new driver obj
       return driverCache[driverSlug]

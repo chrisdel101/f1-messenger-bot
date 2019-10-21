@@ -19,7 +19,7 @@ exports.verifyTimeStamp = (timeStamp, mins) => {
   const d2 = new moment()
   // subract time1 from time 2
   const diff = moment.duration(d2.diff(d1)).asMinutes()
-  // console.log('diff', diff)
+  console.log('diff', diff)
   // less than 30 mins true, else false
   return diff < mins ? true : false
 }

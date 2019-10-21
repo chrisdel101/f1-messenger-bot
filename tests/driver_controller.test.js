@@ -4,6 +4,14 @@ const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 
+function setFakeTimeStamp(minsDelay) {
+  let date = new Date()
+
+  //here I am using "-30" to subtract 30 minutes from the current time.
+  let minute = date.setMinutes(date.getMinutes() - minsDelay)
+  let extract = new Date(minute).getMinutes()
+  console.log(extract)
+}
 describe('drivers controller', function() {
   describe('getAllDriverSlugs()', () => {
     it('getAllDriverSlugs returns an array after parsing', function() {
@@ -131,72 +139,54 @@ describe('drivers controller', function() {
       assert(res[2]['firstName'] === 'some')
     })
   })
-  describe('cacheAndGetDriver()', () => {
-    it('cacheAndGetDriver returns new driver to obj', function() {
+  // check function returns
+  // check function caches
+  describe.only('cacheAndGetDriver()', () => {
+    it('cacheAndGetDriver caches new driver to cache', function() {
       const fakeCache = {
         'lewis-hamilton': {
-          imageUrl: 'An image Url',
-          timeStamp: new Date()
-        }
-      }
-      // check if cache has that key
-      return driverController
-        .cacheAndGetDriver('alexander-albon', fakeCache)
-        .then(res => {
-          // check that new key was added
-          assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
-          // check url is formed correct
-          assert.strictEqual(
-            res.imageUrl,
-            'https://f1-cards.herokuapp.com/api/driver/alexander-albon'
-          )
-        })
-    })
-    it('cacheAndGetDriver returns mobile URL', function() {
-      const fakeCache = {
-        'lewis-hamilton': {
-          imageUrl: 'An image Url',
-          timeStamp: new Date()
-        }
-      }
-      // check if cache has that key
-      return driverController
-        .cacheAndGetDriver('alexander-albon', fakeCache, 'mobile')
-        .then(res => {
-          // check that new key was added
-          assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
-          // check url is formed correct
-          assert.strictEqual(
-            res.imageUrl,
-            'https://f1-cards.herokuapp.com/api/mobile/driver/alexander-albon'
-          )
-        })
-    })
-    it('cacheAndGetDriver adds new driver to cache', function() {
-      const fakeCache = {
-        'lewis-hamilton': {
-          imageUrl: 'An image Url',
+          imageUrl: 'fakeImageUrl.com',
+          mobileImageUrl: 'fakeMobileImageUrl.com',
           timeStamp: new Date()
         }
       }
       return driverController
         .cacheAndGetDriver('alexander-albon', fakeCache)
         .then(res => {
+          console.log('RES', res)
+          // check for old data
           assert(fakeCache.hasOwnProperty('lewis-hamilton'))
           assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['lewis-hamilton'].hasOwnProperty('mobileImageUrl'))
+          // check for new data
           assert(fakeCache.hasOwnProperty('alexander-albon'))
           assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
         })
     })
-    it('cacheAndGetDriver adds new driver to empty cache', function() {
+    it('cacheAndGetDriver caches new driver to cache - empty cache', function() {
       const fakeCache = {}
       return driverController
         .cacheAndGetDriver('alexander-albon', fakeCache)
         .then(res => {
           assert(fakeCache.hasOwnProperty('alexander-albon'))
           assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
         })
     })
+    it('cacheAndGetDriver caches new driver to cache - empty cache', function() {
+      const fakeCache = {}
+      return driverController
+        .cacheAndGetDriver('alexander-albon', fakeCache)
+        .then(res => {
+          assert(fakeCache.hasOwnProperty('alexander-albon'))
+          assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
+        })
+    })
+  })
+  describe('createDriverObject()', () => {
+    it('')
   })
   describe('makeEntriesLower()', () => {
     it('makeEntriesLower makes entries lower', function() {

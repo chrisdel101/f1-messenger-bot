@@ -158,7 +158,7 @@ exports.checkInputText = (inputText, cache) => {
     console.log('An error in checkInputText', e)
   }
 }
-
+// pass in cardType - attaches proper URL to facebook response obj
 exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   let response
   log('handleMessageType')

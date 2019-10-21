@@ -28,7 +28,7 @@ describe('webhook controller', function() {
     })
   })
   describe('handleMessageType()', () => {
-    it.only('handleMessageType handles partial driver name - non-mobile URL', function() {
+    it('handleMessageType handles partial driver name - non-mobile URL', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
       return (
@@ -57,7 +57,7 @@ describe('webhook controller', function() {
           })
       )
     })
-    it.only('handleMessageType handles partial driver name - mobile URL', function() {
+    it('handleMessageType handles partial driver name - mobile URL', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
       return (
