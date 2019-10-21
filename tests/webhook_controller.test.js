@@ -24,9 +24,25 @@ before(function() {
 })
 describe('webhook controller', function() {
   describe('sendHookResponse()', () => {
-    it.skip('tests', function() {
+    it.only('tests', function() {
       let options = {
-        body: { object: 'page' }
+        body: { object: 'page' },
+        entry: {
+          id: 123455,
+          time: new Date().getTime(),
+          messaging: [
+            {
+              sender: { id: 111111 },
+              recipient: { id: 222222 },
+              timestamp: new Date().getTime(),
+              message: {
+                mid: 'mid.1460620432888:f8e3412003d2d1cd93',
+                seq: 12604,
+                text: 'Testing Chat Bot ..'
+              }
+            }
+          ]
+        }
       }
       const req = mockRequest(options)
       const res = mockResponse()
