@@ -20,7 +20,7 @@ exports.facebookObj = request_body => {
   }
 }
 exports.sendHookResponse = (req, res) => {
-  console.log('REQ', req)
+  // console.log('REQ', req)
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
