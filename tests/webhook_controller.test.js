@@ -285,7 +285,7 @@ describe('webhook controller', function() {
     it('checkInputText returns card.driver response', function() {
       return (
         Promise.resolve(webhookController.checkInputText('racer'))
-          // check f(unPromise.resolvec gets called/
+          // check Promise.resolvec gets called/
           .then(res => {
             assert.strictEqual(res.payload, responses.card.driver)
           })
@@ -298,7 +298,6 @@ describe('webhook controller', function() {
           .then(res => {
             // console.log(res)
             if (res.payload) {
-              // console.log('HERE')
               assert(res.payload, responses.filler)
             } else {
               assert(res, responses.filler)
@@ -330,29 +329,6 @@ describe('webhook controller', function() {
         }
       )
     })
-    it('checkInputText returns driver with mobile flag', function() {
-      const fakeCache = {
-        driverCache: {
-          'fake-test-driver': {
-            imageUrl: 'fake url',
-            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
-          }
-        }
-      }
-      driverController.__set__('cache', fakeCache)
-      return Promise.resolve(
-        webhookController.checkInputText('Lewis Hamilton', fakeCache, 'mobile')
-      ).then(res1 => {
-        return Promise.resolve(res1.payload).then(payload => {
-          console.log('PL', payload)
-          assert(
-            payload.hasOwnProperty('slug') && payload.hasOwnProperty('imageUrl')
-          )
-          assert(payload.imageUrl.includes('mobile'))
-          assert(payload.slug === 'lewis-hamilton')
-        })
-      })
-    })
     it('checkInputText returns driver', function() {
       // set to use rewire
       // let webHookController = rewire('../controllers/webhook.controller')
@@ -369,9 +345,11 @@ describe('webhook controller', function() {
         webhookController.checkInputText('Lewis Hamilton', fakeCache)
       ).then(res1 => {
         return Promise.resolve(res1.payload).then(payload => {
-          console.log('PL', payload)
+          // console.log('PL', payload)
           assert(
-            payload.hasOwnProperty('slug') && payload.hasOwnProperty('imageUrl')
+            payload.hasOwnProperty('slug') &&
+              payload.hasOwnProperty('imageUrl') &&
+              payload.hasOwnProperty('mobileImageUrl')
           )
           assert(payload.slug === 'lewis-hamilton')
         })

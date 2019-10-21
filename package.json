@@ -6,7 +6,7 @@
     "start": "NODE_ENV=development DEBUG=f1:* nodemon bin/www",
     "dev": "./node_modules/.bin/nodemon bin/www",
     "prod": "NODE_ENV=production node bin/www",
-    "test": "NODE_ENV=development mocha tests/**/*.test.js"
+    "test": "NODE_ENV=testing mocha tests/**/*.test.js"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",

@@ -94,7 +94,7 @@ describe('teams controller', function() {
       })
     })
   })
-  describe('cacheAndGetTeam', () => {
+  describe.only('cacheAndGetTeam', () => {
     it('cacheAndGetTeam returns new tean obj', function() {
       const fakeCache = {
         'test-team': {
