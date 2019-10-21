@@ -2,7 +2,6 @@ const assert = require('assert')
 let webhookController = require('../controllers/webhook.controller')
 let driverController = require('../controllers/driver.controller')
 let teamController = require('../controllers/team.controller')
-const { httpsFetch } = require('../utils')
 const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
@@ -209,6 +208,30 @@ describe('utils tests', function() {
           })
         })
       })
+    })
+  })
+  describe('createDelayTimeStamp()', () => {
+    it('createDelayTimeStamp passes when under verifyTimeStamp() mins', function() {
+      // create stamp 15mins old
+      const stamp1 = utils.createDelayTimeStamp(15)
+      const stamp2 = utils.createDelayTimeStamp(29)
+      // check younger than 30 mins
+      const verifyValid1 = utils.verifyTimeStamp(stamp1, 30)
+      const verifyValid2 = utils.verifyTimeStamp(stamp2, 30)
+      const verifyValid3 = utils.verifyTimeStamp(stamp1, 16)
+      assert(verifyValid1)
+      assert(verifyValid2)
+      assert(verifyValid3)
+    })
+    it('createDelayTimeStamp fails when over verifyTimeStamp() mins', function() {
+      // create stamp 15mins old
+      const stamp1 = utils.createDelayTimeStamp(31)
+      const stamp2 = utils.createDelayTimeStamp(2)
+      // check younger than 30 mins
+      const verifyValid1 = utils.verifyTimeStamp(stamp1, 30)
+      const verifyValid2 = utils.verifyTimeStamp(stamp2, 1)
+      assert(!verifyValid1)
+      assert(!verifyValid2)
     })
   })
 })

@@ -4,14 +4,6 @@ const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 
-function setFakeTimeStamp(minsDelay) {
-  let date = new Date()
-
-  //here I am using "-30" to subtract 30 minutes from the current time.
-  let minute = date.setMinutes(date.getMinutes() - minsDelay)
-  let extract = new Date(minute).getMinutes()
-  console.log(extract)
-}
 describe('drivers controller', function() {
   describe('getAllDriverSlugs()', () => {
     it('getAllDriverSlugs returns an array after parsing', function() {
@@ -141,7 +133,7 @@ describe('drivers controller', function() {
   })
   // check function returns
   // check function caches
-  describe.only('cacheAndGetDriver()', () => {
+  describe('cacheAndGetDriver()', () => {
     it('cacheAndGetDriver caches new driver to cache', function() {
       const fakeCache = {
         'lewis-hamilton': {
@@ -153,7 +145,6 @@ describe('drivers controller', function() {
       return driverController
         .cacheAndGetDriver('alexander-albon', fakeCache)
         .then(res => {
-          console.log('RES', res)
           // check for old data
           assert(fakeCache.hasOwnProperty('lewis-hamilton'))
           assert(fakeCache['lewis-hamilton'].hasOwnProperty('imageUrl'))
@@ -174,19 +165,76 @@ describe('drivers controller', function() {
           assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
         })
     })
-    it('cacheAndGetDriver caches new driver to cache - empty cache', function() {
-      const fakeCache = {}
-      return driverController
-        .cacheAndGetDriver('alexander-albon', fakeCache)
-        .then(res => {
-          assert(fakeCache.hasOwnProperty('alexander-albon'))
-          assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
-          assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
-        })
+    it('cacheAndGetDriver gets driver from the cache - timeStamp verified', function() {
+      // called only on fetch
+      sinon.spy(driverController, 'checkDriverApi')
+      // called only when timestamp fails
+      sinon.spy(driverController, 'createDriverObject')
+      // create a timestamp 15mins older than when tests are run
+      const fakeCache = {
+        'alexander-albon': {
+          imageUrl: 'fakeImageUrl.com',
+          mobileImageUrl: 'fakeMobileImageUrl.com',
+          timeStamp: utils.createDelayTimeStamp(15)
+        }
+      }
+      return Promise.resolve(
+        driverController.cacheAndGetDriver('alexander-albon', fakeCache)
+      ).then(res => {
+        // check api was not called
+        assert(driverController.checkDriverApi.notCalled)
+        // check cache was called - not created
+        assert(driverController.createDriverObject.notCalled)
+        assert(fakeCache.hasOwnProperty('alexander-albon'))
+        assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+        assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
+        driverController.createDriverObject.restore()
+        driverController.checkDriverApi.restore()
+      })
+    })
+    it('cacheAndGetDriver gets driver from the cache - timeStamp failed', function() {
+      sinon.spy(driverController, 'createDriverObject')
+      sinon.spy(driverController, 'checkDriverApi')
+      const fakeCache = {
+        'alexander-albon': {
+          imageUrl: 'fakeImageUrl.com',
+          mobileImageUrl: 'fakeMobileImageUrl.com',
+          timeStamp: utils.createDelayTimeStamp(31)
+        }
+      }
+      return Promise.resolve(
+        driverController.cacheAndGetDriver('alexander-albon', fakeCache)
+      ).then(res => {
+        // check api was not called
+        assert(driverController.checkDriverApi.notCalled)
+        // check cache was not called - obj created
+        assert(driverController.createDriverObject.calledOnce)
+        assert(fakeCache.hasOwnProperty('alexander-albon'))
+        assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+        assert(fakeCache['alexander-albon'].hasOwnProperty('mobileImageUrl'))
+        // console.log(fakeCache)
+        driverController.createDriverObject.restore()
+        driverController.checkDriverApi.restore()
+      })
     })
   })
   describe('createDriverObject()', () => {
-    it('')
+    it('createDriverObject creates a new driver obj - real driver', function() {
+      const res = driverController.createDriverObject('sebastian-vettel')
+      assert.strictEqual(res.slug, 'sebastian-vettel')
+      assert(res.hasOwnProperty('imageUrl'))
+      assert(res.hasOwnProperty('mobileImageUrl'))
+      assert(res.imageUrl.includes('api/driver/sebastian-vettel'))
+      assert(res.mobileImageUrl.includes('mobile/driver/sebastian-vettel'))
+    })
+    it('createDriverObject creates new driver obj - fake driver', function() {
+      const res = driverController.createDriverObject('fake-driver')
+      assert(res.hasOwnProperty('imageUrl'))
+      assert(res.hasOwnProperty('mobileImageUrl'))
+    })
+    it('createDriverObject throws error when no slug input', function() {
+      assert.throws(() => driverController.createDriverObject(), Error)
+    })
   })
   describe('makeEntriesLower()', () => {
     it('makeEntriesLower makes entries lower', function() {

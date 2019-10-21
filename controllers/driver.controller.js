@@ -99,56 +99,65 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
   }
 }
 exports.createDriverObject = driverSlug => {
-  return {
-    slug: driverSlug,
-    mobileImageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardSm(
-      driverSlug
-    )}`,
-    imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
-      driverSlug
-    )}`,
-    timeStamp: new Date()
+  if (!driverSlug) throw Error()
+  try {
+    return {
+      slug: driverSlug,
+      mobileImageUrl: `${
+        endpoints.prodCardsEndpoint
+      }${endpoints.prodDriverCardSm(driverSlug)}`,
+      imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+        driverSlug
+      )}`,
+      timeStamp: new Date()
+    }
+  } catch (e) {
+    console.error('An error in driverController.createDriverObject', e)
   }
 }
 
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driverCache) => {
-  let imageUrl
-  console.log('cacheAndGetDriver()', driverCache)
-  log('cacheAndGetDriver')
-  // if not in cache add to cache
-  if (!driverCache.hasOwnProperty(driverSlug)) {
-    // call all drivers api and check if it's there
-    return module.exports.checkDriverApi(driverSlug).then(slug => {
-      // if driver name is valid
-      if (slug) {
-        //  add to cache
+  try {
+    let imageUrl
+    // console.log('cacheAndGetDriver()', driverCache)
+    log('cacheAndGetDriver')
+    // if not in cache add to cache
+    if (!driverCache.hasOwnProperty(driverSlug)) {
+      // call all drivers api and check if it's there
+      return module.exports.checkDriverApi(driverSlug).then(slug => {
+        // if driver name is valid
+        if (slug) {
+          //  add to cache
+          driverCache[driverSlug] = this.createDriverObject(driverSlug)
+          // console.log('here', driverCache)
+          // return new driver obj
+          return driverCache[driverSlug]
+        } else {
+          console.log('Not a valid driver name')
+          return false
+        }
+      })
+      // if driver is in cache already
+    } else if (driverCache.hasOwnProperty(driverSlug)) {
+      // check if time is valid - less than 30 mins
+      if (utils.verifyTimeStamp(driverCache[driverSlug].timeStamp, 30)) {
+        console.log('valid time stamp')
+        // if valid get from cache
+        return driverCache[driverSlug]
+        // if not valid then re-add
+      } else {
+        console.log('failed time stamp')
         driverCache[driverSlug] = this.createDriverObject(driverSlug)
         // console.log('here', driverCache)
         // return new driver obj
         return driverCache[driverSlug]
-      } else {
-        console.log('Not a valid driver name')
-        return false
       }
-    })
-    // if driver is in cache already
-  } else if (driverCache.hasOwnProperty(driverSlug)) {
-    // check if time is valid
-    if (utils.verifyTimeStamp(driverCache[driverSlug].timeStamp)) {
-      console.log('valid time stamp')
-      // if valid get from cache
-      return driverCache[driverSlug]
-      // if not valid then re-add
     } else {
-      console.log('failed time stamp')
-      driverCache[driverSlug] = this.createDriverObject(driverSlug)
-      // console.log('here', driverCache)
-      // return new driver obj
-      return driverCache[driverSlug]
+      console.log('Not a valid driver name to cache')
+      return false
     }
-  } else {
-    console.log('Not a valid driver name to cache')
-    return false
+  } catch (e) {
+    console.error('An error in driverController.cacheAndGetDriver', e)
   }
 }

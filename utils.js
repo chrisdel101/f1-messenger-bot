@@ -19,7 +19,8 @@ exports.verifyTimeStamp = (timeStamp, mins) => {
   const d2 = new moment()
   // subract time1 from time 2
   const diff = moment.duration(d2.diff(d1)).asMinutes()
-  console.log('diff', diff)
+  // console.log('diff', diff)
+  // console.log('mins', mins)
   // less than 30 mins true, else false
   return diff < mins ? true : false
 }
@@ -95,4 +96,13 @@ exports.resetCache = type => {
   } catch (e) {
     console.error('An error in viewCache', e)
   }
+}
+// create a timestamp delayed by x mins
+// https://stackoverflow.com/a/47110455/5972531
+exports.createDelayTimeStamp = minsDelay => {
+  let date = new Date()
+  // current time minus minsDelay - changes value of date above
+  let stampMinusMins = date.setMinutes(date.getMinutes() - minsDelay)
+  let extract = new Date(stampMinusMins)
+  return extract
 }
