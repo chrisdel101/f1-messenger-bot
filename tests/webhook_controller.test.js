@@ -6,6 +6,7 @@ const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
+const { mockRequest, mockResponse } = require('mock-req-res')
 
 let stub
 before(function() {
@@ -24,7 +25,15 @@ before(function() {
 describe('webhook controller', function() {
   describe('sendHookResponse()', () => {
     it.skip('tests', function() {
-      webhookController.sendHookResponse()
+      let options = {
+        body: { object: 'page' }
+      }
+      const req = mockRequest(options)
+      const res = mockResponse()
+
+      sinon.spy(webhookController, 'handleMessageType')
+      const result = webhookController.sendHookResponse(req, res)
+      console.log(result)
     })
   })
   describe('handleMessageType()', () => {
