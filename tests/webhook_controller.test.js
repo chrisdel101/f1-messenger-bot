@@ -28,7 +28,7 @@ describe('webhook controller', function() {
     })
   })
   describe('handleMessageType()', () => {
-    it('handleMessageType handles partial driver name', function() {
+    it.only('handleMessageType handles partial driver name - non-mobile URL', function() {
       // replace function with a spy
       sinon.spy(webhookController, 'callSendAPI')
       return (
@@ -51,6 +51,42 @@ describe('webhook controller', function() {
                 is_reusable: true
               }
             })
+            console.log(utils.viewCache())
+            console.log('\n')
+            webhookController.callSendAPI.restore()
+          })
+      )
+    })
+    it.only('handleMessageType handles partial driver name - mobile URL', function() {
+      // replace function with a spy
+      sinon.spy(webhookController, 'callSendAPI')
+      return (
+        // call with partial name
+        webhookController
+          .handleMessageType(
+            '2399043010191818',
+            {
+              message: {
+                text: 'pierre'
+              }
+            },
+            'mobile'
+          )
+          // check func gets called/
+          .then(res => {
+            // check callSendAPI called
+            assert(webhookController.callSendAPI.calledOnce)
+            // check return value
+            console.log('res', res)
+            assert.deepEqual(res.attachment, {
+              type: 'image',
+              payload: {
+                url:
+                  'https://f1-cards.herokuapp.com/api/mobile/driver/pierre-gasly',
+                is_reusable: true
+              }
+            })
+            console.log(utils.viewCache())
             webhookController.callSendAPI.restore()
           })
       )
@@ -293,6 +329,29 @@ describe('webhook controller', function() {
           assert.strictEqual(res.payload, 'What can we do to help you today?')
         }
       )
+    })
+    it('checkInputText returns driver with mobile flag', function() {
+      const fakeCache = {
+        driverCache: {
+          'fake-test-driver': {
+            imageUrl: 'fake url',
+            timeStamp: new Date('Wed Sep 04 2019 13:27:11 GMT-0600')
+          }
+        }
+      }
+      driverController.__set__('cache', fakeCache)
+      return Promise.resolve(
+        webhookController.checkInputText('Lewis Hamilton', fakeCache, 'mobile')
+      ).then(res1 => {
+        return Promise.resolve(res1.payload).then(payload => {
+          console.log('PL', payload)
+          assert(
+            payload.hasOwnProperty('slug') && payload.hasOwnProperty('imageUrl')
+          )
+          assert(payload.imageUrl.includes('mobile'))
+          assert(payload.slug === 'lewis-hamilton')
+        })
+      })
     })
     it('checkInputText returns driver', function() {
       // set to use rewire

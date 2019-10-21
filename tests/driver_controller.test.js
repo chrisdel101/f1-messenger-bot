@@ -131,7 +131,7 @@ describe('drivers controller', function() {
       assert(res[2]['firstName'] === 'some')
     })
   })
-  describe.only('cacheAndGetDriver()', () => {
+  describe('cacheAndGetDriver()', () => {
     it('cacheAndGetDriver returns new driver to obj', function() {
       const fakeCache = {
         'lewis-hamilton': {

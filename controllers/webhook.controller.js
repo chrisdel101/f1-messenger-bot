@@ -19,7 +19,8 @@ exports.facebookObj = request_body => {
     json: request_body
   }
 }
-exports.sendHookResponse = (req, res) => {
+exports.sendHookResponse = (req, ret) => {
+  // console.log('HEREt)
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
@@ -74,7 +75,7 @@ exports.verifyHook = (req, res) => {
 }
 // take user input and check to send back response
 exports.checkInputText = (inputText, cache) => {
-  console.log('checkInputText')
+  // console.log('checkInputText')
   log('checkInputText')
   try {
     // check json first
@@ -116,7 +117,7 @@ exports.checkInputText = (inputText, cache) => {
       }
     }
     return driverController.checkDriverApi(inputText).then(driverSlug => {
-      // console.log('driverSlug', driverSlug)
+      console.log('webbook.checkInputText() driverSlug', driverSlug)
       // true if a driver name - check not false
       if (driverSlug) {
         // - returns a promise if calling from API
@@ -124,8 +125,7 @@ exports.checkInputText = (inputText, cache) => {
         // console.log('cache', cache)
         const driver = driverController.cacheAndGetDriver(
           driverSlug,
-          cache.driverCache,
-          'mobile'
+          cache.driverCache
         )
         // console.log('DD', driver)
         // send driver card info
@@ -159,10 +159,10 @@ exports.checkInputText = (inputText, cache) => {
   }
 }
 
-exports.handleMessageType = (sender_psid, webhook_event) => {
+exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   let response
   log('handleMessageType')
-  // console.log('EVENT', webhook_event)
+  // console.log('EVENT', )
 
   try {
     // Check if the message contains text
@@ -175,23 +175,29 @@ exports.handleMessageType = (sender_psid, webhook_event) => {
       // console.log('resposeVAl', responseVal)
       return responseVal
         .then(res => {
-          res = Promise.resolve(res)
           // resolve first promise
           return Promise.resolve(res)
             .then(dataObj => {
-              console.log('dataObj', dataObj)
+              // console.log('dataObj', dataObj)
               // resolve second promise if it exists
               return Promise.resolve(dataObj.payload)
                 .then(payload => {
                   // console.log('payload', payload)
+                  function whichUrl(cardType) {
+                    if (cardType === 'mobile') {
+                      return payload['mobileImageUrl']
+                    } else {
+                      return payload['imageUrl']
+                    }
+                  }
                   if (dataObj.type === 'image') {
                     // .then(payload => {
-                    console.log('Payload', payload)
+                    console.log('payload', payload)
                     response = {
                       attachment: {
                         type: 'image',
                         payload: {
-                          url: payload ? payload['imageUrl'] : undefined,
+                          url: whichUrl(cardType),
                           is_reusable: true
                         }
                       }

@@ -47,7 +47,6 @@ exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
     nameToCheck = nameToCheck.toLowerCase()
-    // console.log(nameToCheck)
     return Promise.resolve(
       module.exports.cacheAndGetDrivers(cache.driversCache, 1400)
     ).then(drivers => {
@@ -77,7 +76,7 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
     !utils.verifyTimeStamp(driversCache['drivers_slugs'].timeStamp, expiryTime)
   ) {
     return module.exports.getAllDriverSlugs().then(drivers => {
-      console.log('DRIVERS - NOT FROM CACHE')
+      console.log('cacheAndGetDrivers() - NOT FROM CACHE')
       drivers = JSON.parse(drivers)
       driversCache['drivers_slugs'] = {
         drivers_slugs: drivers,
@@ -87,7 +86,7 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
       return drivers
     })
   } else {
-    console.log('DRIVERS - FROM CACHE')
+    console.log('cacheAndGetDrivers() - FROM CACHE')
     // if less and 24 hours old get from cache
     // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
     // console.log('CA', cache['drivers_slugs'].timeStamp)
@@ -103,7 +102,7 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
 // handle caching and return driver obj - returns a promise or object
 exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
   let imageUrl
-  console.log('cacheAndGet', driverCache)
+  console.log('cacheAndGetDriver()', driverCache)
   log('cacheAndGetDriver')
   // if not in cache add to cache
   if (!driverCache.hasOwnProperty(driverSlug)) {
@@ -111,30 +110,20 @@ exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
     return module.exports.checkDriverApi(driverSlug).then(slug => {
       // if driver name is valid
       if (slug) {
-        // choose card type - TODO sep func
-        if (type === 'mobile') {
-          imageUrl = `${
-            endpoints.prodCardsEndpoint
-          }${endpoints.prodDriverCardSm(driverSlug)}`
-        } else {
-          imageUrl = `${
-            endpoints.prodCardsEndpoint
-          }${endpoints.prodDriverCardLg(driverSlug)}`
-        }
         //  add to cache
         driverCache[driverSlug] = {
           slug: driverSlug,
-          imageUrl: imageUrl,
+          mobileImageUrl: `${
+            endpoints.prodCardsEndpoint
+          }${endpoints.prodDriverCardSm(driverSlug)}`,
+          imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
+            driverSlug
+          )}`,
           timeStamp: new Date()
         }
         // console.log('here', driverCache)
         // return new driver obj
-        // console.log('here')
-        return {
-          slug: driverSlug,
-          imageUrl: imageUrl,
-          timeStamp: new Date()
-        }
+        return driverCache[driverSlug]
       } else {
         console.log('Not a valid driver name')
         return false
@@ -152,18 +141,17 @@ exports.cacheAndGetDriver = (driverSlug, driverCache, type) => {
       console.log('failed time stamp')
       driverCache[driverSlug] = {
         slug: driverSlug,
+        mobileImageUrl: `${
+          endpoints.prodCardsEndpoint
+        }${endpoints.prodDriverCardSm(driverSlug)}`,
         imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
           driverSlug
         )}`,
         timeStamp: new Date()
       }
-      return {
-        slug: driverSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodDriverCardLg(
-          driverSlug
-        )}`,
-        timeStamp: new Date()
-      }
+      // console.log('here', driverCache)
+      // return new driver obj
+      return driverCache[driverSlug]
     }
   } else {
     console.log('Not a valid driver name to cache')
