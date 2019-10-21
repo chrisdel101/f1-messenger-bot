@@ -134,7 +134,7 @@ describe('drivers controller', function() {
   // check function returns
   // check function caches
   describe('cacheAndGetDriver()', () => {
-    it('cacheAndGetDriver caches new driver to cache', function() {
+    it('cacheAndGetDriver caches new driver to cache - non-empty cache', function() {
       const fakeCache = {
         'lewis-hamilton': {
           imageUrl: 'fakeImageUrl.com',

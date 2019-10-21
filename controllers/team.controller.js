@@ -81,6 +81,23 @@ exports.cacheAndGetTeams = (teamsCache, expiryTime) => {
     return teamsCache['teams_slugs']['teams_slugs']
   }
 }
+exports.createTeamObject = teamSlug => {
+  if (!teamSlug) throw Error()
+  try {
+    return {
+      slug: teamSlug,
+      mobileImageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodTeamCardSm(
+        teamSlug
+      )}`,
+      imageUrl: `${endpoints.prodCardsEndpoint}${endpoints.prodTeamCardLg(
+        teamSlug
+      )}`,
+      timeStamp: new Date()
+    }
+  } catch (e) {
+    console.error('An error in driverController.createDriverObject', e)
+  }
+}
 // handle caching and return team obj - returns a promise or object
 // takes teamCache
 exports.cacheAndGetTeam = (teamSlug, teamCache) => {
@@ -92,18 +109,10 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
       // if team name is valid
       if (slug) {
         //  add to cache
-        teamCache[teamSlug] = {
-          slug: teamSlug,
-          imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
-          timeStamp: new Date()
-        }
+        teamCache[teamSlug] = this.createTeamObject(teamSlug)
         // console.log('here', teamCache)
         // return new team obj
-        return {
-          slug: teamSlug,
-          imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
-          timeStamp: new Date()
-        }
+        return teamCache[teamSlug]
       } else {
         console.log('Not a valid team name')
         return false
@@ -112,7 +121,7 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
     // if team is in cache already
   } else if (teamCache.hasOwnProperty(teamSlug)) {
     // check if time is valid
-    if (utils.verifyTimeStamp(teamCache[teamSlug].timeStamp)) {
+    if (utils.verifyTimeStamp(teamCache[teamSlug].timeStamp, 30)) {
       console.log('valid time stamp')
       // if valid get from cache
       console.log('team from cache')
@@ -120,16 +129,8 @@ exports.cacheAndGetTeam = (teamSlug, teamCache) => {
       // if not valid then re-add
     } else {
       console.log('failed time stamp')
-      teamCache[teamSlug] = {
-        slug: teamSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
-        timeStamp: new Date()
-      }
-      return {
-        slug: teamSlug,
-        imageUrl: `${endpoints.prodCardsEndpoint}\/api\/team\/${teamSlug}`,
-        timeStamp: new Date()
-      }
+      teamCache[teamSlug] = this.createTeamObject(teamSlug)
+      return teamCache[teamSlug]
     }
   } else {
     console.log('Not a valid team name to cache')

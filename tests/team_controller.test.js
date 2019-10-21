@@ -4,6 +4,7 @@ let teamController = require('../controllers/team.controller')
 const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
+const isObjectEmpty = require('lodash/isEmpty')
 
 // let stub
 // before(function() {
@@ -94,66 +95,92 @@ describe('teams controller', function() {
       })
     })
   })
-  describe.only('cacheAndGetTeam', () => {
-    it('cacheAndGetTeam returns new tean obj', function() {
+  describe('cacheAndGetTeam', () => {
+    it('cacheAndGetTeam caches new team to cache - non-empty cache', function() {
       const fakeCache = {
         'test-team': {
-          imageUrl: 'An image Url',
+          imageUrl: 'fakeImageUrl.com',
+          mobileImageUrl: 'fakeMobileImageUrl.com',
           timeStamp: new Date()
         }
       }
-      // check if cache has that key
       return teamController
         .cacheAndGetTeam('red_bull_racing', fakeCache)
         .then(res => {
-          // check that new key was added
-          console.log('res', res)
-          assert(res.hasOwnProperty('slug') && res.hasOwnProperty('imageUrl'))
-          // check url is formed correct
-          assert.strictEqual(
-            res.imageUrl,
-            'https://f1-cards.herokuapp.com/api/team/red_bull_racing'
-          )
-        })
-    })
-    it('cacheAndGetTeam adds new driver to cache', function() {
-      const fakeCache = {
-        'test-team': {
-          imageUrl: 'An image Url',
-          timeStamp: new Date()
-        }
-      }
-      return driverController
-        .cacheAndGetDriver('alexander-albon', fakeCache)
-        .then(res => {
+          // check for old data
           assert(fakeCache.hasOwnProperty('test-team'))
           assert(fakeCache['test-team'].hasOwnProperty('imageUrl'))
-          assert(fakeCache.hasOwnProperty('alexander-albon'))
-          assert(fakeCache['alexander-albon'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['test-team'].hasOwnProperty('mobileImageUrl'))
+          // check for new data
+          assert(fakeCache.hasOwnProperty('red_bull_racing'))
+          assert(fakeCache['red_bull_racing'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['red_bull_racing'].hasOwnProperty('mobileImageUrl'))
         })
     })
-    it('cacheAndGetTeam forms correct endpoint URL', function() {
+    it('cacheAndGetTeam caches new team to cache - empty cache', function() {
       const fakeCache = {}
+      return teamController
+        .cacheAndGetTeam('red_bull_racing', fakeCache)
+        .then(res => {
+          // check for new data
+          assert(fakeCache.hasOwnProperty('red_bull_racing'))
+          assert(fakeCache['red_bull_racing'].hasOwnProperty('imageUrl'))
+          assert(fakeCache['red_bull_racing'].hasOwnProperty('mobileImageUrl'))
+        })
+    })
+    it('cacheAndGetTeam gets team from the cache - timeStamp verified', function() {
+      // called only on fetch
+      sinon.spy(teamController, 'checkTeamApi')
+      // called only when timestamp fails
+      sinon.spy(teamController, 'createTeamObject')
+      // create a timestamp 15mins older than when tests are run
+      const fakeCache = {
+        mercedes: {
+          imageUrl: 'fakeImageUrl.com',
+          mobileImageUrl: 'fakeMobileImageUrl.com',
+          timeStamp: utils.createDelayTimeStamp(15)
+        }
+      }
       return Promise.resolve(
-        teamController.cacheAndGetTeam('ferrari', fakeCache)
+        teamController.cacheAndGetTeam('mercedes', fakeCache)
       ).then(res => {
-        console.log(res)
+        // check api was not called
+        assert(teamController.checkTeamApi.notCalled)
+        // check cache was called - not created
+        assert(teamController.createTeamObject.notCalled)
+        assert(fakeCache.hasOwnProperty('mercedes'))
+        assert.strictEqual(fakeCache['mercedes'].imageUrl, res.imageUrl)
         assert.strictEqual(
-          res.imageUrl,
-          'https://f1-cards.herokuapp.com/api/team/ferrari'
+          fakeCache['mercedes'].mobileImageUrl,
+          res.mobileImageUrl
         )
+        teamController.createTeamObject.restore()
+        teamController.checkTeamApi.restore()
       })
     })
-    it('cacheAndGetTeam forms correct endpoint URL', function() {
-      const fakeCache = {}
+    it('cacheAndGetDriver gets driver from the cache - timeStamp failed', function() {
+      sinon.spy(teamController, 'checkTeamApi')
+      // called only when timestamp fails
+      sinon.spy(teamController, 'createTeamObject')
+      const fakeCache = {
+        mercedes: {
+          imageUrl: 'fakeImageUrl.com',
+          mobileImageUrl: 'fakeMobileImageUrl.com',
+          timeStamp: utils.createDelayTimeStamp(31)
+        }
+      }
       return Promise.resolve(
-        teamController.cacheAndGetTeam('racing_point', fakeCache)
+        teamController.cacheAndGetTeam('mercedes', fakeCache)
       ).then(res => {
-        console.log(res)
-        assert.strictEqual(
-          res.imageUrl,
-          'https://f1-cards.herokuapp.com/api/team/racing_point'
-        )
+        assert(teamController.checkTeamApi.notCalled)
+        //difference is here - check api was called - not cache
+        console.log(teamController.createTeamObject.callCount)
+        assert(teamController.createTeamObject.calledOnce)
+        assert(fakeCache.hasOwnProperty('mercedes'))
+        assert(fakeCache['mercedes'].hasOwnProperty('imageUrl'))
+        assert(fakeCache['mercedes'].hasOwnProperty('mobileImageUrl'))
+        teamController.createTeamObject.restore()
+        teamController.checkTeamApi.restore()
       })
     })
   })
