@@ -11,6 +11,9 @@ router.get('/view-cache', (req, res) => {
   res.send(utils.viewCache)
 })
 router.get('/webhook', verifyHook)
-router.post('/webhook', console.log('test'))
+router.post('/webhook', (){
+  console.log('TEST')
+  return "TEST"
+})
 
 module.exports = router
