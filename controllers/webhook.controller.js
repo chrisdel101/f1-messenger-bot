@@ -26,7 +26,7 @@ exports.getUserData = () => {
 }
 // returns array
 exports.sendHookResponse = (req, res) => {
-  // console.log('REQ', req)
+  console.log('HERLLO')
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
