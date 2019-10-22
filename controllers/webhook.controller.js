@@ -19,25 +19,33 @@ exports.facebookObj = request_body => {
     json: request_body
   }
 }
+// will get the data about the user including device size
+exports.getUserData = () => {
+  // TODO
+  return 'mobile'
+}
 exports.sendHookResponse = (req, res) => {
   // console.log('REQ', req)
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
-    console.log('BOD', body)
     // Iterates over each entry - there may be multiple if batched
     body.entry.forEach(function(entry) {
       // Gets the message. entry.messaging is an array, but
       // will only ever contain one message, so we get index 0
       let webhook_event = entry.messaging[0]
-      console.log(webhook_event)
+      // console.log('W', webhook_event)
       // Get the sender PSID
       let sender_psid = webhook_event.sender.id
       console.log('Sender PSID: ' + sender_psid)
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
       if (webhook_event.message) {
-        module.exports.handleMessageType(sender_psid, webhook_event)
+        // get devivce size and data
+        const cardType = module.exports.getUserData()
+        module.exports
+          .handleMessageType(sender_psid, webhook_event, cardType)
+          .then(rest => console.log('RES', rest))
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback)
       }
@@ -161,7 +169,7 @@ exports.checkInputText = (inputText, cache) => {
 }
 // pass in cardType - attaches proper URL to facebook response obj
 exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
-  let response
+  let messageRes
   log('handleMessageType')
   // console.log('EVENT', )
 
@@ -194,7 +202,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
                   if (dataObj.type === 'image') {
                     // .then(payload => {
                     console.log('payload', payload)
-                    response = {
+                    messageRes = {
                       attachment: {
                         type: 'image',
                         payload: {
@@ -203,9 +211,12 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
                         }
                       }
                     }
+                    // return new Promise((response, reject) => {
+                    module.exports.callSendAPI(sender_psid, messageRes)
+                    // }).then(() => {
+                    return messageRes
+                    // })
                     // calls api then returns response
-                    module.exports.callSendAPI(sender_psid, response)
-                    return response
                   } else if (dataObj.type === 'text') {
                     console.log('res text', res)
                     response = {

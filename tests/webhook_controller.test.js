@@ -24,32 +24,75 @@ before(function() {
 })
 describe('webhook controller', function() {
   describe('sendHookResponse()', () => {
-    it.only('tests', function() {
+    it('sendHookResponse calls handleMessage if webhook_event has message prop', function() {
+      // fake options for req obj- match FB
       let options = {
-        body: { object: 'page' },
-        entry: {
-          id: 123455,
-          time: new Date().getTime(),
-          messaging: [
+        body: {
+          object: 'page',
+          entry: [
+            // mock webhook_event
             {
-              sender: { id: 111111 },
-              recipient: { id: 222222 },
-              timestamp: new Date().getTime(),
-              message: {
-                mid: 'mid.1460620432888:f8e3412003d2d1cd93',
-                seq: 12604,
-                text: 'Testing Chat Bot ..'
-              }
+              id: 123455,
+              time: new Date().getTime(),
+              messaging: [
+                {
+                  sender: { id: 111111 },
+                  recipient: { id: 222222 },
+                  timestamp: new Date().getTime(),
+                  message: {
+                    mid: 'mid.1460620432888:f8e3412003d2d1cd93',
+                    seq: 12604,
+                    text: 'A test message'
+                  }
+                }
+              ]
             }
           ]
         }
       }
+      // mock req/res
       const req = mockRequest(options)
       const res = mockResponse()
-
       sinon.spy(webhookController, 'handleMessageType')
       const result = webhookController.sendHookResponse(req, res)
-      console.log(result)
+      assert(webhookController.handleMessageType.calledOnce)
+    })
+    it.only('sendHookResponse response contains correct fields', function() {
+      // fake options for req obj- match FB
+      let options = {
+        body: {
+          object: 'page',
+          entry: [
+            // mock webhook_event
+            {
+              id: 123455,
+              time: new Date().getTime(),
+              messaging: [
+                {
+                  sender: { id: 111111 },
+                  recipient: { id: 222222 },
+                  timestamp: new Date().getTime(),
+                  message: {
+                    mid: 'mid.1460620432888:f8e3412003d2d1cd93',
+                    seq: 12604,
+                    text: 'A test message'
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+      // mock req/res
+      const req = mockRequest(options)
+      const res = mockResponse()
+      sinon.spy(webhookController, 'handleMessageType')
+      return Promise.resolve(webhookController.sendHookResponse(req, res)).then(
+        res => {
+          console.log('REST', res)
+        }
+      )
+      // console.log(result)
     })
   })
   describe('handleMessageType()', () => {
