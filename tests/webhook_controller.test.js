@@ -24,7 +24,7 @@ before(function() {
 })
 describe('webhook controller', function() {
   describe('sendHookResponse()', () => {
-    it('sendHookResponse calls handleMessage if webhook_event has message prop', function() {
+    it('sendHookResponse calls handleMessage - webhook_event has message key', function() {
       // fake options for req obj- match FB
       let options = {
         body: {
@@ -56,8 +56,9 @@ describe('webhook controller', function() {
       sinon.spy(webhookController, 'handleMessageType')
       const result = webhookController.sendHookResponse(req, res)
       assert(webhookController.handleMessageType.calledOnce)
+      webhookController.handleMessageType.restore()
     })
-    it.only('sendHookResponse response contains correct fields', function() {
+    it('sendHookResponse calls handleMessage - webhook_event has message key with text field', function() {
       // fake options for req obj- match FB
       let options = {
         body: {
@@ -87,10 +88,11 @@ describe('webhook controller', function() {
       const req = mockRequest(options)
       const res = mockResponse()
       sinon.spy(webhookController, 'handleMessageType')
-      return webhookController.sendHookResponse(req, res).then(x => {
-        console.log('X', x)
+      return webhookController.sendHookResponse(req, res)[0].then(res => {
+        // test message should return filler reponse
+        assert.strictEqual(res.text, responses.filler)
+        webhookController.handleMessageType.restore()
       })
-      // console.log(result)
     })
   })
   describe('handleMessageType()', () => {

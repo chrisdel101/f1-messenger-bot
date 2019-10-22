@@ -24,13 +24,14 @@ exports.getUserData = () => {
   // TODO
   return 'mobile'
 }
+// returns array
 exports.sendHookResponse = (req, res) => {
   // console.log('REQ', req)
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
     // Iterates over each entry - there may be multiple if batched
-    body.entry.forEach(function(entry) {
+    return body.entry.map(function(entry) {
       // Gets the message. entry.messaging is an array, but
       // will only ever contain one message, so we get index 0
       let webhook_event = entry.messaging[0]
@@ -43,27 +44,20 @@ exports.sendHookResponse = (req, res) => {
       if (webhook_event.message) {
         // get devivce size and data
         const cardType = module.exports.getUserData()
-        // return module.exports.handleMessageType(
-        //   sender_psid,
-        //   webhook_event,
-        //   cardType
-        // )
-        return 'HELLO'
-        // .then(resp => {
-        //   res.status(200).send('EVENT_RECEIVED')
-        //   console.log('resp', resp)
-        //   return resp
-        // })
+        // Returns a '200 OK' response to all requests
+        res.status(200).send('EVENT_RECEIVED')
+        return module.exports.handleMessageType(
+          sender_psid,
+          webhook_event,
+          cardType
+        )
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback)
       }
     })
-
-    // Returns a '200 OK' response to all requests
-    res.status(200).send('EVENT_RECEIVED')
   } else {
     // Returns a '404 Not Found' if event is not from a page subscription
-    res.sendStatus(404)
+    return res.sendStatus(404)
   }
 }
 
