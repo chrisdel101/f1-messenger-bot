@@ -87,11 +87,9 @@ describe('webhook controller', function() {
       const req = mockRequest(options)
       const res = mockResponse()
       sinon.spy(webhookController, 'handleMessageType')
-      return Promise.resolve(webhookController.sendHookResponse(req, res)).then(
-        res => {
-          console.log('REST', res)
-        }
-      )
+      return webhookController.sendHookResponse(req, res).then(x => {
+        console.log('X', x)
+      })
       // console.log(result)
     })
   })

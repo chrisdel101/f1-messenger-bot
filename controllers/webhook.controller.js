@@ -43,9 +43,17 @@ exports.sendHookResponse = (req, res) => {
       if (webhook_event.message) {
         // get devivce size and data
         const cardType = module.exports.getUserData()
-        module.exports
-          .handleMessageType(sender_psid, webhook_event, cardType)
-          .then(rest => console.log('RES', rest))
+        // return module.exports.handleMessageType(
+        //   sender_psid,
+        //   webhook_event,
+        //   cardType
+        // )
+        return 'HELLO'
+        // .then(resp => {
+        //   res.status(200).send('EVENT_RECEIVED')
+        //   console.log('resp', resp)
+        //   return resp
+        // })
       } else if (webhook_event.postback) {
         handlePostback(sender_psid, webhook_event.postback)
       }
@@ -171,7 +179,6 @@ exports.checkInputText = (inputText, cache) => {
 exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   let messageRes
   log('handleMessageType')
-  // console.log('EVENT', )
 
   try {
     // Check if the message contains text
@@ -181,7 +188,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
       const responseVal = Promise.resolve(
         module.exports.checkInputText(webhook_event.message.text, cache)
       )
-      // console.log('resposeVAl', responseVal)
+      // console.log('÷resposeVAl', responseVal)
       return responseVal
         .then(res => {
           // resolve first promise
@@ -214,17 +221,18 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
                     // return new Promise((response, reject) => {
                     module.exports.callSendAPI(sender_psid, messageRes)
                     // }).then(() => {
+                    console.log('here', messageRes)
                     return messageRes
                     // })
                     // calls api then returns response
                   } else if (dataObj.type === 'text') {
-                    console.log('res text', res)
-                    response = {
+                    // console.log('res text', res)
+                    messageRes = {
                       text: payload
                     }
                     // calls api then returns response
-                    module.exports.callSendAPI(sender_psid, response)
-                    return response
+                    module.exports.callSendAPI(sender_psid, messageRes)
+                    return messageRes
                   }
                   // returnmodule.exports.callSendAPI(sender_psid, response)
                   // return driverController
