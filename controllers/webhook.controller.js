@@ -26,7 +26,6 @@ exports.getUserData = () => {
 }
 // returns array
 exports.sendHookResponse = (req, res) => {
-  console.log('HERLLO')
   let body = req.body
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
@@ -55,7 +54,6 @@ exports.sendHookResponse = (req, res) => {
         handlePostback(sender_psid, webhook_event.postback)
       }
     })
-    res.status(200).send('EVENT_RECEIVED')
   } else {
     // Returns a '404 Not Found' if event is not from a page subscription
     return res.sendStatus(404)
