@@ -219,7 +219,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
                     // })
                     // calls api then returns response
                   } else if (dataObj.type === 'text') {
-                    // console.log('res text', res)
+                    console.log('res text', res)
                     messageRes = {
                       text: payload
                     }
