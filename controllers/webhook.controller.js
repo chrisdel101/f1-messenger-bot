@@ -52,7 +52,7 @@ exports.sendHookResponse = (req, res) => {
           cardType
         )
       } else if (webhook_event.postback) {
-        handlePostback(sender_psid, webhook_event.postback)
+        return handlePostback(sender_psid, webhook_event.postback)
       }
     })
   } else {
@@ -295,6 +295,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
 }
 // Handles messaging_postbacks events
 function handlePostback(sender_psid, received_postback) {
+  console.log('received_postback', received_postback)
   let response
   // Get the payload for the postback
   let payload = received_postback.payload
@@ -302,14 +303,46 @@ function handlePostback(sender_psid, received_postback) {
 
   // Set the response based on the postback payload
   if (payload === 'get_started') {
-    response = { text: 'Thanks!' }
+    response = module.exports.welcomeTemplate()
   } else if (payload === 'no') {
     response = { text: 'Oops, try sending another image.' }
   }
   // Send the message to acknowledge the postback
-  module.exports.callSendAPI(sender_psid, response)
+  returnmodule.exports.callSendAPI(sender_psid, response)
 }
-
+exports.welcomeTemplate = recipientId => {
+  return {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: 'template',
+        payload: {
+          template_type: 'button',
+          text: responses.profile.greeting,
+          buttons: [
+            {
+              type: 'postback',
+              title: 'Check in',
+              payload: 'check_in'
+            },
+            {
+              type: 'postback',
+              title: 'Room Service',
+              payload: 'room_service'
+            },
+            {
+              type: 'phone_number',
+              title: 'Call Reception',
+              payload: '+16505551234'
+            }
+          ]
+        }
+      }
+    }
+  }
+}
 exports.callSendAPI = (sender_psid, response) => {
   console.log('CALL API')
   // Construct the message body

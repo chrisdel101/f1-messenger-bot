@@ -1,6 +1,6 @@
 {
   "profile": {
-    "greeting": "Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver."
+    "greeting": "Welcome to Formula1 Cards {{user_full_name}}. To get a card enter the name of the Formula1 driver."
   },
   "help": {
     "ask": "What can we do to help you today?"
