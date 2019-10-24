@@ -302,7 +302,8 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
 }
 // Handles messaging_postbacks events
 exports.handlePostback = (sender_psid, received_postback, recipientId) => {
-  console.log('received_postback', received_postback)
+  // console.log('received_postback', received_postback)
+  console.log('recep', recipientId)
   let response
   // Get the payload for the postback
   let payload = received_postback.payload
@@ -318,7 +319,6 @@ exports.handlePostback = (sender_psid, received_postback, recipientId) => {
   return module.exports.callSendAPI(sender_psid, response)
 }
 exports.welcomeTemplate = recipientId => {
-  console.log('HERE')
   return {
     recipient: {
       id: recipientId
@@ -347,6 +347,33 @@ exports.welcomeTemplate = recipientId => {
             }
           ]
         }
+      }
+    }
+  }
+  return {
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'generic',
+        elements: [
+          {
+            title: 'Is this the right picture?',
+            subtitle: 'Tap a button to answer.',
+            image_url: 'http://place-puppy.com/200x200',
+            buttons: [
+              {
+                type: 'postback',
+                title: 'Yes!',
+                payload: 'yes'
+              },
+              {
+                type: 'postback',
+                title: 'No!',
+                payload: 'no'
+              }
+            ]
+          }
+        ]
       }
     }
   }

@@ -94,7 +94,7 @@ describe('webhook controller', function() {
         webhookController.handleMessageType.restore()
       })
     })
-    it.only('sendHookResponse calls handlePostback', function() {
+    it('sendHookResponse calls handlePostback', function() {
       // mock mock_body_data for req obj- match FB
       let mock_body_data = {
         body: {
@@ -131,6 +131,13 @@ describe('webhook controller', function() {
       webhookController.callSendAPI.restore()
     })
   })
+  describe('welcomeTemplate()', () => {
+    it.only('welcomeTemplate returns template', function() {
+      const res = webhookController.welcomeTemplate()
+      console.log('res', res)
+    })
+  })
+
   describe('handlePostback()', () => {
     it('test', function() {
       sinon.spy(webhookController, 'callSendAPI')
