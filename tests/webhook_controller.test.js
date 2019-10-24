@@ -25,8 +25,8 @@ before(function() {
 describe('webhook controller', function() {
   describe('sendHookResponse()', () => {
     it('sendHookResponse calls handleMessage - webhook_event has message key', function() {
-      // fake options for req obj- match FB
-      let options = {
+      // fake fake_webhook_event for req obj- match FB
+      let mock_webhook_event = {
         body: {
           object: 'page',
           entry: [
@@ -51,7 +51,7 @@ describe('webhook controller', function() {
         }
       }
       // mock req/res
-      const req = mockRequest(options)
+      const req = mockRequest(mock_webhook_event)
       const res = mockResponse()
       sinon.spy(webhookController, 'handleMessageType')
       const result = webhookController.sendHookResponse(req, res)
@@ -59,8 +59,8 @@ describe('webhook controller', function() {
       webhookController.handleMessageType.restore()
     })
     it('sendHookResponse calls handleMessage - webhook_event has message key with text field', function() {
-      // fake options for req obj- match FB
-      let options = {
+      // mock mock_webhook_event for req obj- match FB
+      let mock_webhook_event = {
         body: {
           object: 'page',
           entry: [
@@ -85,7 +85,7 @@ describe('webhook controller', function() {
         }
       }
       // mock req/res
-      const req = mockRequest(options)
+      const req = mockRequest(mock_webhook_event)
       const res = mockResponse()
       sinon.spy(webhookController, 'handleMessageType')
       return webhookController.sendHookResponse(req, res)[0].then(res => {
@@ -93,6 +93,35 @@ describe('webhook controller', function() {
         assert.strictEqual(res.text, responses.filler)
         webhookController.handleMessageType.restore()
       })
+    })
+  })
+  describe('handlePostback()' => {
+    it.only('test', function(){
+      let mock_webhook_event = {
+        body: {
+          object: 'page',
+          entry: [
+            // mock webhook_event
+            {
+              id: 123455,
+              time: new Date().getTime(),
+              messaging: [
+                {
+                  sender: { id: 111111 },
+                  recipient: { id: 222222 },
+                  timestamp: new Date().getTime(),
+                  message: {
+                    mid: 'mid.1460620432888:f8e3412003d2d1cd93',
+                    seq: 12604,
+                    text: 'A test message'
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+      webhookController.handlePostBack
     })
   })
   describe('handleMessageType()', () => {

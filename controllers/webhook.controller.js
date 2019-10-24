@@ -28,6 +28,7 @@ exports.getUserData = () => {
 // returns array
 exports.sendHookResponse = (req, res) => {
   let body = req.body
+  console.log('body', body)
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
     // Iterates over each entry - there may be multiple if batched
@@ -35,7 +36,7 @@ exports.sendHookResponse = (req, res) => {
       // Gets the message. entry.messaging is an array, but
       // will only ever contain one message, so we get index 0
       let webhook_event = entry.messaging[0]
-      console.log('body', webhook_event)
+      console.log('webhook_event', webhook_event)
       // console.log('W', webhook_event)
       // Get the sender PSID
       let sender_psid = webhook_event.sender.id
@@ -53,7 +54,8 @@ exports.sendHookResponse = (req, res) => {
           cardType
         )
       } else if (webhook_event.postback) {
-        return handlePostback(sender_psid, webhook_event.postback)
+        const recipientId = webhook_event.recipient.id
+        return handlePostback(sender_psid, webhook_event.postback, recipientId)
       }
     })
   } else {
@@ -295,7 +297,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   }
 }
 // Handles messaging_postbacks events
-function handlePostback(sender_psid, received_postback) {
+function handlePostback(sender_psid, received_postback, recipientId) {
   console.log('received_postback', received_postback)
   let response
   // Get the payload for the postback
@@ -304,7 +306,7 @@ function handlePostback(sender_psid, received_postback) {
 
   // Set the response based on the postback payload
   if (payload === 'get_started') {
-    response = module.exports.welcomeTemplate()
+    response = module.exports.welcomeTemplate(recipientId)
   } else if (payload === 'no') {
     response = { text: 'Oops, try sending another image.' }
   }
