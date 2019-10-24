@@ -61,3 +61,4 @@ typings/
 .next
 
 curl_scripts/set_greeting_text_basic.bash
+curl_scripts/set_postback_get_started.bash
