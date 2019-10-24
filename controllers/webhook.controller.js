@@ -308,7 +308,7 @@ function handlePostback(sender_psid, received_postback) {
     response = { text: 'Oops, try sending another image.' }
   }
   // Send the message to acknowledge the postback
-  returnmodule.exports.callSendAPI(sender_psid, response)
+  return module.exports.callSendAPI(sender_psid, response)
 }
 exports.welcomeTemplate = recipientId => {
   return {
