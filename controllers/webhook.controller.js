@@ -11,6 +11,7 @@ const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
 
+// request_body contains sender_id and message_body
 exports.facebookObj = request_body => {
   return {
     uri: 'https://graph.facebook.com/v2.6/me/messages',
@@ -51,6 +52,7 @@ exports.sendHookResponse = (req, res) => {
           cardType
         )
       } else if (webhook_event.postback) {
+        console.log('HERE')
         handlePostback(sender_psid, webhook_event.postback)
       }
     })

@@ -60,3 +60,4 @@ typings/
 # next.js build output
 .next
 
+curl_scripts/set_greeting_text_basic.bash
