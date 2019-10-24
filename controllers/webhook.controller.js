@@ -303,7 +303,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
 // Handles messaging_postbacks events
 exports.handlePostback = (sender_psid, received_postback, recipientId) => {
   // console.log('received_postback', received_postback)
-  console.log('recep', recipientId)
+  // console.log('recep', recipientId)
   let response
   // Get the payload for the postback
   let payload = received_postback.payload
@@ -311,7 +311,7 @@ exports.handlePostback = (sender_psid, received_postback, recipientId) => {
 
   // Set the response based on the postback payload
   if (payload === 'get_started') {
-    response = module.exports.welcomeTemplate(recipientId)
+    response = module.exports.welcomeTemplate(sender_psid)
   } else if (payload === 'no') {
     response = { text: 'Oops, try sending another image.' }
   }
