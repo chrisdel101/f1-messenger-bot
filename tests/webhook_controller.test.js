@@ -94,6 +94,42 @@ describe('webhook controller', function() {
         webhookController.handleMessageType.restore()
       })
     })
+    it.only('sendHookResponse calls handlePostback', function() {
+      // mock mock_body_data for req obj- match FB
+      let mock_body_data = {
+        body: {
+          object: 'page',
+          entry: [
+            // mock webhook_event
+            {
+              id: 123455,
+              time: new Date().getTime(),
+              messaging: [
+                {
+                  sender: { id: 111111 },
+                  recipient: { id: 222222 },
+                  timestamp: new Date().getTime(),
+                  postback: {
+                    title: 'Get Started',
+                    payload: 'get_started'
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+      const req = mockRequest(mock_body_data)
+      const res = mockResponse()
+      sinon.spy(webhookController, 'handlePostback')
+      sinon.spy(webhookController, 'callSendAPI')
+      // returns response object
+      webhookController.sendHookResponse(req, res)
+      assert(webhookController.handlePostback.calledOnce)
+      assert(webhookController.callSendAPI.calledOnce)
+      webhookController.handlePostback.restore()
+      webhookController.callSendAPI.restore()
+    })
   })
   describe('handlePostback()', () => {
     it('test', function() {
