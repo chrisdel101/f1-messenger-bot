@@ -301,7 +301,7 @@ function handlePostback(sender_psid, received_postback) {
   console.log('POSTBACK payload', payload)
 
   // Set the response based on the postback payload
-  if (payload === 'yes') {
+  if (payload === 'get_started') {
     response = { text: 'Thanks!' }
   } else if (payload === 'no') {
     response = { text: 'Oops, try sending another image.' }
