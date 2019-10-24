@@ -327,55 +327,79 @@ exports.welcomeTemplate = recipientId => {
       attachment: {
         type: 'template',
         payload: {
-          template_type: 'button',
-          text: responses.profile.greeting,
-          buttons: [
+          template_type: 'generic',
+          elements: [
             {
-              type: 'postback',
-              title: 'Check in',
-              payload: 'check_in'
-            },
-            {
-              type: 'postback',
-              title: 'Room Service',
-              payload: 'room_service'
-            },
-            {
-              type: 'phone_number',
-              title: 'Call Reception',
-              payload: '+16505551234'
+              title: 'Welcome!',
+              image_url: 'https://petersfancybrownhats.com/company_image.png',
+              subtitle: 'We have the right hat for everyone.',
+              default_action: {
+                type: 'web_url',
+                url: 'https://petersfancybrownhats.com/view?item=103',
+                webview_height_ratio: 'tall'
+              },
+              buttons: [
+                {
+                  type: 'web_url',
+                  url: 'https://petersfancybrownhats.com',
+                  title: 'View Website'
+                },
+                {
+                  type: 'postback',
+                  title: 'Start Chatting',
+                  payload: 'DEVELOPER_DEFINED_PAYLOAD'
+                }
+              ]
+              // template_type: 'button',
+              // text: responses.profile.greeting,
+              // buttons: [
+              //   {
+              //     type: 'postback',
+              //     title: 'Check in',
+              //     payload: 'check_in'
+              //   },
+              //   {
+              //     type: 'postback',
+              //     title: 'Room Service',
+              //     payload: 'room_service'
+              //   },
+              //   {
+              //     type: 'phone_number',
+              //     title: 'Call Reception',
+              //     payload: '+16505551234'
+              //   }
+              // ]
             }
           ]
         }
       }
     }
-  }
-  return {
-    attachment: {
-      type: 'template',
-      payload: {
-        template_type: 'generic',
-        elements: [
-          {
-            title: 'Is this the right picture?',
-            subtitle: 'Tap a button to answer.',
-            image_url: 'http://place-puppy.com/200x200',
-            buttons: [
-              {
-                type: 'postback',
-                title: 'Yes!',
-                payload: 'yes'
-              },
-              {
-                type: 'postback',
-                title: 'No!',
-                payload: 'no'
-              }
-            ]
-          }
-        ]
-      }
-    }
+    // return {
+    //   attachment: {
+    //     type: 'template',
+    //     payload: {
+    //       template_type: 'generic',
+    //       elements: [
+    //         {
+    //           title: 'Is this the right picture?',
+    //           subtitle: 'Tap a button to answer.',
+    //           image_url: 'http://place-puppy.com/200x200',
+    //           buttons: [
+    //             {
+    //               type: 'postback',
+    //               title: 'Yes!',
+    //               payload: 'yes'
+    //             },
+    //             {
+    //               type: 'postback',
+    //               title: 'No!',
+    //               payload: 'no'
+    //             }
+    //           ]
+    //         }
+    //       ]
+    //     }
+    //   }
   }
 }
 exports.callSendAPI = (sender_psid, response) => {
