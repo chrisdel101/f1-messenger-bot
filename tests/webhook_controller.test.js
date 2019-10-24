@@ -26,7 +26,7 @@ describe('webhook controller', function() {
   describe('sendHookResponse()', () => {
     it('sendHookResponse calls handleMessage - webhook_event has message key', function() {
       // fake fake_webhook_event for req obj- match FB
-      let mock_webhook_event = {
+      let mock_body_data = {
         body: {
           object: 'page',
           entry: [
@@ -51,7 +51,7 @@ describe('webhook controller', function() {
         }
       }
       // mock req/res
-      const req = mockRequest(mock_webhook_event)
+      const req = mockRequest(mock_body_data)
       const res = mockResponse()
       sinon.spy(webhookController, 'handleMessageType')
       const result = webhookController.sendHookResponse(req, res)
@@ -59,8 +59,8 @@ describe('webhook controller', function() {
       webhookController.handleMessageType.restore()
     })
     it('sendHookResponse calls handleMessage - webhook_event has message key with text field', function() {
-      // mock mock_webhook_event for req obj- match FB
-      let mock_webhook_event = {
+      // mock mock_body_data for req obj- match FB
+      let mock_body_data = {
         body: {
           object: 'page',
           entry: [
@@ -85,7 +85,7 @@ describe('webhook controller', function() {
         }
       }
       // mock req/res
-      const req = mockRequest(mock_webhook_event)
+      const req = mockRequest(mock_body_data)
       const res = mockResponse()
       sinon.spy(webhookController, 'handleMessageType')
       return webhookController.sendHookResponse(req, res)[0].then(res => {
@@ -95,33 +95,30 @@ describe('webhook controller', function() {
       })
     })
   })
-  describe('handlePostback()' => {
-    it.only('test', function(){
+  describe('handlePostback()', () => {
+    it('test', function() {
+      sinon.spy(webhookController, 'callSendAPI')
+      sinon.spy(webhookController, 'welcomeTemplate')
       let mock_webhook_event = {
-        body: {
-          object: 'page',
-          entry: [
-            // mock webhook_event
-            {
-              id: 123455,
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: 111111 },
-                  recipient: { id: 222222 },
-                  timestamp: new Date().getTime(),
-                  message: {
-                    mid: 'mid.1460620432888:f8e3412003d2d1cd93',
-                    seq: 12604,
-                    text: 'A test message'
-                  }
-                }
-              ]
-            }
-          ]
+        sender: { id: '2399043010191818' },
+        recipient: { id: '107628650610694' },
+        timestamp: 1571889489196,
+        postback: {
+          title: 'Get Started',
+          payload: 'get_started'
         }
       }
-      webhookController.handlePostBack
+
+      const result = webhookController.handlePostback(
+        mock_webhook_event.sender.id,
+        mock_webhook_event.postback,
+        mock_webhook_event.recipient
+      )
+      assert(webhookController.callSendAPI.calledOnce)
+      assert(webhookController.welcomeTemplate.calledOnce)
+      // console.log('res', result)
+      webhookController.callSendAPI.restore()
+      webhookController.welcomeTemplate.restore()
     })
   })
   describe('handleMessageType()', () => {

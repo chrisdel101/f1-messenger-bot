@@ -297,7 +297,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   }
 }
 // Handles messaging_postbacks events
-function handlePostback(sender_psid, received_postback, recipientId) {
+exports.handlePostback = (sender_psid, received_postback, recipientId) => {
   console.log('received_postback', received_postback)
   let response
   // Get the payload for the postback
