@@ -318,6 +318,7 @@ exports.handlePostback = (sender_psid, received_postback, recipientId) => {
   return module.exports.callSendAPI(sender_psid, response)
 }
 exports.welcomeTemplate = recipientId => {
+  console.log('HERE')
   return {
     recipient: {
       id: recipientId
@@ -351,7 +352,7 @@ exports.welcomeTemplate = recipientId => {
   }
 }
 exports.callSendAPI = (sender_psid, response) => {
-  console.log('CALL API')
+  console.log('CALL API', response)
   // Construct the message body
   let request_body = {
     recipient: {
@@ -359,7 +360,6 @@ exports.callSendAPI = (sender_psid, response) => {
     },
     message: response
   }
-
   // Send the HTTP request to the Messenger Platform
   return request(module.exports.facebookObj(request_body), (err, res, body) => {
     if (!err) {
