@@ -304,7 +304,21 @@ exports.handlePostback = (sender_psid, received_postback, recipientId) => {
 
   // Set the response based on the postback payload
   if (payload === 'get_started') {
-    response = module.exports.welcomeTemplate(sender_psid)
+    // return module.exports
+    // .callSendAPI(
+    //   sender_psid,
+    //   module.exports.welcomeTemplate(sender_psid, response)
+    // )
+    // .then(() => {
+    return this.callSendAPI(sender_psid, {
+      "message":{
+        "text":"hello, world!"
+      })
+    // return {
+    //   type: 'text',
+    //   payload: responses.filler
+    // }
+    // })
   } else if (payload === 'pick_a_driver') {
     response = { text: 'Oops, try sending another image.' }
   }
