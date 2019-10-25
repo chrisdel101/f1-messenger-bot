@@ -31,7 +31,7 @@ exports.getUserData = () => {
 // returns array
 exports.sendHookResponse = (req, res) => {
   let body = req.body
-  console.log('body', body)
+  console.log('CALL HOOK')
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
     // Iterates over each entry - there may be multiple if batched
@@ -60,8 +60,7 @@ exports.sendHookResponse = (req, res) => {
         const recipientId = webhook_event.recipient.id
         return module.exports.handlePostback(
           sender_psid,
-          webhook_event.postback,
-          recipientId
+          webhook_event.postback
         )
       }
     })
@@ -295,9 +294,8 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   }
 }
 // Handles messaging_postbacks events
-exports.handlePostback = (sender_psid, received_postback, recipientId) => {
+exports.handlePostback = (sender_psid, received_postback) => {
   // console.log('received_postback', received_postback)
-  // console.log('recep', recipientId)
   let response
   // Get the payload for the postback
   let payload = received_postback.payload
@@ -369,7 +367,7 @@ exports.welcomeTemplate = recipientId => {
   }
 }
 exports.callSendAPI = (sender_psid, response) => {
-  console.log('CALL API', response)
+  console.log('CALL API')
   // Construct the message body
   let request_body = {
     recipient: {
@@ -382,7 +380,6 @@ exports.callSendAPI = (sender_psid, response) => {
     return request(
       module.exports.facebookObj(request_body),
       (err, res, body) => {
-        console.log('BODY', body)
         if (!err && !body.error) {
           console.log('message sent!')
           resolve('message sent!')

@@ -11,7 +11,6 @@ var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 
 var app = express()
-console.log('HERE', process.env.PAGE_ACCESS_TOKEN)
 
 app.use(logger('dev'))
 app.use(express.json())
