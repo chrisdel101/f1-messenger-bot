@@ -58,10 +58,11 @@ exports.sendHookResponse = (req, res) => {
         )
       } else if (webhook_event.postback) {
         const recipientId = webhook_event.recipient.id
-        // return module.exports.handlePostback(
-        //   sender_psid,
-        //   webhook_event.postback
-        // )
+        res.status(200).send('EVENT_RECEIVED')
+        return module.exports.handlePostback(
+          sender_psid,
+          webhook_event.postback
+        )
       }
     })
   } else {
