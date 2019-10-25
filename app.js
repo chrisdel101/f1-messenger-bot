@@ -1,4 +1,6 @@
-require('dotenv').config()
+require('dotenv').config(
+  '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
+)
 // require('newrelic')
 var express = require('express')
 var path = require('path')
@@ -9,6 +11,7 @@ var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 
 var app = express()
+console.log('HERE', process.env.PAGE_ACCESS_TOKEN)
 
 app.use(logger('dev'))
 app.use(express.json())

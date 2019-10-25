@@ -7,6 +7,9 @@ const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
 const { mockRequest, mockResponse } = require('mock-req-res')
+require('dotenv').config(
+  '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
+)
 
 let stub
 before(function() {
@@ -132,20 +135,20 @@ describe('webhook controller', function() {
     })
   })
   describe('welcomeTemplate()', () => {
-    it.only('welcomeTemplate returns template', function() {
-      const res = webhookController.welcomeTemplate()
+    it('welcomeTemplate returns template', function() {
+      const res = webhookController.welcomeTemplate('2399043010191818')
       console.log('res', res)
     })
   })
 
-  describe('handlePostback()', () => {
+  describe.only('handlePostback()', () => {
     it('test', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'welcomeTemplate')
       let mock_webhook_event = {
         sender: { id: '2399043010191818' },
         recipient: { id: '107628650610694' },
-        timestamp: 1571889489196,
+        timestamp: new Date().getTime(),
         postback: {
           title: 'Get Started',
           payload: 'get_started'

@@ -10,12 +10,15 @@ const driverController = require('./driver.controller')
 const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
+const shell = require('shelljs')
 
 // request_body contains sender_id and message_body
 exports.facebookObj = request_body => {
   return {
     uri: 'https://graph.facebook.com/v2.6/me/messages',
-    qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+    qs: {
+      access_token: process.env.PAGE_ACCESS_TOKEN
+    },
     method: 'POST',
     json: request_body
   }
@@ -235,15 +238,6 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
                     module.exports.callSendAPI(sender_psid, messageRes)
                     return messageRes
                   }
-                  // returnmodule.exports.callSendAPI(sender_psid, response)
-                  // return driverController
-                  //   .checkDriverApi(webhook_event.message.text)
-                  //   .then(bool => {
-                  //     if (bool) {
-                  //       // Create the payload for a basic text message
-                  //       const driverSlug = driverController.slugifyDriver(
-                  //         webhook_event.message.text
-                  //       )
                 })
                 .catch(e => {
                   console.error('An error in handleMessageType promise2', e, e)
@@ -307,99 +301,45 @@ exports.handlePostback = (sender_psid, received_postback, recipientId) => {
   let response
   // Get the payload for the postback
   let payload = received_postback.payload
-  console.log('POSTBACK payload', payload)
 
   // Set the response based on the postback payload
   if (payload === 'get_started') {
     response = module.exports.welcomeTemplate(sender_psid)
-  } else if (payload === 'no') {
+  } else if (payload === 'pick_a_driver') {
     response = { text: 'Oops, try sending another image.' }
   }
   // Send the message to acknowledge the postback
   return module.exports.callSendAPI(sender_psid, response)
 }
 exports.welcomeTemplate = recipientId => {
+  console.log('rec in temp', recipientId)
   return {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: 'template',
-        payload: {
-          template_type: 'generic',
-          elements: [
-            {
-              title: 'Welcome!',
-              image_url: 'https://petersfancybrownhats.com/company_image.png',
-              subtitle: 'We have the right hat for everyone.',
-              default_action: {
-                type: 'web_url',
-                url: 'https://petersfancybrownhats.com/view?item=103',
-                webview_height_ratio: 'tall'
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'generic',
+        elements: [
+          {
+            title: responses.profile.greeting2,
+            image_url:
+              'https://www.formula1.com/content/fom-website/en/teams/Ferrari/_jcr_content/gallery/image1.img.1536.medium.jpg/1552719486937.jpg',
+            subtitle: responses.promo.desc1,
+            buttons: [
+              {
+                type: 'postback',
+                title: 'Get a Driver Card',
+                payload: 'pick_a_driver'
               },
-              buttons: [
-                {
-                  type: 'web_url',
-                  url: 'https://petersfancybrownhats.com',
-                  title: 'View Website'
-                },
-                {
-                  type: 'postback',
-                  title: 'Start Chatting',
-                  payload: 'DEVELOPER_DEFINED_PAYLOAD'
-                }
-              ]
-              // template_type: 'button',
-              // text: responses.profile.greeting,
-              // buttons: [
-              //   {
-              //     type: 'postback',
-              //     title: 'Check in',
-              //     payload: 'check_in'
-              //   },
-              //   {
-              //     type: 'postback',
-              //     title: 'Room Service',
-              //     payload: 'room_service'
-              //   },
-              //   {
-              //     type: 'phone_number',
-              //     title: 'Call Reception',
-              //     payload: '+16505551234'
-              //   }
-              // ]
-            }
-          ]
-        }
+              {
+                type: 'postback',
+                title: 'Get a Team Card',
+                payload: 'pick_a_team'
+              }
+            ]
+          }
+        ]
       }
     }
-    // return {
-    //   attachment: {
-    //     type: 'template',
-    //     payload: {
-    //       template_type: 'generic',
-    //       elements: [
-    //         {
-    //           title: 'Is this the right picture?',
-    //           subtitle: 'Tap a button to answer.',
-    //           image_url: 'http://place-puppy.com/200x200',
-    //           buttons: [
-    //             {
-    //               type: 'postback',
-    //               title: 'Yes!',
-    //               payload: 'yes'
-    //             },
-    //             {
-    //               type: 'postback',
-    //               title: 'No!',
-    //               payload: 'no'
-    //             }
-    //           ]
-    //         }
-    //       ]
-    //     }
-    //   }
   }
 }
 exports.callSendAPI = (sender_psid, response) => {
@@ -413,10 +353,13 @@ exports.callSendAPI = (sender_psid, response) => {
   }
   // Send the HTTP request to the Messenger Platform
   return request(module.exports.facebookObj(request_body), (err, res, body) => {
-    if (!err) {
+    console.log('BODY', body)
+    if (!err && !body.error) {
       console.log('message sent!')
-    } else {
+    } else if (err) {
       console.error('Unable to send message:' + err)
+    } else {
+      console.error('Body Error in callSendAPI', body.error.message)
     }
   })
 }
