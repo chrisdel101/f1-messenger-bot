@@ -149,7 +149,7 @@ exports.checkInputText = (inputText, cache) => {
           cache.driverCache
         )
         // console.log('DD', driver)
-        // send driver card info
+        // send driver card instructions
         return {
           type: 'image',
           payload: driver
@@ -304,21 +304,34 @@ exports.handlePostback = (sender_psid, received_postback, recipientId) => {
 
   // Set the response based on the postback payload
   if (payload === 'get_started') {
-    // return module.exports
-    // .callSendAPI(
-    //   sender_psid,
-    //   module.exports.welcomeTemplate(sender_psid, response)
-    // )
-    // .then(() => {
     return this.callSendAPI(sender_psid, {
-      "message":{
-        "text":"hello, world!"
+      text: `${responses.profile.greeting3}\n--------------- ${
+        responses.instructions['how-it-works']
+      } ---------------`
+    })
+      .then(() => {
+        return this.callSendAPI(sender_psid, {
+          text: responses.instructions.instr1
+        })
       })
-    // return {
-    //   type: 'text',
-    //   payload: responses.filler
-    // }
-    // })
+      .then(() => {
+        return this.callSendAPI(sender_psid, {
+          text: responses['support-words'].or_even_better
+        })
+      })
+      .then(() => {
+        return this.callSendAPI(sender_psid, {
+          text: `•  ${responses.instructions.set1['sign-up']}\n•  ${
+            responses.instructions.set1.choose
+          }\n•  ${responses.instructions.set1.send}`
+        })
+      })
+      .then(() => {
+        return this.callSendAPI(
+          sender_psid,
+          module.exports.welcomeTemplate(sender_psid, response)
+        )
+      })
   } else if (payload === 'pick_a_driver') {
     response = { text: 'Oops, try sending another image.' }
   }
@@ -334,19 +347,18 @@ exports.welcomeTemplate = recipientId => {
         template_type: 'generic',
         elements: [
           {
-            title: responses.profile.greeting2,
+            title: responses.help.ask3,
             image_url:
               'https://www.formula1.com/content/fom-website/en/teams/Ferrari/_jcr_content/gallery/image1.img.1536.medium.jpg/1552719486937.jpg',
-            subtitle: responses.promo.desc1,
             buttons: [
               {
                 type: 'postback',
-                title: 'Get a Driver Card',
-                payload: 'pick_a_driver'
+                title: 'Get a Card Now',
+                payload: 'pick_a_card'
               },
               {
                 type: 'postback',
-                title: 'Get a Team Card',
+                title: 'Get Auto-Delivery',
                 payload: 'pick_a_team'
               }
             ]
@@ -365,15 +377,23 @@ exports.callSendAPI = (sender_psid, response) => {
     },
     message: response
   }
-  // Send the HTTP request to the Messenger Platform
-  return request(module.exports.facebookObj(request_body), (err, res, body) => {
-    console.log('BODY', body)
-    if (!err && !body.error) {
-      console.log('message sent!')
-    } else if (err) {
-      console.error('Unable to send message:' + err)
-    } else {
-      console.error('Body Error in callSendAPI', body.error.message)
-    }
+  return new Promise((resolve, reject) => {
+    // Send the HTTP request to the Messenger Platform
+    return request(
+      module.exports.facebookObj(request_body),
+      (err, res, body) => {
+        console.log('BODY', body)
+        if (!err && !body.error) {
+          console.log('message sent!')
+          resolve('message sent!')
+        } else if (err) {
+          reject('Unable to send message:' + err)
+          console.error('Unable to send message:' + err)
+        } else {
+          console.error('Body Error in callSendAPI', body.error.message)
+          reject('Body Error in callSendAPI', body.error.message)
+        }
+      }
+    )
   })
 }

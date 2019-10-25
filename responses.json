@@ -1,18 +1,34 @@
 {
   "profile": {
     "greeting": "Welcome to Formula1 Cards. To get a card enter the name of the Formula1 driver.",
-    "greeting2": "Welcome to Formula1 Cards."
+    "greeting2": "Welcome to Formula1 Cards.",
+    "greeting3": "  *Welcome to Formula1 Cards — It's like baseball cards, but for Formula1.*"
   },
   "help": {
     "ask1": "What can we do to help you today?",
-    "ask2": "What would you like to do?"
+    "ask2": "What would you like to do?",
+    "ask3": "What would you want to do?"
   },
-  "promo": {
+  "description": {
     "desc1": "Like baseball cards, but for Formula 1."
   },
   "card": {
     "driver": "Enter the first or last name of the driver you want to see.",
     "team": "Enter the name of the team you want to see."
+  },
+
+  "instructions": {
+    "instr1": "•  Type a driver or team name and we'll send you a card with their stats.",
+    "set1": {
+      "sign-up": "Sign up for auto-delivery.",
+      "choose": "Choose the teams and drivers you like.",
+      "send": "We'll send you those cards every race weekend!"
+    },
+    "how-it-works": "How it Works"
+  },
+  "support-words": {
+    "or": "*OR*",
+    "or_even_better": "*OR, Even Better*"
   },
   "filler": "Some Filler Text",
   "menu": {
