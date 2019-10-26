@@ -3,8 +3,33 @@ let driverController = require('../controllers/driver.controller')
 const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
+const { cache, testCache } = require('../cache')
 
 describe('drivers controller', function() {
+  describe.only('getRandomDriver()', () => {
+    // assure random func it called
+    it('getRandomDriver calls return getRandomInt', function() {
+      sinon.spy(utils, 'getRandomInt')
+      return Promise.resolve(
+        driverController
+          .getRandomDriver(testCache.testDriversCache, 1400)
+          .then(res => {
+            assert(utils.getRandomInt.calledOnce)
+            utils.getRandomInt.restore()
+          })
+      )
+    })
+    it('getRandomDriver returns a driver obj', function() {
+      return Promise.resolve(
+        driverController
+          .getRandomDriver(testCache.testDriversCache, 1400)
+          .then(res => {
+            assert(res.hasOwnProperty('name'))
+            assert(res.hasOwnProperty('name_slug'))
+          })
+      )
+    })
+  })
   describe('getAllDriverSlugs()', () => {
     it('getAllDriverSlugs returns an array after parsing', function() {
       return driverController.getAllDriverSlugs().then(result => {

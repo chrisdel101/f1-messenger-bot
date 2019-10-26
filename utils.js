@@ -106,3 +106,7 @@ exports.createDelayTimeStamp = minsDelay => {
   let extract = new Date(stampMinusMins)
   return extract
 }
+// returns random int from 0 to end of range
+exports.getRandomInt = end => {
+  return Math.floor(Math.random() * end)
+}

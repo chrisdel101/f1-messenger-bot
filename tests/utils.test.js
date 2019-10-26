@@ -58,7 +58,6 @@ describe('utils tests', function() {
         teamController.cacheAndGetTeam('ferrari', testCache.testTeamCache)
       ).then(res => {
         const cacheResult = utils.viewCache('team')
-        teamController
         assert(cacheResult.hasOwnProperty('ferrari'))
         assert(cacheResult.ferrari.hasOwnProperty('timeStamp'))
       })

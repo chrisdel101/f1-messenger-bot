@@ -42,7 +42,18 @@ exports.extractDriverNames = driversArr => {
     return driverObj
   })
 }
-// check if string is driver name from api- return name_slug or false
+exports.getRandomDriver = () => {
+  return Promise.resolve(
+    this.cacheAndGetDrivers(cache.driversCache, 1400)
+  ).then(res => {
+    // random int btw 0 and 20
+    const randomInt = utils.getRandomInt(20)
+    return res[randomInt]
+  })
+}
+// takes name of driver - check if it is valid name
+// gets drivers array from cache or api
+// return name_slug or false
 exports.checkDriverApi = nameToCheck => {
   try {
     log('checkDriverApi')
@@ -68,7 +79,9 @@ exports.checkDriverApi = nameToCheck => {
     console.error('An error in checkDriverApi', e)
   }
 }
-// gets/caches drivers array - returns array
+// takes a cache obj and timeStamp
+// gets/caches drivers array
+// returns array cache for from api
 exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
   // if not in cache OR time stamp passes fails use new call
   if (
@@ -88,14 +101,7 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
   } else {
     console.log('cacheAndGetDrivers() - FROM CACHE')
     // if less and 24 hours old get from cache
-    // if (verifyTimeStamp(cache['drivers_slugs'].timeStamp)) {
-    // console.log('CA', cache['drivers_slugs'].timeStamp)
     return driversCache['drivers_slugs']['drivers_slugs']
-    // } else {
-    //   cache['drivers'] = {
-    //     drivers_slugs: drivers,
-    //     timeStamp: new Date()
-    //   }
   }
 }
 exports.createDriverObject = driverSlug => {
