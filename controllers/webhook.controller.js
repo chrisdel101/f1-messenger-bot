@@ -10,6 +10,7 @@ const driverController = require('./driver.controller')
 const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
+const responses = require('../values.json')
 const shell = require('shelljs')
 
 // request_body contains sender_id and message_body
@@ -57,7 +58,6 @@ exports.sendHookResponse = (req, res) => {
           cardType
         )
       } else if (webhook_event.postback) {
-        const recipientId = webhook_event.recipient.id
         res.status(200).send('EVENT_RECEIVED')
         return module.exports.handlePostback(
           sender_psid,
@@ -256,40 +256,6 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
       }
       return module.exports.callSendAPI(sender_psid, response)
     }
-    //  else if (webhook_event.message.attachments) {
-    //   // Gets the URL of the message attachment
-    //   let attachment_url = webhook_event.message.attachments[0].payload.url
-    //   response = {
-    //     attachment: {
-    //       type: 'template',
-    //       payload: {
-    //         template_type: 'generic',
-    //         elements: [
-    //           {
-    //             title: 'Is this the right picture?',
-    //             subtitle: 'Tap a button to answer.',
-    //             image_url: attachment_url,
-    //             buttons: [
-    //               {
-    //                 type: 'postback',
-    //                 title: 'Yes!',
-    //                 payload: 'yes'
-    //               },
-    //               {
-    //                 type: 'postback',
-    //                 title: 'No!',
-    //                 payload: 'no'
-    //               }
-    //             ]
-    //           }
-    //         ]
-    //       }
-    //     }
-    //   }
-    // }
-
-    // // Sends the response message
-    // module.exports.callSendAPI(sender_psid, response)
   } catch (e) {
     console.error('Error in handleMessageType bottom', e)
   }
@@ -298,47 +264,52 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
 exports.handlePostback = (sender_psid, received_postback) => {
   // console.log('received_postback', received_postback)
   let response
-  // Get the payload for the postback
   let payload = received_postback.payload
-
-  // Set the response based on the postback payload
-  if (payload === 'get_started') {
-    return this.callSendAPI(sender_psid, {
-      text: `${responses.profile.greeting3}\n--------------- ${
-        responses.instructions['how-it-works']
-      } ---------------`
-    })
-      .then(() => {
-        return this.callSendAPI(sender_psid, {
-          text: responses.instructions.instr1
-        })
-      })
-      .then(() => {
-        return this.callSendAPI(sender_psid, {
-          text: responses['support-words'].or_even_better
-        })
-      })
-      .then(() => {
-        return this.callSendAPI(sender_psid, {
-          text: `•  ${responses.instructions.set1['sign-up']}\n•  ${
-            responses.instructions.set1.choose
-          }\n•  ${responses.instructions.set1.send}`
-        })
-      })
-      .then(() => {
-        return this.callSendAPI(
-          sender_psid,
-          module.exports.welcomeTemplate(sender_psid, response)
-        )
-      })
-  } else if (payload === 'pick_a_driver') {
-    response = { text: 'Oops, try sending another image.' }
+  if (payload === values.postback.get_started) {
+    return this.getStartedMessages(sender_psid, response)
+  } else if (payload === values.postback.get_card) {
+    response = { text: 'get card' }
+  } else if (payload === values.postback.get_delivery) {
+    response = { text: 'get delivery' }
   }
-  // Send the message to acknowledge the postback
+
   return module.exports.callSendAPI(sender_psid, response)
 }
-exports.welcomeTemplate = recipientId => {
-  console.log('rec in temp', recipientId)
+// sends the messages on get_started click
+// takes sender_psid and response obj
+exports.getStartedMessages = (sender_psid, response) => {
+  return this.callSendAPI(sender_psid, {
+    text: `${responses.profile.greeting3}\n--------------- ${
+      responses.instructions['how-it-works']
+    } ---------------`
+  })
+    .then(() => {
+      return this.callSendAPI(sender_psid, {
+        text: responses.instructions.instr1
+      })
+    })
+    .then(() => {
+      return this.callSendAPI(sender_psid, {
+        text: responses['support-words'].or_even_better
+      })
+    })
+    .then(() => {
+      return this.callSendAPI(sender_psid, {
+        text: `•  ${responses.instructions.set1['sign-up']}\n•  ${
+          responses.instructions.set1.choose
+        }\n•  ${responses.instructions.set1.send}`
+      })
+    })
+    .then(() => {
+      return this.callSendAPI(
+        sender_psid,
+        module.exports.welcomeTemplate(sender_psid, response)
+      )
+    })
+}
+// returns template to use in get_started message
+// takes sender_psid
+exports.welcomeTemplate = () => {
   return {
     attachment: {
       type: 'template',
@@ -352,13 +323,13 @@ exports.welcomeTemplate = recipientId => {
             buttons: [
               {
                 type: 'postback',
-                title: 'Get a Card Now',
-                payload: 'pick_a_card'
+                title: values.titles.get_card,
+                payload: values.postbacks.get_card
               },
               {
                 type: 'postback',
-                title: 'Get Auto-Delivery',
-                payload: 'pick_a_team'
+                title: values.title.get_delivery,
+                payload: values.postbacks.get_delivery
               }
             ]
           }

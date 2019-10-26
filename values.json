@@ -1,0 +1,11 @@
+{
+  "postbacks": {
+    "get_card": "get_card",
+    "get_delivery": "get_delivery",
+    "get_started": "get_started"
+  },
+  "titles": {
+    "get_card": "Get a Card Now",
+    "get_delivery": "Get Auto-Delivery"
+  }
+}
