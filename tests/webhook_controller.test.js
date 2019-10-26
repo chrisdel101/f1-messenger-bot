@@ -141,7 +141,7 @@ describe('webhook controller', function() {
     })
   })
 
-  describe.only('handlePostback()', () => {
+  describe('handlePostback()', () => {
     it('test', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'welcomeTemplate')

@@ -10,7 +10,7 @@ const driverController = require('./driver.controller')
 const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
-const responses = require('../values.json')
+const values = require('../values.json')
 const shell = require('shelljs')
 
 // request_body contains sender_id and message_body
@@ -265,11 +265,11 @@ exports.handlePostback = (sender_psid, received_postback) => {
   // console.log('received_postback', received_postback)
   let response
   let payload = received_postback.payload
-  if (payload === values.postback.get_started) {
+  if (payload === values.postbacks.get_started) {
     return this.getStartedMessages(sender_psid, response)
-  } else if (payload === values.postback.get_card) {
+  } else if (payload === values.postbacks.get_card) {
     response = { text: 'get card' }
-  } else if (payload === values.postback.get_delivery) {
+  } else if (payload === values.postbacks.get_delivery) {
     response = { text: 'get delivery' }
   }
 
@@ -328,7 +328,7 @@ exports.welcomeTemplate = () => {
               },
               {
                 type: 'postback',
-                title: values.title.get_delivery,
+                title: values.titles.get_delivery,
                 payload: values.postbacks.get_delivery
               }
             ]
