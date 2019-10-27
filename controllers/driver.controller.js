@@ -42,6 +42,7 @@ exports.extractDriverNames = driversArr => {
     return driverObj
   })
 }
+// returns obj with driver name and slug
 exports.getRandomDriver = () => {
   return Promise.resolve(
     this.cacheAndGetDrivers(cache.driversCache, 1400)

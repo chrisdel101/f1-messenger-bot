@@ -142,7 +142,7 @@ describe('webhook controller', function() {
   })
 
   describe('handlePostback()', () => {
-    it('test', function() {
+    it('handlePostback calls get_started', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'welcomeTemplate')
       let mock_webhook_event = {
@@ -157,8 +157,7 @@ describe('webhook controller', function() {
 
       const result = webhookController.handlePostback(
         mock_webhook_event.sender.id,
-        mock_webhook_event.postback,
-        mock_webhook_event.recipient
+        mock_webhook_event.postback
       )
       assert(webhookController.callSendAPI.calledOnce)
       assert(webhookController.welcomeTemplate.calledOnce)
@@ -166,36 +165,89 @@ describe('webhook controller', function() {
       webhookController.callSendAPI.restore()
       webhookController.welcomeTemplate.restore()
     })
-  })
-  describe('handleMessageType()', () => {
-    it('handleMessageType handles partial driver name - non-mobile URL', function() {
-      // replace function with a spy
-      sinon.spy(webhookController, 'callSendAPI')
-      return (
-        // call with partial name
-        webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: 'pierre'
-            }
-          })
-          // check func gets called/
-          .then(res => {
-            // check callSendAPI called
-            assert(webhookController.callSendAPI.calledOnce)
-            // check return value
-            assert.deepEqual(res.attachment, {
-              type: 'image',
-              payload: {
-                url: 'https://f1-cards.herokuapp.com/api/driver/pierre-gasly',
-                is_reusable: true
-              }
-            })
-            console.log(utils.viewCache())
-            console.log('\n')
-            webhookController.callSendAPI.restore()
-          })
+    it('handlePostback calls get_card', function() {
+      // sinon.spy(webhookController, 'callSendAPI')
+      let mock_webhook_event = {
+        sender: { id: '2399043010191818' },
+        recipient: { id: '107628650610694' },
+        timestamp: new Date().getTime(),
+        postback: {
+          title: 'Get a Card Now',
+          payload: 'get_card'
+        }
+      }
+
+      const result = webhookController.handlePostback(
+        mock_webhook_event.sender.id,
+        mock_webhook_event.postback
       )
+      // assert(webhookController.callSendAPI.calledOnce)
+      // console.log('res', result)
+      // webhookController.callSendAPI.restore()
+    })
+  })
+  describe('createSendAPIresponse()', () => {
+    it('createSendAPIresponse handles partial driver name - mobile URL', function() {
+      const fakeRes = {
+        type: 'image',
+        payload: new Promise((resolve, reject) => {
+          resolve({
+            slug: 'pierre-gasly',
+            mobileImageUrl:
+              'https://f1-cards.herokuapp.com/api/mobile/driver/pierre-gasly',
+            imageUrl: 'https://f1-cards.herokuapp.com/api/driver/pierre-gasly',
+            timeStamp: new Date().getTime()
+          })
+        })
+      }
+      return Promise.resolve(
+        webhookController.createSendAPIresponse(
+          '2399043010191818',
+          'mobile',
+          fakeRes
+        )
+      ).then(res => {
+        assert.deepEqual(res.attachment, {
+          type: 'image',
+          payload: {
+            url:
+              'https://f1-cards.herokuapp.com/api/mobile/driver/pierre-gasly',
+            is_reusable: true
+          }
+        })
+        console.log('\n')
+      })
+    })
+    it('createSendAPIresponse handles partial driver name - mobile URL', function() {
+      const fakeRes = {
+        type: 'image',
+        payload: new Promise((resolve, reject) => {
+          resolve({
+            slug: 'pierre-gasly',
+            mobileImageUrl:
+              'https://f1-cards.herokuapp.com/api/mobile/driver/pierre-gasly',
+            imageUrl: 'https://f1-cards.herokuapp.com/api/driver/pierre-gasly',
+            timeStamp: new Date().getTime()
+          })
+        })
+      }
+      return Promise.resolve(
+        webhookController.createSendAPIresponse(
+          '2399043010191818',
+          'mobile',
+          fakeRes
+        )
+      ).then(res => {
+        assert.deepEqual(res.attachment, {
+          type: 'image',
+          payload: {
+            url:
+              'https://f1-cards.herokuapp.com/api/mobile/driver/pierre-gasly',
+            is_reusable: true
+          }
+        })
+        console.log('\n')
+      })
     })
     it('handleMessageType handles partial driver name - mobile URL', function() {
       // replace function with a spy
@@ -419,6 +471,40 @@ describe('webhook controller', function() {
             webhookController.callSendAPI.restore()
           })
       )
+    })
+  })
+
+  describe('handleMessageType()', () => {
+    it('handleMessageType calls helper funcs when text passed in', function() {
+      sinon.spy(webhookController, 'callSendAPI')
+      sinon.spy(webhookController, 'createSendAPIresponse')
+      return Promise.resolve(
+        webhookController.handleMessageType('2399043010191818', {
+          message: {
+            text: 'pierre'
+          }
+        })
+      ).then(res => {
+        // check callSendAPI called
+        assert(webhookController.callSendAPI.calledOnce)
+        // check func gets called/
+        assert(webhookController.createSendAPIresponse.calledOnce)
+        console.log('\n')
+        webhookController.callSendAPI.restore()
+        webhookController.createSendAPIresponse.restore()
+      })
+    })
+    it('handleMessageType returns message sent confirmation', function() {
+      return Promise.resolve(
+        webhookController.handleMessageType('2399043010191818', {
+          message: {
+            text: 'pierre'
+          }
+        })
+      ).then(res => {
+        assert.strictEqual(res, 'message sent!')
+        console.log('\n')
+      })
     })
   })
   describe('checkInputText()', () => {

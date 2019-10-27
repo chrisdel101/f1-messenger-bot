@@ -11,7 +11,7 @@ const teamController = require('./team.controller')
 const testWordsJson = require('../test_words.json')
 const responses = require('../responses.json')
 const values = require('../values.json')
-const shell = require('shelljs')
+const utils = require('../utils')
 
 // request_body contains sender_id and message_body
 exports.facebookObj = request_body => {
@@ -179,82 +179,90 @@ exports.checkInputText = (inputText, cache) => {
     console.log('An error in checkInputText', e)
   }
 }
-// pass in cardType - attaches proper URL to facebook response obj
+// takes data from message forms into object sendAPI can handle
+// used in this.handleMessageType and this.handlePostback
+// takes object with res type and payload, and cardType
+exports.createSendAPIresponse = (
+  sender_psid,
+  cardType,
+  checkInputResponseZ
+) => {
+  // console.log('resposeVAl', checkInputResponseZ)
+  return Promise.resolve(checkInputResponseZ).then(res => {
+    // resolve first promise
+    return Promise.resolve(res)
+      .then(dataObj => {
+        console.log('dataObj', dataObj)
+        // resolve second promise if it exists
+        return Promise.resolve(dataObj.payload)
+          .then(payload => {
+            // console.log('payload', payload)
+            if (dataObj.type === 'image') {
+              // .then(payload => {
+              // console.log('payload', payload)
+              messageRes = {
+                attachment: {
+                  type: 'image',
+                  payload: {
+                    url: utils.whichUrl(cardType, payload),
+                    is_reusable: true
+                  }
+                }
+              }
+              // return new Promise((response, reject) => {
+              // module.exports.callSendAPI(sender_psid, messageRes)
+              // }).then(() => {
+              // console.log('here', messageRes)
+              return messageRes
+              // })
+              // calls api then returns response
+            } else if (dataObj.type === 'text') {
+              console.log('res text', res)
+              messageRes = {
+                text: payload
+              }
+              // calls api then returns response
+              // module.exports.callSendAPI(sender_psid, messageRes)
+              return messageRes
+            }
+          })
+          .catch(e => {
+            console.error('An error in handleMessageType promise2', e, e)
+          })
+      })
+      .catch(e => {
+        console.error('An error in handleMessageType promise 3', e)
+      })
+  })
+}
+// pass in cardType, hook and id - sends messages to API
 exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
-  let messageRes
   log('handleMessageType')
-
   try {
     // Check if the message contains text
     if (webhook_event.message.text) {
-      // check if text is a driver name
       // console.log(webhook_event.message)
-      const responseVal = Promise.resolve(
-        module.exports.checkInputText(webhook_event.message.text, cache)
-      )
-      // console.log('÷resposeVAl', responseVal)
-      return responseVal
-        .then(res => {
-          // resolve first promise
-          return Promise.resolve(res)
-            .then(dataObj => {
-              // console.log('dataObj', dataObj)
-              // resolve second promise if it exists
-              return Promise.resolve(dataObj.payload)
-                .then(payload => {
-                  // console.log('payload', payload)
-                  function whichUrl(cardType) {
-                    if (cardType === 'mobile') {
-                      return payload['mobileImageUrl']
-                    } else {
-                      return payload['imageUrl']
-                    }
-                  }
-                  if (dataObj.type === 'image') {
-                    // .then(payload => {
-                    console.log('payload', payload)
-                    messageRes = {
-                      attachment: {
-                        type: 'image',
-                        payload: {
-                          url: whichUrl(cardType),
-                          is_reusable: true
-                        }
-                      }
-                    }
-                    // return new Promise((response, reject) => {
-                    module.exports.callSendAPI(sender_psid, messageRes)
-                    // }).then(() => {
-                    console.log('here', messageRes)
-                    return messageRes
-                    // })
-                    // calls api then returns response
-                  } else if (dataObj.type === 'text') {
-                    console.log('res text', res)
-                    messageRes = {
-                      text: payload
-                    }
-                    // calls api then returns response
-                    module.exports.callSendAPI(sender_psid, messageRes)
-                    return messageRes
-                  }
-                })
-                .catch(e => {
-                  console.error('An error in handleMessageType promise2', e, e)
-                })
-            })
-            .catch(e => {
-              console.error('An error in handleMessageType promise 3', e)
-            })
-        })
-        .catch(e => {
-          console.error('An error in handleMessageType promise 1', e)
-        })
+      // check if text is a driver name
+      return Promise.resolve(
+        this.checkInputText(webhook_event.message.text, cache)
+      ).then(responseVal => {
+        // create FB response obj
+        return Promise.resolve(
+          this.createSendAPIresponse(sender_psid, cardType, responseVal)
+        )
+          .then(res => {
+            // send data to API
+            return Promise.resolve(this.callSendAPI(sender_psid, res))
+          })
+          .catch(e => {
+            console.error('An error in handleMessageType promise 1', e)
+          })
+      })
     } else {
       response = {
         text: 'There is no driver by that name. Maybe check your spelling.'
       }
-      return module.exports.callSendAPI(sender_psid, response)
+      return this.callSendAPI(sender_psid, response)
     }
   } catch (e) {
     console.error('Error in handleMessageType bottom', e)
@@ -262,12 +270,22 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
 }
 // Handles messaging_postbacks events
 exports.handlePostback = (sender_psid, received_postback) => {
-  // console.log('received_postback', received_postback)
   let response
+  console.log('received_postback', received_postback)
   let payload = received_postback.payload
+  // console.log('payload', payload)
   if (payload === values.postbacks.get_started) {
     return this.getStartedMessages(sender_psid, response)
   } else if (payload === values.postbacks.get_card) {
+    console.log('payload', values.postbacks.get_card)
+
+    return driverController.getRandomDriver().then(res => {
+      return driverController
+        .cacheAndGetDriver(res.name_slug, cache.driverCache)
+        .then(res => {
+          console.log('res', res)
+        })
+    })
     response = { text: 'get card' }
   } else if (payload === values.postbacks.get_delivery) {
     response = { text: 'get delivery' }
@@ -340,7 +358,7 @@ exports.welcomeTemplate = () => {
 }
 
 exports.callSendAPI = (sender_psid, response) => {
-  console.log('CALL API')
+  console.log('CALL API', response)
   let request_body = {
     recipient: {
       id: sender_psid
@@ -358,7 +376,8 @@ exports.callSendAPI = (sender_psid, response) => {
           reject('Unable to send message:' + err)
           console.error('Unable to send message:' + err)
         } else {
-          console.error('Body Error in callSendAPI', body.error.message)
+          console.error('Body Error in callSendAPI', body.error)
+          // console.error('Body Error in callSendAPI', body.error)
           reject('Body Error in callSendAPI', body.error.message)
         }
       }

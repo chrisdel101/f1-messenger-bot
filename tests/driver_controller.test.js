@@ -6,7 +6,7 @@ const sinon = require('sinon')
 const { cache, testCache } = require('../cache')
 
 describe('drivers controller', function() {
-  describe.only('getRandomDriver()', () => {
+  describe('getRandomDriver()', () => {
     // assure random func it called
     it('getRandomDriver calls return getRandomInt', function() {
       sinon.spy(utils, 'getRandomInt')

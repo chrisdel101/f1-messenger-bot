@@ -10,6 +10,19 @@ const isEmpty = require('lodash/isEmpty')
 const { cache, testCache } = require('../cache')
 
 describe('utils tests', function() {
+  describe('getRandomInt()', () => {
+    it('getRandomInt returns differnt int each time', function() {
+      const int1 = utils.getRandomInt(20)
+      const int2 = utils.getRandomInt(20)
+      assert(int1 !== int2)
+    })
+    it('getRandomInt valus is between zero and end value only', function() {
+      const int1 = utils.getRandomInt(5)
+      assert(int1 >= 0 && int1 < 5)
+      const int2 = utils.getRandomInt(1000)
+      assert(int2 >= 0 && int2 < 1000)
+    })
+  })
   describe('verifyTimeStamp()', () => {
     it('verifyTimeStamp fails older than mins entered', function() {
       // older than 30 mins

@@ -110,3 +110,11 @@ exports.createDelayTimeStamp = minsDelay => {
 exports.getRandomInt = end => {
   return Math.floor(Math.random() * end)
 }
+
+exports.whichUrl = (cardType, payload) => {
+  if (cardType === 'mobile') {
+    return payload['mobileImageUrl']
+  } else {
+    return payload['imageUrl']
+  }
+}
