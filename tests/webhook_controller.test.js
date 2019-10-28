@@ -165,7 +165,7 @@ describe('webhook controller', function() {
       webhookController.callSendAPI.restore()
       webhookController.welcomeTemplate.restore()
     })
-    it('handlePostback calls get_card', function() {
+    it.only('handlePostback calls get_card', function() {
       // sinon.spy(webhookController, 'callSendAPI')
       let mock_webhook_event = {
         sender: { id: '2399043010191818' },
@@ -291,7 +291,7 @@ describe('webhook controller', function() {
           })
       )
     })
-    it.only('createSendAPIresponse handles type:text; does not follow type:image logic', function() {
+    it('createSendAPIresponse handles type:text; does not follow type:image logic', function() {
       sinon.spy(utils, 'whichUrl')
       const fakeRes = {
         type: 'text',
@@ -304,168 +304,6 @@ describe('webhook controller', function() {
           .then(res => {
             assert(utils.whichUrl.notCalled)
             utils.whichUrl.restore()
-          })
-      )
-    })
-    // stub of checkInputText not working
-    it('handleMessageType handles driver mage: returns response and calls callSendAPI; spy callSendAPI; stub checkInputText', function() {
-      // replace function with a spy
-      sinon.spy(webhookController, 'callSendAPI')
-      // console.log('res', webHookController.callSendAPI)
-
-      // stub checkInputText - forced to return an image type
-      let stub = sinon.stub()
-      stub.returns({
-        type: 'image',
-        url: 'some image Url',
-        is_reusable: true
-      })
-      // console.log('stub', stub())
-      webHookController.__set__('checkInputText', stub)
-      return (
-        webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: 'Lewis Hamilton'
-            }
-          })
-          // check func gets called/
-          .then(res => {
-            // check callSendAPI called
-            // console.log('count', webhookController.callSendAPI.callCount)
-            assert(webhookController.callSendAPI.calledOnce)
-            // check return value
-            assert.deepEqual(res.attachment, {
-              type: 'image',
-              payload: {
-                url: 'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
-                is_reusable: true
-              }
-            })
-            webhookController.callSendAPI.restore()
-            stub.reset()
-          })
-      )
-    })
-    it('handleMessageType handles driver image: returns response and calls callSendAPI', function() {
-      // webhookController.callSendAPI.restore()
-      // replace function with a spy
-      sinon.spy(webhookController, 'callSendAPI')
-      // console.log(typeof webHookController.callSendAPI)
-      return (
-        webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: 'Lewis Hamilton'
-            }
-          })
-          // check func gets called/
-          .then(res => {
-            // console.log('RES', res)
-            // check callSendAPI called
-            assert(webhookController.callSendAPI.calledOnce)
-            // check return value
-            assert.deepEqual(res.attachment, {
-              type: 'image',
-              payload: {
-                url: 'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
-                is_reusable: true
-              }
-            })
-            webhookController.callSendAPI.restore()
-          })
-      )
-    })
-    it('handleMessageType returns response with normal text passed in', function() {
-      // replace function with a spy
-      // sinon.spy(webhookController, 'checkInputText')
-      // let spy = sinon.spy()
-      // driverController.__set__('checkInputText', spy)
-      return (
-        webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: responses.filler
-            }
-          })
-          // check func gets called/
-
-          .then(res => {
-            // check return value
-            assert.deepEqual(res, { text: responses.filler })
-          })
-      )
-    })
-    it('handleMessageType returns response - normal text; spy checkTextInput', function() {
-      // replace function with a spy
-      sinon.spy(webhookController, 'checkInputText')
-      return webhookController
-        .handleMessageType('2399043010191818', {
-          message: {
-            text: responses.filler
-          }
-        })
-        .then(res => {
-          // check that callSendAPI is called
-          assert(webhookController.checkInputText.calledOnce)
-          // check return value
-          assert.deepEqual(res, { text: responses.filler })
-          webhookController.checkInputText.restore()
-        })
-    })
-    it('handleMessageType handles team image - team name: returns response and calls callSendAPI', function() {
-      // replace function with a spy
-      sinon.spy(webhookController, 'callSendAPI')
-      // console.log(typeof webHookController.callSendAPI)
-      return (
-        webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: 'haas'
-            }
-          })
-          // check func gets called/
-          .then(res => {
-            console.log('RES', res)
-            // check callSendAPI called
-            assert(webhookController.callSendAPI.calledOnce)
-            // check return value
-            assert.deepEqual(res.attachment, {
-              type: 'image',
-              payload: {
-                url: 'https://f1-cards.herokuapp.com/api/team/haas_f1_team',
-                is_reusable: true
-              }
-            })
-            webhookController.callSendAPI.restore()
-          })
-      )
-    })
-    it('handleMessageType handles team image - team slug: returns response and calls callSendAPI', function() {
-      // replace function with a spy
-      sinon.spy(webhookController, 'callSendAPI')
-      // console.log(typeof webHookController.callSendAPI)
-      return (
-        webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: 'racing_point'
-            }
-          })
-          // check func gets called/
-          .then(res => {
-            console.log('RES', res)
-            // check callSendAPI called
-            assert(webhookController.callSendAPI.calledOnce)
-            // check return value
-            assert.deepEqual(res.attachment, {
-              type: 'image',
-              payload: {
-                url: 'https://f1-cards.herokuapp.com/api/team/racing_point',
-                is_reusable: true
-              }
-            })
-            webhookController.callSendAPI.restore()
           })
       )
     })

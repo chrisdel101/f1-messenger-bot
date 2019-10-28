@@ -1,6 +1,6 @@
 const request = require('request')
 const endpoints = require('../endpoints')
-const cache = require('../cache').cache
+const { cache, testCache } = require('../cache')
 const moment = require('moment')
 // https://stackoverflow.com/q/26885685/5972531
 const debug = require('debug')
@@ -45,11 +45,11 @@ exports.sendHookResponse = (req, res) => {
       // Get the sender PSID
       let sender_psid = webhook_event.sender.id
       console.log('Sender PSID: ' + sender_psid)
+      // get devivce size and data
+      const cardType = module.exports.getUserData()
       // Check if the event is a message or postback and
       // pass the event to the appropriate handler function
       if (webhook_event.message) {
-        // get devivce size and data
-        const cardType = module.exports.getUserData()
         // Returns a '200 OK' response to all requests
         res.status(200).send('EVENT_RECEIVED')
         return module.exports.handleMessageType(
@@ -96,7 +96,8 @@ exports.verifyHook = (req, res) => {
 }
 // take user input and check to send back response
 exports.checkInputText = (inputText, cache) => {
-  // console.log('checkInputText')
+  // console.log('checkInputText HERE', inputText)
+  // console.log('checkInputText CACHE', cache)
   log('checkInputText')
   try {
     // check json first
@@ -138,7 +139,8 @@ exports.checkInputText = (inputText, cache) => {
       }
     }
     return driverController.checkDriverApi(inputText).then(driverSlug => {
-      console.log('webbook.checkInputText() driverSlug', driverSlug)
+      // console.log('webbook.checkInputText() driverSlug', driverSlug)
+      // console.log('webbook.checkInputText() driverSlug')
       // true if a driver name - check not false
       if (driverSlug) {
         // - returns a promise if calling from API
@@ -189,7 +191,7 @@ exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
       // resolve first promise
       return Promise.resolve(res)
         .then(dataObj => {
-          console.log('dataObj', dataObj)
+          // console.log('dataObj', dataObj)
           // resolve second promise if it exists
           return Promise.resolve(dataObj.payload)
             .then(payload => {
@@ -235,6 +237,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
         this.checkInputText(webhook_event.message.text, cache)
       )
         .then(responseVal => {
+          console.log('responseVal here', reponseVal)
           // create FB response obj
           return Promise.resolve(
             this.createSendAPIresponse(sender_psid, cardType, responseVal)
@@ -261,7 +264,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   }
 }
 // Handles messaging_postbacks events
-exports.handlePostback = (sender_psid, received_postback) => {
+exports.handlePostback = (sender_psid, received_postback, cardType) => {
   let response
   console.log('received_postback', received_postback)
   let payload = received_postback.payload
@@ -269,13 +272,24 @@ exports.handlePostback = (sender_psid, received_postback) => {
   if (payload === values.postbacks.get_started) {
     return this.getStartedMessages(sender_psid, response)
   } else if (payload === values.postbacks.get_card) {
-    console.log('payload', values.postbacks.get_card)
-
-    return driverController.getRandomDriver().then(res => {
+    // get random driver name and slug
+    return driverController.getRandomDriver().then(randomDriver => {
+      // get full driver obj
       return driverController
-        .cacheAndGetDriver(res.name_slug, cache.driverCache)
-        .then(res => {
-          console.log('res', res)
+        .cacheAndGetDriver(randomDriver.name_slug, cache.driverCache)
+        .then(driverRes => {
+          // check and make typed response obj
+          return this.checkInputText(driverRes.slug, cache).then(typeRes => {
+            // form into correct FB format
+            return this.createSendAPIresponse(
+              sender_psid,
+              cardType,
+              typeRes
+            ).then(res => {
+              // send to messenger
+              return this.callSendAPI(sender_psid, res)
+            })
+          })
         })
     })
     response = { text: 'get card' }

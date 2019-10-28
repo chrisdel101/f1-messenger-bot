@@ -135,6 +135,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
       return module.exports.checkDriverApi(driverSlug).then(slug => {
         // if driver name is valid
         if (slug) {
+          console.log('cacheAndGetDriver() - NOT FROM CACHE')
           //  add to cache
           driverCache[driverSlug] = this.createDriverObject(driverSlug)
           // console.log('here', driverCache)
@@ -147,6 +148,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
       })
       // if driver is in cache already
     } else if (driverCache.hasOwnProperty(driverSlug)) {
+      console.log('cacheAndGetDriver() - FROM CACHE')
       // check if time is valid - less than 30 mins
       if (utils.verifyTimeStamp(driverCache[driverSlug].timeStamp, 30)) {
         console.log('valid time stamp')
@@ -154,6 +156,7 @@ exports.cacheAndGetDriver = (driverSlug, driverCache) => {
         return driverCache[driverSlug]
         // if not valid then re-add
       } else {
+        console.log('cacheAndGetDriver() - NOT FROM CACHE')
         console.log('failed time stamp')
         driverCache[driverSlug] = this.createDriverObject(driverSlug)
         // console.log('here', driverCache)
