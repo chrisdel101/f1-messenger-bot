@@ -365,7 +365,7 @@ exports.followUpTemplate = () => {
       type: 'template',
       payload: {
         template_type: 'button',
-        title: responses.help.ask3,
+        text: responses.help.ask3,
         buttons: [
           {
             type: 'postback',
