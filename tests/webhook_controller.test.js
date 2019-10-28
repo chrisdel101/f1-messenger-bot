@@ -187,7 +187,7 @@ describe('webhook controller', function() {
     })
   })
   describe('createSendAPIresponse()', () => {
-    it('createSendAPIresponse returns mobile response API obj', function() {
+    it('createSendAPIresponse handles type:image; returns mobile URL response', function() {
       const fakeRes = {
         type: 'image',
         payload: new Promise((resolve, reject) => {
@@ -218,7 +218,7 @@ describe('webhook controller', function() {
         console.log('\n')
       })
     })
-    it('createSendAPIresponse returns non-mobile response API obj', function() {
+    it('createSendAPIresponse handles type:image; returns non-mobile URL response', function() {
       const fakeRes = {
         type: 'image',
         payload: new Promise((resolve, reject) => {
@@ -248,63 +248,62 @@ describe('webhook controller', function() {
         console.log('\n')
       })
     })
-    it.only('handleMessageType handles partial driver name - mobile URL', function() {
+    it('createSendAPIresponse handles type:image; does not follow type:text logic', function() {
+      sinon.spy(utils, 'whichUrl')
+      const fakeRes = {
+        type: 'image',
+        payload: new Promise((resolve, reject) => {
+          resolve({
+            slug: 'some-driver',
+            mobileImageUrl:
+              'https://f1-cards.herokuapp.com/api/mobile/driver/some-driver',
+            imageUrl: 'https://f1-cards.herokuapp.com/api/driver/some-driver',
+            timeStamp: new Date().getTime()
+          })
+        })
+      }
+      return Promise.resolve(
+        webhookController.createSendAPIresponse(
+          '2399043010191818',
+          undefined,
+          fakeRes
+        )
+      ).then(res => {
+        assert(utils.whichUrl.calledOnce)
+        utils.whichUrl.restore()
+        console.log('\n')
+      })
+    })
+    it('createSendAPIresponse handles type:text; returns text response obj', function() {
       // replace function with a spy
       const fakeRes = {
         type: 'text',
-        payload: {
-          message: {
-            text: 'hello'
-          }
-        }
+        payload: 'Some payload text'
       }
       return (
         // call with partial name
         webhookController
-          .createSendAPIresponse('2399043010191818', 'mobile', fakeRes)
-          // check func gets called/
+          .createSendAPIresponse('2399043010191818', undefined, fakeRes)
           .then(res => {
-            // // check callSendAPI called
-            // assert(webhookController.callSendAPI.calledOnce)
-            // // check return value
-            // console.log('res', res)
-            // assert.deepEqual(res.attachment, {
-            //   type: 'image',
-            //   payload: {
-            //     url:
-            //       'https://f1-cards.herokuapp.com/api/mobile/driver/pierre-gasly',
-            //     is_reusable: true
-            //   }
-            // console.log(utils.viewCache())
+            assert.deepEqual(res, {
+              text: 'Some payload text'
+            })
           })
-        // webhookController.callSendAPI.restore()
-        // })
       )
     })
-    it('handleMessageType handles driver image: returns response and calls callSendAPI; spy callSendAPI', function() {
-      // replace function with a spy
-      sinon.spy(webhookController, 'callSendAPI')
+    it.only('createSendAPIresponse handles type:text; does not follow type:image logic', function() {
+      sinon.spy(utils, 'whichUrl')
+      const fakeRes = {
+        type: 'text',
+        payload: 'Some payload text'
+      }
       return (
+        // call with partial name
         webhookController
-          .handleMessageType('2399043010191818', {
-            message: {
-              text: 'Lewis Hamilton'
-            }
-          })
-          // check func gets called/
+          .createSendAPIresponse('2399043010191818', undefined, fakeRes)
           .then(res => {
-            // check callSendAPI called
-            // console.log('count', res)
-            assert(webhookController.callSendAPI.calledOnce)
-            // check return value
-            assert.deepEqual(res.attachment, {
-              type: 'image',
-              payload: {
-                url: 'https://f1-cards.herokuapp.com/api/driver/lewis-hamilton',
-                is_reusable: true
-              }
-            })
-            webhookController.callSendAPI.restore()
+            assert(utils.whichUrl.notCalled)
+            utils.whichUrl.restore()
           })
       )
     })

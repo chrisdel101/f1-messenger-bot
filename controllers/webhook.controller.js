@@ -183,53 +183,46 @@ exports.checkInputText = (inputText, cache) => {
 // used in this.handleMessageType and this.handlePostback
 // takes object with res type and payload, and cardType
 exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
-  console.log('resposeVAl', checkInputResponse)
-  return Promise.resolve(checkInputResponse).then(res => {
-    // resolve first promise
-    return Promise.resolve(res)
-      .then(dataObj => {
-        console.log('dataObj', dataObj)
-        // resolve second promise if it exists
-        return Promise.resolve(dataObj.payload)
-          .then(payload => {
-            // console.log('payload', payload)
-            if (dataObj.type === 'image') {
-              // .then(payload => {
+  try {
+    // console.log('resposeVAl', checkInputResponse)
+    return Promise.resolve(checkInputResponse).then(res => {
+      // resolve first promise
+      return Promise.resolve(res)
+        .then(dataObj => {
+          console.log('dataObj', dataObj)
+          // resolve second promise if it exists
+          return Promise.resolve(dataObj.payload)
+            .then(payload => {
               // console.log('payload', payload)
-              messageRes = {
-                attachment: {
-                  type: 'image',
-                  payload: {
-                    url: utils.whichUrl(cardType, payload),
-                    is_reusable: true
+              if (dataObj.type === 'image') {
+                // console.log('payload', payload)
+                return {
+                  attachment: {
+                    type: 'image',
+                    payload: {
+                      url: utils.whichUrl(cardType, payload),
+                      is_reusable: true
+                    }
                   }
                 }
+              } else if (dataObj.type === 'text') {
+                // console.log('res text', res)
+                return {
+                  text: payload
+                }
               }
-              // return new Promise((response, reject) => {
-              // module.exports.callSendAPI(sender_psid, messageRes)
-              // }).then(() => {
-              // console.log('here', messageRes)
-              return messageRes
-              // })
-              // calls api then returns response
-            } else if (dataObj.type === 'text') {
-              console.log('res text', res)
-              messageRes = {
-                text: payload
-              }
-              // calls api then returns response
-              // module.exports.callSendAPI(sender_psid, messageRes)
-              return messageRes
-            }
-          })
-          .catch(e => {
-            console.error('An error in handleMessageType promise2', e, e)
-          })
-      })
-      .catch(e => {
-        console.error('An error in handleMessageType promise 3', e)
-      })
-  })
+            })
+            .catch(e => {
+              console.error('An error in createSendAPIresponse promise 2', e)
+            })
+        })
+        .catch(e => {
+          console.error('An error in createSendAPIresponse promise 1', e)
+        })
+    })
+  } catch (e) {
+    console.error('An error in createSendAPIresponse', e)
+  }
 }
 // pass in cardType, hook and id - sends messages to API
 exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
