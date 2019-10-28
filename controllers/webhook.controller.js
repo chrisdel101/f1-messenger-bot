@@ -287,10 +287,7 @@ exports.handlePostback = (sender_psid, received_postback, cardType) => {
             ).then(res => {
               // send to messenger
               return this.callSendAPI(sender_psid, res).then(() => {
-                return this.callSendAPI(
-                  sender_psid,
-                  this.welcomeTemplate(sender_psid, response)
-                )
+                return this.callSendAPI(sender_psid, this.followUpTemplate())
               })
             })
           })
@@ -328,10 +325,7 @@ exports.getStartedMessages = (sender_psid, response) => {
       })
     })
     .then(() => {
-      return this.callSendAPI(
-        sender_psid,
-        module.exports.welcomeTemplate(sender_psid, response)
-      )
+      return this.callSendAPI(sender_psid, module.exports.welcomeTemplate())
     })
 }
 // returns template to use in get_started message
@@ -359,6 +353,29 @@ exports.welcomeTemplate = () => {
                 payload: values.postbacks.get_delivery
               }
             ]
+          }
+        ]
+      }
+    }
+  }
+}
+exports.followUpTemplate = () => {
+  return {
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'button',
+        title: responses.help.ask3,
+        buttons: [
+          {
+            type: 'postback',
+            title: values.titles.get_card,
+            payload: values.postbacks.get_card
+          },
+          {
+            type: 'postback',
+            title: values.titles.get_delivery,
+            payload: values.postbacks.get_delivery
           }
         ]
       }
