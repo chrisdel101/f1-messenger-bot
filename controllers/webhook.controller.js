@@ -108,7 +108,7 @@ exports.checkInputText = (inputText, cache) => {
     } else if (testWordsJson.prompt_help.includes(inputText.toLowerCase())) {
       return {
         type: 'text',
-        payload: responses.help.ask
+        payload: responses.help.ask1
       }
     } else if (
       testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
@@ -206,7 +206,6 @@ exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
                   }
                 }
               } else if (dataObj.type === 'text') {
-                // console.log('res text', res)
                 return {
                   text: payload
                 }
@@ -234,22 +233,26 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
       // check if text is a driver name
       return Promise.resolve(
         this.checkInputText(webhook_event.message.text, cache)
-      ).then(responseVal => {
-        // create FB response obj
-        return Promise.resolve(
-          this.createSendAPIresponse(sender_psid, cardType, responseVal)
-        )
-          .then(res => {
-            // send data to API
-            return Promise.resolve(this.callSendAPI(sender_psid, res))
-          })
-          .catch(e => {
-            console.error('An error in handleMessageType promise 1', e)
-          })
-      })
+      )
+        .then(responseVal => {
+          // create FB response obj
+          return Promise.resolve(
+            this.createSendAPIresponse(sender_psid, cardType, responseVal)
+          )
+            .then(res => {
+              // send data to API
+              return Promise.resolve(this.callSendAPI(sender_psid, res))
+            })
+            .catch(e => {
+              console.error('An error in handleMessageType promise 2', e)
+            })
+        })
+        .catch(e => {
+          console.error('An error in handleMessageType promise 1', e)
+        })
     } else {
       response = {
-        text: 'There is no driver by that name. Maybe check your spelling.'
+        text: 'Your response needs to be a text response. Please type something'
       }
       return this.callSendAPI(sender_psid, response)
     }
