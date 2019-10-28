@@ -182,13 +182,9 @@ exports.checkInputText = (inputText, cache) => {
 // takes data from message forms into object sendAPI can handle
 // used in this.handleMessageType and this.handlePostback
 // takes object with res type and payload, and cardType
-exports.createSendAPIresponse = (
-  sender_psid,
-  cardType,
-  checkInputResponseZ
-) => {
-  // console.log('resposeVAl', checkInputResponseZ)
-  return Promise.resolve(checkInputResponseZ).then(res => {
+exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
+  console.log('resposeVAl', checkInputResponse)
+  return Promise.resolve(checkInputResponse).then(res => {
     // resolve first promise
     return Promise.resolve(res)
       .then(dataObj => {
