@@ -286,12 +286,16 @@ exports.handlePostback = (sender_psid, received_postback, cardType) => {
               typeRes
             ).then(res => {
               // send to messenger
-              return this.callSendAPI(sender_psid, res)
+              return this.callSendAPI(sender_psid, res).then(() => {
+                return this.callSendAPI(
+                  sender_psid,
+                  this.welcomeTemplate(sender_psid, response)
+                )
+              })
             })
           })
         })
     })
-    response = { text: 'get card' }
   } else if (payload === values.postbacks.get_delivery) {
     response = { text: 'get delivery' }
   }
