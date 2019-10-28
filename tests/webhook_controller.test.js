@@ -165,7 +165,7 @@ describe('webhook controller', function() {
       webhookController.callSendAPI.restore()
       webhookController.welcomeTemplate.restore()
     })
-    it.only('handlePostback calls get_card', function() {
+    it('handlePostback calls get_card', function() {
       // sinon.spy(webhookController, 'callSendAPI')
       let mock_webhook_event = {
         sender: { id: '2399043010191818' },
@@ -310,7 +310,7 @@ describe('webhook controller', function() {
   })
 
   describe('handleMessageType()', () => {
-    it('handleMessageType calls helper funcs when text passed in', function() {
+    it.only('handleMessageType calls helper funcs when text passed in', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'createSendAPIresponse')
       return Promise.resolve(

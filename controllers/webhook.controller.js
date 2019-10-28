@@ -237,7 +237,6 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
         this.checkInputText(webhook_event.message.text, cache)
       )
         .then(responseVal => {
-          console.log('responseVal here', reponseVal)
           // create FB response obj
           return Promise.resolve(
             this.createSendAPIresponse(sender_psid, cardType, responseVal)
