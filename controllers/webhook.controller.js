@@ -325,7 +325,7 @@ exports.getStartedMessages = (sender_psid, response) => {
       })
     })
     .then(() => {
-      return this.callSendAPI(sender_psid, module.exports.welcomeTemplate())
+      return this.callSendAPI(sender_psid, this.welcomeTemplate())
     })
 }
 // returns template to use in get_started message
@@ -384,7 +384,7 @@ exports.followUpTemplate = () => {
 }
 
 exports.callSendAPI = (sender_psid, response) => {
-  console.log('CALL API', response)
+  console.log('CALL API')
   let request_body = {
     recipient: {
       id: sender_psid

@@ -97,7 +97,7 @@ describe('webhook controller', function() {
         webhookController.handleMessageType.restore()
       })
     })
-    it('sendHookResponse calls handlePostback', function() {
+    it.only('sendHookResponse calls handlePostback', function() {
       // mock mock_body_data for req obj- match FB
       let mock_body_data = {
         body: {
@@ -109,8 +109,8 @@ describe('webhook controller', function() {
               time: new Date().getTime(),
               messaging: [
                 {
-                  sender: { id: 111111 },
-                  recipient: { id: 222222 },
+                  sender: { id: '2399043010191818' },
+                  recipient: { id: '2399043010191818' },
                   timestamp: new Date().getTime(),
                   postback: {
                     title: 'Get Started',
@@ -155,17 +155,21 @@ describe('webhook controller', function() {
         }
       }
 
-      const result = webhookController.handlePostback(
-        mock_webhook_event.sender.id,
-        mock_webhook_event.postback
-      )
-      assert(webhookController.callSendAPI.calledOnce)
-      assert(webhookController.welcomeTemplate.calledOnce)
-      // console.log('res', result)
-      webhookController.callSendAPI.restore()
-      webhookController.welcomeTemplate.restore()
+      return webhookController
+        .handlePostback(
+          mock_webhook_event.sender.id,
+          mock_webhook_event.postback
+        )
+        .then(() => {
+          console.log(webhookController.welcomeTemplate.callCount)
+          console.log(webhookController.callSendAPI.callCount)
+          assert(webhookController.callSendAPI.calledOnce)
+          assert(webhookController.welcomeTemplate.calledOnce)
+          webhookController.callSendAPI.restore()
+          webhookController.welcomeTemplate.restore()
+        })
     })
-    it('handlePostback calls get_card', function() {
+    it('handlePostback calls get_card - returns random card', function() {
       // sinon.spy(webhookController, 'callSendAPI')
       let mock_webhook_event = {
         sender: { id: '2399043010191818' },
@@ -310,7 +314,7 @@ describe('webhook controller', function() {
   })
 
   describe('handleMessageType()', () => {
-    it.only('handleMessageType calls helper funcs when text passed in', function() {
+    it('handleMessageType calls helper funcs when text passed in', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'createSendAPIresponse')
       return Promise.resolve(
