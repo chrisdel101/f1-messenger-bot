@@ -6,6 +6,7 @@ const utils = require('../utils')
 const rewire = require('rewire')
 const sinon = require('sinon')
 const responses = require('../responses.json')
+const values = require('../values.json')
 const { mockRequest, mockResponse } = require('mock-req-res')
 require('dotenv').config(
   '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
@@ -26,6 +27,7 @@ before(function() {
   webHookController.__set__('driversCache', stub)
 })
 describe('webhook controller', function() {
+  // LIVE TESTS
   describe('sendHookResponse()', () => {
     it('sendHookResponse calls handleMessage - webhook_event has message key', function() {
       // fake fake_webhook_event for req obj- match FB
@@ -35,12 +37,12 @@ describe('webhook controller', function() {
           entry: [
             // mock webhook_event
             {
-              id: 123455,
+              id: values.testing['fake_msg_id'],
               time: new Date().getTime(),
               messaging: [
                 {
-                  sender: { id: 111111 },
-                  recipient: { id: 222222 },
+                  sender: { id: process.env.SENDER_ID },
+                  recipient: { id: process.env.RECIEPIENT_ID },
                   timestamp: new Date().getTime(),
                   message: {
                     mid: 'mid.1460620432888:f8e3412003d2d1cd93',
@@ -69,12 +71,12 @@ describe('webhook controller', function() {
           entry: [
             // mock webhook_event
             {
-              id: 123455,
+              id: values.testing['fake_msg_id'],
               time: new Date().getTime(),
               messaging: [
                 {
-                  sender: { id: 111111 },
-                  recipient: { id: 222222 },
+                  sender: { id: process.env.SENDER_ID },
+                  recipient: { id: process.env.RECIEPIENT_ID },
                   timestamp: new Date().getTime(),
                   message: {
                     mid: 'mid.1460620432888:f8e3412003d2d1cd93',
@@ -97,7 +99,7 @@ describe('webhook controller', function() {
         webhookController.handleMessageType.restore()
       })
     })
-    it.only('sendHookResponse calls handlePostback', function() {
+    it('sendHookResponse calls handlePostback - get_started', function() {
       // mock mock_body_data for req obj- match FB
       let mock_body_data = {
         body: {
@@ -105,12 +107,12 @@ describe('webhook controller', function() {
           entry: [
             // mock webhook_event
             {
-              id: 123455,
+              id: values.testing['fake_msg_id'],
               time: new Date().getTime(),
               messaging: [
                 {
-                  sender: { id: '2399043010191818' },
-                  recipient: { id: '2399043010191818' },
+                  sender: { id: process.env.SENDER_ID },
+                  recipient: { id: process.env.RECIEPIENT_ID },
                   timestamp: new Date().getTime(),
                   postback: {
                     title: 'Get Started',
@@ -133,10 +135,44 @@ describe('webhook controller', function() {
       webhookController.handlePostback.restore()
       webhookController.callSendAPI.restore()
     })
+    it.only('sendHookResponse calls handlePostback - get_delivery', function() {
+      // mock mock_body_data for req obj- match FB
+      let mock_body_data = {
+        body: {
+          object: 'page',
+          entry: [
+            {
+              id: values.testing['fake_msg_id'],
+              time: new Date().getTime(),
+              messaging: [
+                {
+                  sender: { id: process.env.SENDER_ID },
+                  recipient: { id: process.env.RECIEPIENT_ID },
+                  timestamp: new Date().getTime(),
+                  postback: {
+                    title: values.titles['get_delivery'],
+                    payload: values.postbacks['get_delivery']
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+      const req = mockRequest(mock_body_data)
+      const res = mockResponse()
+      sinon.spy(webhookController, 'handlePostback')
+      sinon.spy(webhookController, 'callSendAPI')
+      webhookController.sendHookResponse(req, res)
+      assert(webhookController.handlePostback.calledOnce)
+      assert(webhookController.callSendAPI.calledOnce)
+      webhookController.handlePostback.restore()
+      webhookController.callSendAPI.restore()
+    })
   })
   describe('welcomeTemplate()', () => {
     it('welcomeTemplate returns template', function() {
-      const res = webhookController.welcomeTemplate('2399043010191818')
+      const res = webhookController.welcomeTemplate(process.env.SENDER_ID)
       console.log('res', res)
     })
   })
@@ -146,7 +182,7 @@ describe('webhook controller', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'welcomeTemplate')
       let mock_webhook_event = {
-        sender: { id: '2399043010191818' },
+        sender: { id: process.env.SENDER_ID },
         recipient: { id: '107628650610694' },
         timestamp: new Date().getTime(),
         postback: {
@@ -172,7 +208,7 @@ describe('webhook controller', function() {
     it('handlePostback calls get_card - returns random card', function() {
       // sinon.spy(webhookController, 'callSendAPI')
       let mock_webhook_event = {
-        sender: { id: '2399043010191818' },
+        sender: { id: process.env.SENDER_ID },
         recipient: { id: '107628650610694' },
         timestamp: new Date().getTime(),
         postback: {
@@ -206,7 +242,7 @@ describe('webhook controller', function() {
       }
       return Promise.resolve(
         webhookController.createSendAPIresponse(
-          '2399043010191818',
+          process.env.SENDER_ID,
           'mobile',
           fakeRes
         )
@@ -237,7 +273,7 @@ describe('webhook controller', function() {
       }
       return Promise.resolve(
         webhookController.createSendAPIresponse(
-          '2399043010191818',
+          process.env.SENDER_ID,
           undefined,
           fakeRes
         )
@@ -268,7 +304,7 @@ describe('webhook controller', function() {
       }
       return Promise.resolve(
         webhookController.createSendAPIresponse(
-          '2399043010191818',
+          process.env.SENDER_ID,
           undefined,
           fakeRes
         )
@@ -287,7 +323,7 @@ describe('webhook controller', function() {
       return (
         // call with partial name
         webhookController
-          .createSendAPIresponse('2399043010191818', undefined, fakeRes)
+          .createSendAPIresponse(process.env.SENDER_ID, undefined, fakeRes)
           .then(res => {
             assert.deepEqual(res, {
               text: 'Some payload text'
@@ -304,7 +340,7 @@ describe('webhook controller', function() {
       return (
         // call with partial name
         webhookController
-          .createSendAPIresponse('2399043010191818', undefined, fakeRes)
+          .createSendAPIresponse(process.env.SENDER_ID, undefined, fakeRes)
           .then(res => {
             assert(utils.whichUrl.notCalled)
             utils.whichUrl.restore()
@@ -318,7 +354,7 @@ describe('webhook controller', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'createSendAPIresponse')
       return Promise.resolve(
-        webhookController.handleMessageType('2399043010191818', {
+        webhookController.handleMessageType(process.env.SENDER_ID, {
           message: {
             text: 'pierre'
           }
@@ -335,7 +371,7 @@ describe('webhook controller', function() {
     })
     it('handleMessageType returns message sent confirmation', function() {
       return Promise.resolve(
-        webhookController.handleMessageType('2399043010191818', {
+        webhookController.handleMessageType(process.env.SENDER_ID, {
           message: {
             text: 'pierre'
           }

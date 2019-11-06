@@ -60,10 +60,7 @@ exports.sendHookResponse = (req, res) => {
         )
       } else if (webhook_event.postback) {
         res.status(200).send('EVENT_RECEIVED')
-        return module.exports.handlePostback(
-          sender_psid,
-          webhook_event.postback
-        )
+        return module.exports.handlePostback(sender_psid, webhook_event)
       }
     })
   } else {
@@ -264,13 +261,12 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
   }
 }
 // Handles messaging_postbacks events
-exports.handlePostback = (sender_psid, received_postback, cardType) => {
-  let response
-  console.log('received_postback', received_postback)
-  let payload = received_postback.payload
+exports.handlePostback = (sender_psid, webhook_event, cardType) => {
+  console.log('postback', webhook_event.postback)
+  let payload = webhook_event.postback.payload
   // console.log('payload', payload)
   if (payload === values.postbacks.get_started) {
-    return this.getStartedMessages(sender_psid, response)
+    return this.getStartedMessages(sender_psid)
   } else if (payload === values.postbacks.get_card) {
     // get random driver name and slug
     return driverController.getRandomDriver().then(randomDriver => {
@@ -295,14 +291,23 @@ exports.handlePostback = (sender_psid, received_postback, cardType) => {
         })
     })
   } else if (payload === values.postbacks.get_delivery) {
-    response = { text: 'get delivery' }
+    this.getDelivery(webhook_event)
+    // response = { text: 'get delivery' }
+    // return module.exports.callSendAPI(sender_psid, response)
   }
-
-  return module.exports.callSendAPI(sender_psid, response)
 }
+exports.getDelivery = webhook_event => {
+  get sender ID and store it
+  ask which drivers they want to get info about
+  ask about teams too
+  - type the names or select from a list
+  prompt then when typing if done 
+  save to DB
+}
+
 // sends the messages on get_started click
 // takes sender_psid and response obj
-exports.getStartedMessages = (sender_psid, response) => {
+exports.getStartedMessages = sender_psid => {
   return this.callSendAPI(sender_psid, {
     text: `${responses.profile.greeting3}\n--------------- ${
       responses.instructions['how-it-works']
