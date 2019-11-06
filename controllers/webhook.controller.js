@@ -291,18 +291,47 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
         })
     })
   } else if (payload === values.postbacks.get_delivery) {
-    this.getDelivery(webhook_event)
+    this.sendDeliveryOptions(webhook_event)
     // response = { text: 'get delivery' }
     // return module.exports.callSendAPI(sender_psid, response)
+  } else if (payload === values.postbacks.choose_drivers) {
+    this.sendChoiceOptions(webhook_event, 'drivers')
+  } else if (payload === values.postbacks.choose_teams) {
+    this.sendChoiceOptions(webhook_event, 'teams')
   }
 }
-exports.getDelivery = webhook_event => {
-  get sender ID and store it
-  ask which drivers they want to get info about
-  ask about teams too
-  - type the names or select from a list
-  prompt then when typing if done 
-  save to DB
+exports.sendDeliveryOptions = webhook_event => {
+  // get sender ID and store it
+  // ask which drivers they want to get info about
+  return this.callSendAPI(webhook_event.sender.id, {
+    text: `${responses.instructions.set2['enter-name']}`
+  }).then(() => {
+    return this.callSendAPI(webhook_event.sender.id, this.getDeliveryTemplate())
+  })
+  // ask about teams too
+  // - type the names or select from a list
+  // prompt then when typing if done
+  // save to DB
+}
+exports.sendChoiceOptions = (webhook_event, type) => {
+  let localAPI = endpoints.localAPIEndpoint
+  let prodAPI = endpoints.prodAPIEndpoint
+  let param
+  type === 'drivers' ? (param = 'drivers') : (param = 'teams')
+  if (process.env.NODE_ENV === 'development') {
+    utils.httpFetch(`${localAPI}\drivers`).then(res => {})
+  } else if (process.env.NODE_ENV === 'productions') {
+    utils.httpFetch(endpoints.localAPIEndpoint).then(res => {})
+  } else if (process.env.NODE_ENV === 'testing') {
+    // call prod endpoint if true
+    if (process.env.TEST_CALL_PROD === true) {
+    } else {
+      // console.log(param)
+      utils.httpFetch(`${localAPI}/${param}`).then(res => {
+        console.log(res)
+      })
+    }
+  }
 }
 
 // sends the messages on get_started click
@@ -382,6 +411,29 @@ exports.followUpTemplate = () => {
             type: 'postback',
             title: values.titles.get_delivery,
             payload: values.postbacks.get_delivery
+          }
+        ]
+      }
+    }
+  }
+}
+exports.getDeliveryTemplate = () => {
+  return {
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'button',
+        text: responses['support-words'].or,
+        buttons: [
+          {
+            type: 'postback',
+            title: values.titles.choose_drivers,
+            payload: values.postbacks.choose_drivers
+          },
+          {
+            type: 'postback',
+            title: values.titles.choose_teams,
+            payload: values.postbacks.choose_teams
           }
         ]
       }

@@ -2,11 +2,15 @@
   "postbacks": {
     "get_card": "get_card",
     "get_delivery": "get_delivery",
-    "get_started": "get_started"
+    "get_started": "get_started",
+    "choose_drivers": "choose_drivers",
+    "choose_teams": "choose_teams"
   },
   "titles": {
     "get_card": "Get a Card Now",
-    "get_delivery": "Get Auto-Delivery"
+    "get_delivery": "Get Auto-Delivery",
+    "choose_drivers": "See List of Drivers",
+    "choose_teams": "See List of teams"
   },
   "testing": {
     "fake_msg_id": "12345"

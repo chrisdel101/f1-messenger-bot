@@ -24,6 +24,9 @@
       "choose": "Choose the teams and drivers you like.",
       "send": "We'll send you those cards every race weekend!"
     },
+    "set2": {
+      "enter-name": "Enter the name of a driver or a team."
+    },
     "how-it-works": "How it Works"
   },
   "support-words": {

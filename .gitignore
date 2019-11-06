@@ -63,3 +63,4 @@ typings/
 curl_scripts/set_greeting_text_basic.bash
 curl_scripts/set_postback_get_started.bash
 curl_scripts/sample_template.bash
+curl_scripts/whitelist.bash
