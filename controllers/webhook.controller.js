@@ -440,7 +440,7 @@ exports.getDeliveryTemplate = () => {
             // button to see list
             messenger_extensions: true,
             type: "web_url",
-            url: `https://f1-cards.herokuapp.com/drivers?size=mini`,
+            url: ``,
             title: "URL Button",
             webview_height_ratio: "full"
           }
