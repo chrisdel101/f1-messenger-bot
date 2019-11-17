@@ -101,7 +101,7 @@ exports.cacheAndGetDrivers = (driversCache, expiryTime) => {
     })
   } else {
     console.log('cacheAndGetDrivers() - FROM CACHE')
-    // if less and 24 hours old get from cache
+    // if less than 24 hours old get from cache
     return driversCache['drivers_slugs']['drivers_slugs']
   }
 }
