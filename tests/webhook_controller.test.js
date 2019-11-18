@@ -30,213 +30,266 @@ before(function() {
 describe("webhook controller", function() {
   // LIVE TESTS
   describe("sendHookResponse()", () => {
-    it("sendHookResponse calls handleMessage - webhook_event has message key", function() {
-      // fake fake_webhook_event for req obj- match FB
-      let mock_body_data = {
-        body: {
-          object: "page",
-          entry: [
-            // mock webhook_event
-            {
-              id: values.testing["fake_msg_id"],
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: process.env.SENDER_ID },
-                  recipient: { id: process.env.RECIEPIENT_ID },
-                  timestamp: new Date().getTime(),
-                  message: {
-                    mid: "mid.1460620432888:f8e3412003d2d1cd93",
-                    seq: 12604,
-                    text: "A test message"
+    describe("sendHookResponse with text inputs", () => {
+      it("sendHookResponse calls handleMessage - check that handleMessage is called", function() {
+        // fake fake_webhook_event for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              // mock webhook_event
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    message: {
+                      mid: "mid.1460620432888:f8e3412003d2d1cd93",
+                      seq: 12604,
+                      text: "A test message"
+                    }
                   }
-                }
-              ]
-            }
-          ]
+                ]
+              }
+            ]
+          }
         }
-      }
-      // mock req/res
-      const req = mockRequest(mock_body_data)
-      const res = mockResponse()
-      sinon.spy(webhookController, "handleMessageType")
-      const result = webhookController.sendHookResponse(req, res)
-      assert(webhookController.handleMessageType.calledOnce)
-      webhookController.handleMessageType.restore()
-    })
-    it("sendHookResponse calls handleMessage - webhook_event has message key with text field", function() {
-      // mock mock_body_data for req obj- match FB
-      let mock_body_data = {
-        body: {
-          object: "page",
-          entry: [
-            // mock webhook_event
-            {
-              id: values.testing["fake_msg_id"],
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: process.env.SENDER_ID },
-                  recipient: { id: process.env.RECIEPIENT_ID },
-                  timestamp: new Date().getTime(),
-                  message: {
-                    mid: "mid.1460620432888:f8e3412003d2d1cd93",
-                    seq: 12604,
-                    text: "A test message"
+        // mock req/res
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        sinon.spy(webhookController, "handleMessageType")
+        const result = webhookController.sendHookResponse(req, res)[0]
+        result.then(res => {
+          assert.strictEqual(res, "message sent!")
+          assert(webhookController.handleMessageType.calledOnce)
+          webhookController.handleMessageType.restore()
+        })
+      })
+      it("sendHookResponse calls createSendAPIresponse - check data returned is correct", function() {
+        // mock mock_body_data for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    message: {
+                      mid: "mid.1460620432888:f8e3412003d2d1cd93",
+                      seq: 12604,
+                      // should return an object
+                      text: "A test message"
+                    }
                   }
-                }
-              ]
-            }
-          ]
+                ]
+              }
+            ]
+          }
         }
-      }
-      // mock req/res
-      const req = mockRequest(mock_body_data)
-      const res = mockResponse()
-      sinon.spy(webhookController, "handleMessageType")
-      return webhookController.sendHookResponse(req, res)[0].then(res => {
-        // test message should return filler reponse
-        assert.strictEqual(res.text, responses.filler)
-        webhookController.handleMessageType.restore()
+        // mock req/res
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        sinon.spy(webhookController, "createSendAPIresponse")
+        return webhookController.sendHookResponse(req, res)[0].then(res => {
+          // spy return values of checkInputText()
+          return webhookController.createSendAPIresponse.returnValues[0].then(
+            res => {
+              // res should be obj with single text key
+              assert.deepEqual(res, {
+                text: responses.filler
+              })
+              webhookController.createSendAPIresponse.restore()
+            }
+          )
+        })
+      })
+      it("sendHookResponse calls checkInputText - check correct response for filler text returned", function() {
+        // mock mock_body_data for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    message: {
+                      mid: "mid.1460620432888:f8e3412003d2d1cd93",
+                      seq: 12604,
+                      // should return filler
+                      text: "A test message"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        // mock req/res
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        sinon.spy(webhookController, "checkInputText")
+        return webhookController.sendHookResponse(req, res)[0].then(res => {
+          // spy return values of checkInputText()
+          return webhookController.checkInputText.returnValues[0].then(res => {
+            // test message should return filler reponse
+            assert.strictEqual(res.payload, responses.filler)
+            webhookController.checkInputText.restore()
+          })
+        })
       })
     })
-    it("sendHookResponse calls handlePostback - get_started", function() {
-      // mock mock_body_data for req obj- match FB
-      let mock_body_data = {
-        body: {
-          object: "page",
-          entry: [
-            // mock webhook_event
-            {
-              id: values.testing["fake_msg_id"],
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: process.env.SENDER_ID },
-                  recipient: { id: process.env.RECIEPIENT_ID },
-                  timestamp: new Date().getTime(),
-                  postback: {
-                    title: "Get Started",
-                    payload: "get_started"
+    describe("sendHookResponse with postbacks", () => {
+      it("sendHookResponse calls handlePostback - get_started", function() {
+        // mock mock_body_data for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              // mock webhook_event
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    postback: {
+                      title: "Get Started",
+                      payload: "get_started"
+                    }
                   }
-                }
-              ]
-            }
-          ]
+                ]
+              }
+            ]
+          }
         }
-      }
-      const req = mockRequest(mock_body_data)
-      const res = mockResponse()
-      sinon.spy(webhookController, "handlePostback")
-      sinon.spy(webhookController, "callSendAPI")
-      // returns response object
-      webhookController.sendHookResponse(req, res)
-      assert(webhookController.handlePostback.calledOnce)
-      assert(webhookController.callSendAPI.calledOnce)
-      webhookController.handlePostback.restore()
-      webhookController.callSendAPI.restore()
-    })
-    it("sendHookResponse calls handlePostback - get_delivery", function() {
-      // mock mock_body_data for req obj- match FB
-      let mock_body_data = {
-        body: {
-          object: "page",
-          entry: [
-            {
-              id: values.testing["fake_msg_id"],
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: process.env.SENDER_ID },
-                  recipient: { id: process.env.RECIEPIENT_ID },
-                  timestamp: new Date().getTime(),
-                  postback: {
-                    title: values.titles["get_delivery"],
-                    payload: values.postbacks["get_delivery"]
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        sinon.spy(webhookController, "handlePostback")
+        sinon.spy(webhookController, "callSendAPI")
+        // returns response object
+        webhookController.sendHookResponse(req, res)
+        assert(webhookController.handlePostback.calledOnce)
+        assert(webhookController.callSendAPI.calledOnce)
+        webhookController.handlePostback.restore()
+        webhookController.callSendAPI.restore()
+      })
+      it("sendHookResponse calls handlePostback - get_delivery", function() {
+        // mock mock_body_data for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    postback: {
+                      title: values.titles["get_delivery"],
+                      payload: values.postbacks["get_delivery"]
+                    }
                   }
-                }
-              ]
-            }
-          ]
+                ]
+              }
+            ]
+          }
         }
-      }
-      const req = mockRequest(mock_body_data)
-      const res = mockResponse()
-      sinon.spy(webhookController, "handlePostback")
-      sinon.spy(webhookController, "callSendAPI")
-      webhookController.sendHookResponse(req, res)
-      assert(webhookController.handlePostback.calledOnce)
-      assert(webhookController.callSendAPI.calledOnce)
-      webhookController.handlePostback.restore()
-      webhookController.callSendAPI.restore()
-    })
-    it("sendHookResponse calls handlePostback - choose_drivers", function() {
-      // mock mock_body_data for req obj- match FB
-      let mock_body_data = {
-        body: {
-          object: "page",
-          entry: [
-            {
-              id: values.testing["fake_msg_id"],
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: process.env.SENDER_ID },
-                  recipient: { id: process.env.RECIEPIENT_ID },
-                  timestamp: new Date().getTime(),
-                  postback: {
-                    title: values.titles.choose_drivers,
-                    payload: values.postbacks.choose_drivers
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        sinon.spy(webhookController, "handlePostback")
+        sinon.spy(webhookController, "callSendAPI")
+        webhookController.sendHookResponse(req, res)
+        assert(webhookController.handlePostback.calledOnce)
+        assert(webhookController.callSendAPI.calledOnce)
+        webhookController.handlePostback.restore()
+        webhookController.callSendAPI.restore()
+      })
+      it("sendHookResponse calls handlePostback - choose_drivers", function() {
+        // mock mock_body_data for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    postback: {
+                      title: values.titles.choose_drivers,
+                      payload: values.postbacks.choose_drivers
+                    }
                   }
-                }
-              ]
-            }
-          ]
+                ]
+              }
+            ]
+          }
         }
-      }
-      const req = mockRequest(mock_body_data)
-      const res = mockResponse()
-      // sinon.spy(webhookController, 'handlePostback')
-      // sinon.spy(webhookController, 'callSendAPI')
-      webhookController.sendHookResponse(req, res)
-      // assert(webhookController.handlePostback.calledOnce)
-      // assert(webhookController.callSendAPI.calledOnce)
-      // webhookController.handlePostback.restore()
-      // webhookController.callSendAPI.restore()
-    })
-    it("sendHookResponse calls handlePostback - choose_teams", function() {
-      // mock mock_body_data for req obj- match FB
-      let mock_body_data = {
-        body: {
-          object: "page",
-          entry: [
-            {
-              id: values.testing["fake_msg_id"],
-              time: new Date().getTime(),
-              messaging: [
-                {
-                  sender: { id: process.env.SENDER_ID },
-                  recipient: { id: process.env.RECIEPIENT_ID },
-                  timestamp: new Date().getTime(),
-                  postback: {
-                    title: values.titles.choose_teams,
-                    payload: values.postbacks.choose_teams
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        // sinon.spy(webhookController, 'handlePostback')
+        // sinon.spy(webhookController, 'callSendAPI')
+        webhookController.sendHookResponse(req, res)
+        // assert(webhookController.handlePostback.calledOnce)
+        // assert(webhookController.callSendAPI.calledOnce)
+        // webhookController.handlePostback.restore()
+        // webhookController.callSendAPI.restore()
+      })
+      it("sendHookResponse calls handlePostback - choose_teams", function() {
+        // mock mock_body_data for req obj- match FB
+        let mock_body_data = {
+          body: {
+            object: "page",
+            entry: [
+              {
+                id: values.testing["fake_msg_id"],
+                time: new Date().getTime(),
+                messaging: [
+                  {
+                    sender: { id: process.env.SENDER_ID },
+                    recipient: { id: process.env.RECIEPIENT_ID },
+                    timestamp: new Date().getTime(),
+                    postback: {
+                      title: values.titles.choose_teams,
+                      payload: values.postbacks.choose_teams
+                    }
                   }
-                }
-              ]
-            }
-          ]
+                ]
+              }
+            ]
+          }
         }
-      }
-      const req = mockRequest(mock_body_data)
-      const res = mockResponse()
-      // sinon.spy(webhookController, 'handlePostback')
-      // sinon.spy(webhookController, 'callSendAPI')
-      webhookController.sendHookResponse(req, res)
-      // assert(webhookController.handlePostback.calledOnce)
-      // assert(webhookController.callSendAPI.calledOnce)
-      // webhookController.handlePostback.restore()
-      // webhookController.callSendAPI.restore()
+        const req = mockRequest(mock_body_data)
+        const res = mockResponse()
+        // sinon.spy(webhookController, 'handlePostback')
+        // sinon.spy(webhookController, 'callSendAPI')
+        webhookController.sendHookResponse(req, res)
+        // assert(webhookController.handlePostback.calledOnce)
+        // assert(webhookController.callSendAPI.calledOnce)
+        // webhookController.handlePostback.restore()
+        // webhookController.callSendAPI.restore()
+      })
     })
   })
   describe("welcomeTemplate()", () => {
@@ -247,9 +300,8 @@ describe("webhook controller", function() {
   })
 
   describe("handlePostback()", () => {
-    it("handlePostback calls get_started", function() {
-      sinon.spy(webhookController, "callSendAPI")
-      sinon.spy(webhookController, "welcomeTemplate")
+    it("handlePostback calls getStartedMessages()", function() {
+      sinon.spy(webhookController, "getStartedMessages")
       let mock_webhook_event = {
         sender: { id: process.env.SENDER_ID },
         recipient: { id: "107628650610694" },
@@ -259,19 +311,11 @@ describe("webhook controller", function() {
           payload: "get_started"
         }
       }
-
       return webhookController
-        .handlePostback(
-          mock_webhook_event.sender.id,
-          mock_webhook_event.postback
-        )
+        .handlePostback(mock_webhook_event.sender.id, mock_webhook_event)
         .then(() => {
-          console.log(webhookController.welcomeTemplate.callCount)
-          console.log(webhookController.callSendAPI.callCount)
-          assert(webhookController.callSendAPI.calledOnce)
-          assert(webhookController.welcomeTemplate.calledOnce)
-          webhookController.callSendAPI.restore()
-          webhookController.welcomeTemplate.restore()
+          assert(webhookController.getStartedMessages.calledOnce)
+          webhookController.getStartedMessages.restore()
         })
     })
     // works - but spy returns false, which is wrong- need to find reason
@@ -303,7 +347,7 @@ describe("webhook controller", function() {
         driverController.getRandomDriver.restore()
       })
     })
-    it.only("handlePostback calls get_delivery - calls sendDeliveryOptions()", function() {
+    it("handlePostback calls get_delivery - calls sendDeliveryOptions()", function() {
       sinon.spy(webhookController, "callSendAPI")
       sinon.spy(webhookController, "sendDeliveryOptions")
       let mock_webhook_event = {
@@ -326,6 +370,15 @@ describe("webhook controller", function() {
         webhookController.callSendAPI.restore()
         webhookController.sendDeliveryOptions.restore()
       })
+    })
+  })
+  describe("getDeliveryTemplate()", () => {
+    // need more robust tests
+    it("returns object with correct values", function() {
+      const result = webhookController.getDeliveryTemplate()
+      assert(result.attachment.type === "template")
+      assert(result.attachment.hasOwnProperty("payload"))
+      assert(result.attachment.buttons)
     })
   })
   describe("createSendAPIresponse()", () => {
@@ -663,6 +716,27 @@ describe("webhook controller", function() {
           assert(payload.imageUrl.includes("red_bull"))
         })
       })
+    })
+  })
+  // tests used for actually running code on messenger - need to build
+  describe("postback runner", () => {
+    it("handlePostback call get_started", function() {
+      sinon.spy(webhookController, "getStartedMessages")
+      let mock_webhook_event = {
+        sender: { id: process.env.SENDER_ID },
+        recipient: { id: "107628650610694" },
+        timestamp: new Date().getTime(),
+        postback: {
+          title: "Get Started",
+          payload: "get_started"
+        }
+      }
+      return webhookController
+        .handlePostback(mock_webhook_event.sender.id, mock_webhook_event)
+        .then(() => {
+          assert(webhookController.getStartedMessages.calledOnce)
+          webhookController.getStartedMessages.restore()
+        })
     })
   })
 })

@@ -424,22 +424,18 @@ exports.getDeliveryTemplate = () => {
         buttons: [
           {
             // see list of drivers/
-            type: "postback",
-            title: values.titles.choose_drivers,
-            payload: values.postbacks.choose_drivers
-          },
-          {
-            // see list of teams`
-            type: "postback",
-            title: values.titles.choose_teams,
-            payload: values.postbacks.choose_teams
-          },
-          {
-            // button to see list
             messenger_extensions: true,
             type: "web_url",
             url: `${endpoints.prodCardsEndpoint}/drivers?size=mini`,
-            title: "URL Button",
+            title: values.titles.choose_drivers,
+            webview_height_ratio: "full"
+          },
+          {
+            // see list of teams`
+            messenger_extensions: true,
+            type: "web_url",
+            url: `${endpoints.prodCardsEndpoint}/drivers?size=mini`,
+            title: values.titles.choose_teams,
             webview_height_ratio: "full"
           }
         ]
