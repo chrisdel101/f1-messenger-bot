@@ -159,6 +159,28 @@ describe("drivers controller", function() {
   // check function returns
   // check function caches
   describe("cacheAndGetDriver()", () => {
+    it.only("cacheAndGetDriver takes random driver as input - non-empty cache", function() {
+      const fakeCache = {
+        "lewis-hamilton": {
+          imageUrl: "fakeImageUrl.com",
+          mobileImageUrl: "fakeMobileImageUrl.com",
+          timeStamp: new Date()
+        }
+      }
+      return driverController.getRandomDriver().then(driver => {
+        // check if promise is needed
+        return Promise.resolve(
+          driverController.cacheAndGetDriver(driver.name_slug, fakeCache)
+        ).then(res => {
+          // check for old data
+          assert(fakeCache.hasOwnProperty("lewis-hamilton"))
+          assert(fakeCache["lewis-hamilton"].hasOwnProperty("imageUrl"))
+          assert(fakeCache["lewis-hamilton"].hasOwnProperty("mobileImageUrl"))
+          // check for new data in cache
+          assert(fakeCache.hasOwnProperty(driver.name_slug))
+        })
+      })
+    })
     it("cacheAndGetDriver caches new driver to cache - non-empty cache", function() {
       const fakeCache = {
         "lewis-hamilton": {
