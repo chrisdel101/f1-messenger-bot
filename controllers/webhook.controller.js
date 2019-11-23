@@ -262,7 +262,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
 exports.handlePostback = (sender_psid, webhook_event, cardType) => {
   console.log('postback', webhook_event)
   let payload = webhook_event.postback.payload
-  // console.log('payload', payload)
+  console.log('payload', payload)
   if (payload === values.postbacks.get_started) {
     return this.getStartedMessages(sender_psid)
   } else if (payload === values.postbacks.get_card) {
