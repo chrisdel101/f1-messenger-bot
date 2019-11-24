@@ -92,7 +92,7 @@ exports.verifyHook = (req, res) => {
 }
 // take user input and check to send back response
 exports.checkInputText = (inputText, cache) => {
-  // console.log('checkInputText HERE', inputText)
+  console.log('checkInputText HERE', inputText)
   // console.log('checkInputText CACHE', cache)
   log('checkInputText')
   try {
@@ -223,7 +223,6 @@ exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
 }
 // pass in cardType, hook and id - sends messages to API
 exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
-  log('handleMessageType')
   try {
     // Check if the message contains text
     if (webhook_event.message.text) {
@@ -233,6 +232,7 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
         this.checkInputText(webhook_event.message.text, cache)
       )
         .then(responseVal => {
+          // console.log('RES', responseVal)
           // create FB response obj
           return Promise.resolve(
             this.createSendAPIresponse(sender_psid, cardType, responseVal)
@@ -293,15 +293,8 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
       })
     })
   } else if (payload === values.postbacks.get_delivery) {
+    // sends template with choose_drivers/ teams buttons1
     return this.sendDeliveryOptions(webhook_event)
-    // response = { text: 'get delivery' }
-    // return module.exports.callSendAPI(sender_psid, response)
-  } else if (payload === values.postbacks.choose_drivers) {
-    console.log('DRIVERS')
-    // send web_view with drivers
-    this.sendChoiceOptions(webhook_event, 'drivers')
-  } else if (payload === values.postbacks.choose_teams) {
-    this.sendChoiceOptions(webhook_event, 'teams')
   }
 }
 exports.sendDeliveryOptions = webhook_event => {
@@ -310,29 +303,12 @@ exports.sendDeliveryOptions = webhook_event => {
   return this.callSendAPI(webhook_event.sender.id, {
     text: `${responses.instructions.set2['enter-name']}`
   }).then(() => {
-    return this.callSendAPI(webhook_event.sender.id, this.getDeliveryTemplate())
+    return this.callSendAPI(
+      webhook_event.sender.id,
+      this.getDeliveryTemplate(webhook_event.sender.id)
+    )
   })
-  // ask about teams too
-  // - type the names or select from a list
-  // prompt then when typing if done
-  // save to DB
 }
-exports.sendChoiceOptions = (webhook_event, type) => {
-  let localAPI = endpoints.localAPIEndpoint
-  let prodAPI = endpoints.prodAPIEndpoint
-  let param
-  type === 'drivers' ? (param = 'drivers') : (param = 'teams')
-  if (process.env.NODE_ENV === 'development') {
-    utils.httpFetch(`${localAPI}\drivers`).then(res => {})
-  } else if (process.env.NODE_ENV === 'production') {
-    utils.httpFetch(endpoints.localAPIEndpoint).then(res => {})
-  } else if (process.env.NODE_ENV === 'testing') {
-    utils.httpFetch(`${localAPI}/${param}`).then(res => {
-      console.log('RES', res)
-    })
-  }
-}
-
 // sends the messages on get_started click
 // takes sender_psid and response obj
 exports.getStartedMessages = sender_psid => {
@@ -412,7 +388,8 @@ exports.followUpTemplate = () => {
     }
   }
 }
-exports.getDeliveryTemplate = () => {
+// send buttons that bring up webviews
+exports.getDeliveryTemplate = sender_id => {
   return {
     attachment: {
       type: 'template',
@@ -424,7 +401,8 @@ exports.getDeliveryTemplate = () => {
             // see list of drivers/
             messenger_extensions: true,
             type: 'web_url',
-            url: `${endpoints.prodCardsEndpoint}/drivers?size=mini`,
+            // attach senderID to the URL
+            url: `${endpoints.prodCardsEndpoint}/drivers?size=mini?id=${sender_id}`,
             title: values.titles.choose_drivers,
             webview_height_ratio: 'full'
           },
@@ -432,7 +410,8 @@ exports.getDeliveryTemplate = () => {
             // see list of teams`
             messenger_extensions: true,
             type: 'web_url',
-            url: `${endpoints.prodCardsEndpoint}/drivers?size=mini`,
+            // attach senderID to the URL
+            url: `${endpoints.prodCardsEndpoint}/teams?size=mini?id=${sender_id}`,
             title: values.titles.choose_teams,
             webview_height_ratio: 'full'
           }
