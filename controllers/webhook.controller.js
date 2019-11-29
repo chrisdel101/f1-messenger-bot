@@ -402,7 +402,7 @@ exports.getDeliveryTemplate = sender_id => {
             messenger_extensions: true,
             type: 'web_url',
             // attach senderID to the URL
-            url: `${endpoints.prodCardsEndpoint}/drivers?size=mini?id=${sender_id}`,
+            url: `${endpoints.prodCardsEndpoint}/drivers?size=mini&id=${sender_id}`,
             title: values.titles.choose_drivers,
             webview_height_ratio: 'full'
           },
@@ -411,7 +411,7 @@ exports.getDeliveryTemplate = sender_id => {
             messenger_extensions: true,
             type: 'web_url',
             // attach senderID to the URL
-            url: `${endpoints.prodCardsEndpoint}/teams?size=mini?id=${sender_id}`,
+            url: `${endpoints.prodCardsEndpoint}/teams?size=mini&id=${sender_id}`,
             title: values.titles.choose_teams,
             webview_height_ratio: 'full'
           }

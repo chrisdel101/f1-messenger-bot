@@ -6,11 +6,14 @@ const sinon = require('sinon')
 const responses = require('../responses.json')
 const values = require('../values.json')
 const { mockRequest, mockResponse } = require('mock-req-res')
+// require('dotenv').config(
+//   '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
+// )
 
 describe('webhook controller', function() {
   describe('sendHookResponse() stubbed tests', () => {
     describe('sendHookResponse with text inputs', () => {
-      it.only('sendHookResponse calls handleMessage - stubbed out all promise to check calls', function() {
+      it('sendHookResponse calls handleMessage - stubbed out all promise to check calls', function() {
         let mock_body_data = {
           body: {
             object: 'page',
@@ -544,7 +547,7 @@ describe('webhook controller', function() {
         driverController.getRandomDriver.restore()
       })
     })
-    it('handlePostback calls get_delivery - calls sendDeliveryOptions()', function() {
+    it.only('handlePostback calls get_delivery - calls sendDeliveryOptions()', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'sendDeliveryOptions')
       let mock_webhook_event = {

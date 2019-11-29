@@ -12,7 +12,7 @@ require('dotenv').config(
 // LIVE TESTS
 describe('sendHookResponse()', () => {
   describe('sendHookResponse with text inputs', () => {
-    it.only('sendHookResponse calls handleMessage - check that handleMessage is called', function() {
+    it('sendHookResponse calls handleMessage - check that handleMessage is called', function() {
       // fake fake_webhook_event for req obj- match FB
       let mock_body_data = {
         body: {
