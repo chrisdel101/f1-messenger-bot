@@ -1,7 +1,7 @@
 require('dotenv').config(
   '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
 )
-// require('newrelic')
+const helmet = require('helmet')
 var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
@@ -11,7 +11,7 @@ var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 
 var app = express()
-
+app.use(helmet())
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
