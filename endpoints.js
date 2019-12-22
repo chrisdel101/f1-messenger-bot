@@ -1,5 +1,4 @@
 module.exports = {
-  localAPIEndpoint: `http://localhost:5000`,
   // node
   prodCardsEndpoint: `https://f1-cards.herokuapp.com`,
   // python

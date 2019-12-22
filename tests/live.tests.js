@@ -240,7 +240,7 @@ describe('sendHookResponse()', () => {
       webhookController.handlePostback.restore()
       webhookController.callSendAPI.restore()
     })
-    it('sendHookResponse calls handlePostback - choose_drivers', function() {
+    it.only('sendHookResponse calls handlePostback - choose_drivers', function() {
       // mock mock_body_data for req obj- match FB
       let mock_body_data = {
         body: {
