@@ -300,14 +300,13 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
 exports.sendDeliveryOptions = webhook_event => {
   // get sender ID and store it
   // ask which drivers they want to get info about
-  return this.callSendAPI(webhook_event.sender.id, {
-    text: `${responses.instructions.set2['enter-name']}`
-  }).then(() => {
-    return this.callSendAPI(
-      webhook_event.sender.id,
-      this.getDeliveryTemplate(webhook_event.sender.id)
-    )
-  })
+  return this.callSendAPI(webhook_event.sender.id, this.logInButton)
+  //  .then(() => {
+  //   return this.callSendAPI(
+  //     webhook_event.sender.id,
+  //     this.getDeliveryTemplate(webhook_event.sender.id)
+  //   )
+  // })
 }
 // sends the messages on get_started click
 // takes sender_psid and response obj
@@ -414,6 +413,24 @@ exports.getDeliveryTemplate = sender_id => {
             url: `${endpoints.prodCardsEndpoint}/teams?size=mini&id=${sender_id}`,
             title: values.titles.choose_teams,
             webview_height_ratio: 'full'
+          }
+        ]
+      }
+    }
+  }
+}
+// send buttons that bring up webviews
+exports.logInButton = () => {
+  return {
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'button',
+        text: 'Login',
+        buttons: [
+          {
+            type: 'account_link',
+            url: '<YOUR_LOGIN_URL>'
           }
         ]
       }
