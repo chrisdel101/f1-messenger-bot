@@ -300,8 +300,15 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
 exports.sendDeliveryOptions = webhook_event => {
   // get sender ID and store it
   // ask which drivers they want to get info about
-  return this.callSendAPI(webhook_event.sender.id, this.logInButton)
-  //  .then(() => {
+
+  return this.callSendAPI(webhook_event.sender.id, 'some random text').then(
+    () => {
+      return this.callSendAPI(webhook_event.sender.id, this.logInButton())
+    }
+  )
+  // return this.callSendAPI(webhook_event.sender.id, {
+  //   text: `${responses.instructions.set2['enter-name']}`
+  // }).then(() => {
   //   return this.callSendAPI(
   //     webhook_event.sender.id,
   //     this.getDeliveryTemplate(webhook_event.sender.id)
