@@ -300,12 +300,12 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
 exports.sendDeliveryOptions = webhook_event => {
   // get sender ID and store it
   // ask which drivers they want to get info about
-
-  return this.callSendAPI(webhook_event.sender.id, 'some random text').then(
-    () => {
-      return this.callSendAPI(webhook_event.sender.id, this.logInButton())
-    }
-  )
+  return this.callSendAPI(webhook_event.sender.id, {
+    text: 'some random text'
+  }).then(() => {
+    console.log('here')
+    return this.callSendAPI(webhook_event.sender.id, this.logInButton())
+  })
   // return this.callSendAPI(webhook_event.sender.id, {
   //   text: `${responses.instructions.set2['enter-name']}`
   // }).then(() => {
@@ -437,14 +437,14 @@ exports.logInButton = () => {
         buttons: [
           {
             type: 'account_link',
-            url: '<YOUR_LOGIN_URL>'
+            url: 'f1-cards.herokuapp.com/'
           }
         ]
       }
     }
   }
 }
-
+// takes id and response obj
 exports.callSendAPI = (sender_psid, response) => {
   console.log('CALL API')
   let request_body = {
