@@ -503,6 +503,9 @@ describe('webhook controller', function() {
     })
   })
   describe('handlePostback()', () => {
+    require('dotenv').config(
+      '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
+    )
     it('handlePostback calls getStartedMessages()', function() {
       sinon.spy(webhookController, 'getStartedMessages')
       let mock_webhook_event = {
@@ -553,7 +556,7 @@ describe('webhook controller', function() {
         driverController.getRandomDriver.restore()
       })
     })
-    it('handlePostback calls get_delivery - calls sendDeliveryOptions()', function() {
+    it.only('handlePostback calls get_delivery - calls sendDeliveryOptions()', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'sendDeliveryOptions')
       let mock_webhook_event = {

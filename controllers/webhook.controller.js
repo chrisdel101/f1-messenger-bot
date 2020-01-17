@@ -303,7 +303,7 @@ exports.sendDeliveryOptions = webhook_event => {
   return this.callSendAPI(webhook_event.sender.id, {
     text: 'some random text'
   }).then(() => {
-    console.log('here')
+    console.log('here', this.logInButton())
     return this.callSendAPI(webhook_event.sender.id, this.logInButton())
   })
   // return this.callSendAPI(webhook_event.sender.id, {
@@ -437,7 +437,7 @@ exports.logInButton = () => {
         buttons: [
           {
             type: 'account_link',
-            url: 'f1-cards.herokuapp.com/'
+            url: 'f1-cards.herokuapp.com/login'
           }
         ]
       }
