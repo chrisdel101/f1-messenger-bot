@@ -502,6 +502,24 @@ describe('webhook controller', function() {
       })
     })
   })
+  describe('sendDeliveryOptions()', () => {
+    require('dotenv').config(
+      '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
+    )
+      it.only('tests', function(){
+        let mock_webhook_event = {
+          sender: { id: process.env.SENDER_ID },
+          recipient: { id: '107628650610694' },
+          timestamp: new Date().getTime(),
+          postback: {
+            title: 'Login',
+            payload: 'login'
+          }
+        }
+        webhookController.sendDeliveryOptions(mock_webhook_event)
+      })
+  })
+  // need to write stubs for postbacks
   describe('handlePostback()', () => {
     require('dotenv').config(
       '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
@@ -556,7 +574,7 @@ describe('webhook controller', function() {
         driverController.getRandomDriver.restore()
       })
     })
-    it.only('handlePostback calls get_delivery - calls sendDeliveryOptions()', function() {
+    it('handlePostback calls get_delivery - calls sendDeliveryOptions()', function() {
       sinon.spy(webhookController, 'callSendAPI')
       sinon.spy(webhookController, 'sendDeliveryOptions')
       let mock_webhook_event = {

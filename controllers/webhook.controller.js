@@ -306,14 +306,6 @@ exports.sendDeliveryOptions = webhook_event => {
     console.log('here', this.logInButton())
     return this.callSendAPI(webhook_event.sender.id, this.logInButton())
   })
-  // return this.callSendAPI(webhook_event.sender.id, {
-  //   text: `${responses.instructions.set2['enter-name']}`
-  // }).then(() => {
-  //   return this.callSendAPI(
-  //     webhook_event.sender.id,
-  //     this.getDeliveryTemplate(webhook_event.sender.id)
-  //   )
-  // })
 }
 // sends the messages on get_started click
 // takes sender_psid and response obj

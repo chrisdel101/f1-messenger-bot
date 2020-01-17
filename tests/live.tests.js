@@ -1,7 +1,5 @@
 const assert = require('assert')
 let webhookController = require('../controllers/webhook.controller')
-let driverController = require('../controllers/driver.controller')
-const utils = require('../utils')
 const sinon = require('sinon')
 const responses = require('../responses.json')
 const values = require('../values.json')
@@ -206,7 +204,7 @@ describe('sendHookResponse()', () => {
       webhookController.handlePostback.restore()
       webhookController.callSendAPI.restore()
     })
-    it.only('sendHookResponse calls handlePostback - get_delivery', function() {
+    it('sendHookResponse calls handlePostback - get_delivery', function() {
       // mock mock_body_data for req obj- match FB
       let mock_body_data = {
         body: {
