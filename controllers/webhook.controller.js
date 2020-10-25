@@ -12,14 +12,14 @@ const values = require('../values.json')
 const utils = require('../utils')
 
 // request_body contains sender_id and message_body
-exports.facebookObj = request_body => {
+exports.facebookObj = (request_body) => {
   return {
     uri: 'https://graph.facebook.com/v2.6/me/messages',
     qs: {
-      access_token: process.env.PAGE_ACCESS_TOKEN
+      access_token: process.env.PAGE_ACCESS_TOKEN,
     },
     method: 'POST',
-    json: request_body
+    json: request_body,
   }
 }
 // will get the data about the user including device size
@@ -34,7 +34,7 @@ exports.sendHookResponse = (req, res) => {
   // Checks this is an event from a page subscription
   if (body.object === 'page') {
     // Iterates over each entry - there may be multiple if batched
-    return body.entry.map(function(entry) {
+    return body.entry.map(function (entry) {
       // Gets the message. entry.messaging is an array, but
       // will only ever contain one message, so we get index 0
       // console.log("MESSAGE", entry);
@@ -92,7 +92,7 @@ exports.verifyHook = (req, res) => {
 }
 // take user input and check to send back response
 exports.checkInputText = (inputText, cache) => {
-  console.log('checkInputText HERE', inputText)
+  console.log('checkInputText:', inputText)
   // console.log('checkInputText CACHE', cache)
   log('checkInputText')
   try {
@@ -100,12 +100,12 @@ exports.checkInputText = (inputText, cache) => {
     if (testWordsJson.prompt_greeting.includes(inputText.toLowerCase())) {
       return {
         type: 'text',
-        payload: responses.profile.greeting
+        payload: responses.profile.greeting,
       }
     } else if (testWordsJson.prompt_help.includes(inputText.toLowerCase())) {
       return {
         type: 'text',
-        payload: responses.help.ask1
+        payload: responses.help.ask1,
       }
     } else if (
       testWordsJson.prompt_card.indexOf(inputText.toLowerCase()) != -1
@@ -115,26 +115,26 @@ exports.checkInputText = (inputText, cache) => {
         case 0:
           return {
             type: 'text',
-            payload: responses.card.driver
+            payload: responses.card.driver,
           }
         case 1:
           return {
             type: 'text',
-            payload: responses.card.team
+            payload: responses.card.team,
           }
         case 2:
           return {
             type: 'text',
-            payload: responses.card.team
+            payload: responses.card.team,
           }
         case 3:
           return {
             type: 'text',
-            payload: responses.card.driver
+            payload: responses.card.driver,
           }
       }
     }
-    return driverController.checkDriverApi(inputText).then(driverSlug => {
+    return driverController.checkDriverApi(inputText).then((driverSlug) => {
       // console.log('webbook.checkInputText() driverSlug', driverSlug)
       // console.log('webbook.checkInputText() driverSlug')
       // true if a driver name - check not false
@@ -150,10 +150,10 @@ exports.checkInputText = (inputText, cache) => {
         // send driver card instructions
         return {
           type: 'image',
-          payload: driver
+          payload: driver,
         }
       } else {
-        return teamController.checkTeamApi(inputText).then(teamSlug => {
+        return teamController.checkTeamApi(inputText).then((teamSlug) => {
           if (teamSlug) {
             console.log('TEAM SLUG', teamSlug)
             const team = teamController.cacheAndGetTeam(
@@ -163,12 +163,12 @@ exports.checkInputText = (inputText, cache) => {
             console.log('TEAM', team)
             return {
               type: 'image',
-              payload: team
+              payload: team,
             }
           }
           return {
             type: 'text',
-            payload: responses.filler
+            payload: responses.filler,
           }
         })
       }
@@ -183,14 +183,14 @@ exports.checkInputText = (inputText, cache) => {
 exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
   try {
     // console.log('resposeVAl', checkInputResponse)
-    return Promise.resolve(checkInputResponse).then(res => {
+    return Promise.resolve(checkInputResponse).then((res) => {
       // resolve first promise
       return Promise.resolve(res)
-        .then(dataObj => {
+        .then((dataObj) => {
           // console.log('dataObj', dataObj)
           // resolve second promise if it exists
           return Promise.resolve(dataObj.payload)
-            .then(payload => {
+            .then((payload) => {
               // console.log('payload', payload)
               if (dataObj.type === 'image') {
                 // console.log("payload", cardType);
@@ -199,21 +199,21 @@ exports.createSendAPIresponse = (sender_psid, cardType, checkInputResponse) => {
                     type: 'image',
                     payload: {
                       url: utils.whichUrl(cardType, payload),
-                      is_reusable: true
-                    }
-                  }
+                      is_reusable: true,
+                    },
+                  },
                 }
               } else if (dataObj.type === 'text') {
                 return {
-                  text: payload
+                  text: payload,
                 }
               }
             })
-            .catch(e => {
+            .catch((e) => {
               console.error('An error in createSendAPIresponse promise 2', e)
             })
         })
-        .catch(e => {
+        .catch((e) => {
           console.error('An error in createSendAPIresponse promise 1', e)
         })
     })
@@ -231,26 +231,27 @@ exports.handleMessageType = (sender_psid, webhook_event, cardType) => {
       return Promise.resolve(
         this.checkInputText(webhook_event.message.text, cache)
       )
-        .then(responseVal => {
+        .then((responseVal) => {
           // console.log('RES', responseVal)
           // create FB response obj
           return Promise.resolve(
             this.createSendAPIresponse(sender_psid, cardType, responseVal)
           )
-            .then(res => {
+            .then((res) => {
               // send data to API
               return Promise.resolve(this.callSendAPI(sender_psid, res))
             })
-            .catch(e => {
+            .catch((e) => {
               console.error('An error in handleMessageType promise 2', e)
             })
         })
-        .catch(e => {
+        .catch((e) => {
           console.error('An error in handleMessageType promise 1', e)
         })
     } else {
       let response = {
-        text: 'Your response needs to be a text response. Please type something'
+        text:
+          'Your response needs to be a text response. Please type something',
       }
       return this.callSendAPI(sender_psid, response)
     }
@@ -263,11 +264,13 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
   console.log('postback', webhook_event)
   let payload = webhook_event.postback.payload
   console.log('payload', payload)
+  // GET STARTED
   if (payload === values.postbacks.get_started) {
     return this.getStartedMessages(sender_psid)
+    // GET CARD
   } else if (payload === values.postbacks.get_card) {
     // get random driver name and slug
-    return driverController.getRandomDriver().then(randomDriver => {
+    return driverController.getRandomDriver().then((randomDriver) => {
       console.log('random', randomDriver)
       // get full driver obj
       return Promise.resolve(
@@ -275,15 +278,15 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
           randomDriver.name_slug,
           cache.driverCache
         )
-      ).then(driverRes => {
+      ).then((driverRes) => {
         // check and make typed response obj
-        return this.checkInputText(driverRes.slug, cache).then(typeRes => {
+        return this.checkInputText(driverRes.slug, cache).then((typeRes) => {
           // form into correct FB format
           return this.createSendAPIresponse(
             sender_psid,
             cardType,
             typeRes
-          ).then(res => {
+          ).then((res) => {
             // send to messenger
             return this.callSendAPI(sender_psid, res).then(() => {
               return this.callSendAPI(sender_psid, this.followUpTemplate())
@@ -292,16 +295,18 @@ exports.handlePostback = (sender_psid, webhook_event, cardType) => {
         })
       })
     })
+    // GET DELIVERY
   } else if (payload === values.postbacks.get_delivery) {
     // sends template with choose_drivers/ teams buttons1
     return this.sendDeliveryOptions(webhook_event)
   }
 }
-exports.sendDeliveryOptions = webhook_event => {
+// ask user how they want to receive their subscription
+exports.sendDeliveryOptions = (webhook_event) => {
   // get sender ID and store it
   // ask which drivers they want to get info about
   return this.callSendAPI(webhook_event.sender.id, {
-    text: 'some random text'
+    text: 'some random text',
   }).then(() => {
     console.log('here', this.logInButton())
     return this.callSendAPI(webhook_event.sender.id, this.logInButton())
@@ -309,23 +314,23 @@ exports.sendDeliveryOptions = webhook_event => {
 }
 // sends the messages on get_started click
 // takes sender_psid and response obj
-exports.getStartedMessages = sender_psid => {
+exports.getStartedMessages = (sender_psid) => {
   return this.callSendAPI(sender_psid, {
-    text: `${responses.profile.greeting3}\n--------------- ${responses.instructions['how-it-works']} ---------------`
+    text: `${responses.profile.greeting3}\n--------------- ${responses.instructions['how-it-works']} ---------------`,
   })
     .then(() => {
       return this.callSendAPI(sender_psid, {
-        text: responses.instructions.instr1
+        text: responses.instructions.instr1,
       })
     })
     .then(() => {
       return this.callSendAPI(sender_psid, {
-        text: responses['support-words'].or_even_better
+        text: responses['support-words'].or_even_better,
       })
     })
     .then(() => {
       return this.callSendAPI(sender_psid, {
-        text: `•  ${responses.instructions.set1['sign-up']}\n•  ${responses.instructions.set1.choose}\n•  ${responses.instructions.set1.send}`
+        text: `•  ${responses.instructions.set1['sign-up']}\n•  ${responses.instructions.set1.choose}\n•  ${responses.instructions.set1.send}`,
       })
     })
     .then(() => {
@@ -349,18 +354,18 @@ exports.welcomeTemplate = () => {
               {
                 type: 'postback',
                 title: values.titles.get_card,
-                payload: values.postbacks.get_card
+                payload: values.postbacks.get_card,
               },
               {
                 type: 'postback',
                 title: values.titles.get_delivery,
-                payload: values.postbacks.get_delivery
-              }
-            ]
-          }
-        ]
-      }
-    }
+                payload: values.postbacks.get_delivery,
+              },
+            ],
+          },
+        ],
+      },
+    },
   }
 }
 exports.followUpTemplate = () => {
@@ -374,20 +379,20 @@ exports.followUpTemplate = () => {
           {
             type: 'postback',
             title: values.titles.get_card,
-            payload: values.postbacks.get_card
+            payload: values.postbacks.get_card,
           },
           {
             type: 'postback',
             title: values.titles.get_delivery,
-            payload: values.postbacks.get_delivery
-          }
-        ]
-      }
-    }
+            payload: values.postbacks.get_delivery,
+          },
+        ],
+      },
+    },
   }
 }
 // send buttons that bring up webviews
-exports.getDeliveryTemplate = sender_id => {
+exports.getDeliveryTemplate = (sender_id) => {
   return {
     attachment: {
       type: 'template',
@@ -402,7 +407,7 @@ exports.getDeliveryTemplate = sender_id => {
             // attach senderID to the URL
             url: `${endpoints.prodCardsEndpoint}/drivers?size=mini&id=${sender_id}`,
             title: values.titles.choose_drivers,
-            webview_height_ratio: 'full'
+            webview_height_ratio: 'full',
           },
           {
             // see list of teams`
@@ -411,11 +416,11 @@ exports.getDeliveryTemplate = sender_id => {
             // attach senderID to the URL
             url: `${endpoints.prodCardsEndpoint}/teams?size=mini&id=${sender_id}`,
             title: values.titles.choose_teams,
-            webview_height_ratio: 'full'
-          }
-        ]
-      }
-    }
+            webview_height_ratio: 'full',
+          },
+        ],
+      },
+    },
   }
 }
 // send buttons that bring up webviews
@@ -429,11 +434,11 @@ exports.logInButton = () => {
         buttons: [
           {
             type: 'account_link',
-            url: 'f1-cards.herokuapp.com/login'
-          }
-        ]
-      }
-    }
+            url: 'f1-cards.herokuapp.com/login',
+          },
+        ],
+      },
+    },
   }
 }
 // takes id and response obj
@@ -441,9 +446,9 @@ exports.callSendAPI = (sender_psid, response) => {
   console.log('CALL API')
   let request_body = {
     recipient: {
-      id: sender_psid
+      id: sender_psid,
     },
-    message: response
+    message: response,
   }
   return new Promise((resolve, reject) => {
     return request(

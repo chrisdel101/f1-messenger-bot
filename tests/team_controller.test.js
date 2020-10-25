@@ -19,10 +19,10 @@ const isObjectEmpty = require('lodash/isEmpty')
 //   // patch the function to get handleMessageType to take correct path
 //   teamController.__set__('driversCache', stub)
 // })
-describe('teams controller', function() {
+describe('teams controller', function () {
   describe('getAllTeamSlugs()', () => {
-    it('getAllTeamSlugs returns an array after parsing', function() {
-      return teamController.getAllTeamSlugs().then(result => {
+    it('getAllTeamSlugs returns an array after parsing', function () {
+      return teamController.getAllTeamSlugs().then((result) => {
         assert(typeof result === 'string')
         //   parse Json
         const parsed = JSON.parse(result)
@@ -31,17 +31,17 @@ describe('teams controller', function() {
     })
     //   check json string before parsing
     it('getAllTeamSlugs returns all teams', () => {
-      return teamController.getAllTeamSlugs().then(result => {
+      return teamController.getAllTeamSlugs().then((result) => {
         assert(result.includes('mercedes'))
         assert(result.includes('ferrari'))
       })
     })
   })
   describe('cacheAndGetTeams()', () => {
-    it('cacheAndGetTeams adds slugs array to cache - hits the hasOwnProperty team_slugs condition', function() {
+    it('cacheAndGetTeams adds slugs array to cache - hits the hasOwnProperty team_slugs condition', function () {
       sinon.spy(teamController, 'getAllTeamSlugs')
       let fakeCache = {}
-      return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
+      return teamController.cacheAndGetTeams(fakeCache, 1400).then((res) => {
         // console.log('res', res)
         // console.log('fake', fakeCache['teams_slugs'])
         // get goes correct path - fix once SO question answered
@@ -52,41 +52,41 @@ describe('teams controller', function() {
         teamController.getAllTeamSlugs.restore()
       })
     })
-    it('cacheAndGetTeams returns drivers arr after caching', function() {
+    it('cacheAndGetTeams returns drivers arr after caching', function () {
       const fakeCache = {}
-      return teamController.cacheAndGetTeams(fakeCache, 1400).then(res => {
+      return teamController.cacheAndGetTeams(fakeCache, 1400).then((res) => {
         assert(Array.isArray(res))
         assert(res.length > 0)
       })
     })
-    it('cacheAndGetTeams gets drivers data from cache - verifyTimestamp() called and getAllTeamSlugs() not called', function() {
+    it('cacheAndGetTeams gets drivers data from cache - verifyTimestamp() called and getAllTeamSlugs() not called', function () {
       sinon.spy(utils, 'verifyTimeStamp')
       sinon.spy(teamController, 'getAllTeamSlugs')
       const fakeCache = {
         teams_slugs: {
           teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
-          timeStamp: new Date()
-        }
+          timeStamp: new Date(),
+        },
       }
       return Promise.resolve(
         teamController.cacheAndGetTeams(fakeCache, 1400)
-      ).then(res => {
+      ).then((res) => {
         assert(utils.verifyTimeStamp.calledOnce)
         assert(teamController.getAllTeamSlugs.notCalled)
         teamController.getAllTeamSlugs.restore()
         utils.verifyTimeStamp.restore()
       })
     })
-    it('cacheAndGetTeams gets drivers data from cache - returns drivers', function() {
+    it('cacheAndGetTeams gets drivers data from cache - returns drivers', function () {
       const fakeCache = {
         teams_slugs: {
           teams_slugs: [{ name: 'Test Team', name_slug: 'test_team' }],
-          timeStamp: new Date()
-        }
+          timeStamp: new Date(),
+        },
       }
       return Promise.resolve(
         teamController.cacheAndGetTeams(fakeCache, 1400)
-      ).then(res => {
+      ).then((res) => {
         // convert to strings to compare res - to comapre 2 arrays
         assert.strictEqual(
           JSON.stringify(res),
@@ -96,17 +96,17 @@ describe('teams controller', function() {
     })
   })
   describe('cacheAndGetTeam', () => {
-    it('cacheAndGetTeam caches new team to cache - non-empty cache', function() {
+    it('cacheAndGetTeam caches new team to cache - non-empty cache', function () {
       const fakeCache = {
         'test-team': {
           imageUrl: 'fakeImageUrl.com',
           mobileImageUrl: 'fakeMobileImageUrl.com',
-          timeStamp: new Date()
-        }
+          timeStamp: new Date(),
+        },
       }
       return teamController
         .cacheAndGetTeam('red_bull_racing', fakeCache)
-        .then(res => {
+        .then((res) => {
           // check for old data
           assert(fakeCache.hasOwnProperty('test-team'))
           assert(fakeCache['test-team'].hasOwnProperty('imageUrl'))
@@ -117,18 +117,18 @@ describe('teams controller', function() {
           assert(fakeCache['red_bull_racing'].hasOwnProperty('mobileImageUrl'))
         })
     })
-    it('cacheAndGetTeam caches new team to cache - empty cache', function() {
+    it('cacheAndGetTeam caches new team to cache - empty cache', function () {
       const fakeCache = {}
       return teamController
         .cacheAndGetTeam('red_bull_racing', fakeCache)
-        .then(res => {
+        .then((res) => {
           // check for new data
           assert(fakeCache.hasOwnProperty('red_bull_racing'))
           assert(fakeCache['red_bull_racing'].hasOwnProperty('imageUrl'))
           assert(fakeCache['red_bull_racing'].hasOwnProperty('mobileImageUrl'))
         })
     })
-    it('cacheAndGetTeam gets team from the cache - timeStamp verified', function() {
+    it('cacheAndGetTeam gets team from the cache - timeStamp verified', function () {
       // called only on fetch
       sinon.spy(teamController, 'checkTeamApi')
       // called only when timestamp fails
@@ -138,12 +138,12 @@ describe('teams controller', function() {
         mercedes: {
           imageUrl: 'fakeImageUrl.com',
           mobileImageUrl: 'fakeMobileImageUrl.com',
-          timeStamp: utils.createDelayTimeStamp(15)
-        }
+          timeStamp: utils.createDelayTimeStamp(15),
+        },
       }
       return Promise.resolve(
         teamController.cacheAndGetTeam('mercedes', fakeCache)
-      ).then(res => {
+      ).then((res) => {
         // check api was not called
         assert(teamController.checkTeamApi.notCalled)
         // check cache was called - not created
@@ -158,7 +158,7 @@ describe('teams controller', function() {
         teamController.checkTeamApi.restore()
       })
     })
-    it('cacheAndGetDriver gets driver from the cache - timeStamp failed', function() {
+    it('cacheAndGetDriver gets driver from the cache - timeStamp failed', function () {
       sinon.spy(teamController, 'checkTeamApi')
       // called only when timestamp fails
       sinon.spy(teamController, 'createTeamObject')
@@ -166,12 +166,12 @@ describe('teams controller', function() {
         mercedes: {
           imageUrl: 'fakeImageUrl.com',
           mobileImageUrl: 'fakeMobileImageUrl.com',
-          timeStamp: utils.createDelayTimeStamp(31)
-        }
+          timeStamp: utils.createDelayTimeStamp(31),
+        },
       }
       return Promise.resolve(
         teamController.cacheAndGetTeam('mercedes', fakeCache)
-      ).then(res => {
+      ).then((res) => {
         assert(teamController.checkTeamApi.notCalled)
         //difference is here - check api was called - not cache
         console.log(teamController.createTeamObject.callCount)
@@ -185,51 +185,53 @@ describe('teams controller', function() {
     })
   })
   describe('checkTeamApi', () => {
-    it('checkTeamApi returns correct team name - using name ferrari', function() {
+    it('checkTeamApi returns correct team name - using name ferrari', function () {
       return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
-        res => {
+        (res) => {
           assert.strictEqual(res, 'ferrari')
         }
       )
     })
-    it('checkTeamApi returns correct team name - using name ferrari', function() {
+    it('checkTeamApi returns correct team name - using name ferrari', function () {
       return Promise.resolve(teamController.checkTeamApi('scuderia')).then(
-        res => {
+        (res) => {
           assert.strictEqual(res, 'ferrari')
         }
       )
     })
-    it('checkTeamApi returns correct team name - using name Aston Martin', function() {
+    it('checkTeamApi returns correct team name - using name Aston Martin', function () {
       return Promise.resolve(teamController.checkTeamApi('Aston Martin')).then(
-        res => {
+        (res) => {
           assert.strictEqual(res, 'red_bull_racing')
         }
       )
     })
-    it('checkTeamApi returns correct team name - using name Haas', function() {
-      return Promise.resolve(teamController.checkTeamApi('Haas')).then(res => {
-        assert.strictEqual(res, 'haas_f1_team')
-      })
+    it('checkTeamApi returns correct team name - using name Haas', function () {
+      return Promise.resolve(teamController.checkTeamApi('Haas')).then(
+        (res) => {
+          assert.strictEqual(res, 'haas_f1_team')
+        }
+      )
     })
-    it('checkTeamApi returns correct team name - using slug red_bull_racing', function() {
+    it('checkTeamApi returns correct team name - using slug red_bull_racing', function () {
       return Promise.resolve(
         teamController.checkTeamApi('red_bull_racing')
-      ).then(res => {
+      ).then((res) => {
         console.log(res)
         assert.strictEqual(res, 'red_bull_racing')
       })
     })
-    it('checkTeamApi returns correct team name - using slug alfa_romeo_racing', function() {
+    it('checkTeamApi returns correct team name - using slug alfa_romeo_racing', function () {
       return Promise.resolve(
         teamController.checkTeamApi('alfa_romeo_racing')
-      ).then(res => {
+      ).then((res) => {
         console.log(res)
         assert.strictEqual(res, 'alfa_romeo_racing')
       })
     })
-    it('checkTeamApi returns false', function() {
+    it('checkTeamApi returns false', function () {
       return Promise.resolve(teamController.checkTeamApi('mclaaren')).then(
-        res => {
+        (res) => {
           assert(!res)
         }
       )
@@ -237,10 +239,10 @@ describe('teams controller', function() {
   })
 
   describe('makeTeamEntriesLower()', () => {
-    it('makeTeamEntriesLower makes entries name lower', function() {
+    it('makeTeamEntriesLower makes entries name lower', function () {
       const testArr = [
         { name: 'Test Team Racing', name_slug: 'test_team_racing' },
-        { name: 'Some Long Team Racing Name', name_slug: 'some_racing_name' }
+        { name: 'Some Long Team Racing Name', name_slug: 'some_racing_name' },
       ]
       const res = teamController.makeTeamEntriesLower(testArr)
       assert.strictEqual(res[0].name, testArr[0].name.toLowerCase())

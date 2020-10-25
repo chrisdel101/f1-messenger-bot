@@ -1,11 +1,10 @@
-require('dotenv').config(
-  '/Users/chrisdielschnieder/desktop/code_work/formula1/f1-messenger-bot/.env'
-)
+require('dotenv').config(`${__dirname}/.env`)
 const helmet = require('helmet')
 var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
+// console.log(`${__dirname}/.env`)
 
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')

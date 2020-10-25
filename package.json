@@ -7,7 +7,7 @@
     "dev": "./node_modules/.bin/nodemon bin/www",
     "prod": "NODE_ENV=production node bin/www",
     "test": "NODE_ENV=testing mocha --timeout 10000 tests/**/*.test.js",
-    "test:live": "NODE_ENV=testing mocha --timeout 10000 tests/live.tests.js"
+    "test:live": "NODE_ENV=testing mocha --timeout 20000 tests/live.tests.js"
   },
   "prettier": {
     "semi": false,
