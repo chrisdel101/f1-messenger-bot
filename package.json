@@ -20,7 +20,7 @@
     "express": "~4.16.1",
     "helmet": "^3.21.2",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "morgan": "~1.9.1",
     "newrelic": "^5.13.1",
     "request": "^2.88.0",
